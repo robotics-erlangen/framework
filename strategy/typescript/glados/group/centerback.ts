@@ -143,8 +143,8 @@ export class CenterBack implements Group {
 	public readonly name = "centerback";
 	private _lastLocked: boolean = false;
 
-	private privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
-	private centerBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number; time?: number }> = new Map();
+	private _privateCenterBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number }> = new Map();
+	private _centerBackPositions: Map<FriendlyRobot, { pos: Position; target: Target | undefined; way: number; time?: number }> = new Map();
 
 	// TODO: Target are at the moment defined as table that contains a Vector (pos).
 	// They should be {pos= Vector, dir=Vector, time = number}
@@ -410,17 +410,17 @@ export class CenterBack implements Group {
 		sortedRobots.sort(lessthan_robots);
 
 		// store result (robot -> (pos, target, way))
-		this.centerBackPositions = new Map<FriendlyRobot, Point>();
+		this._centerBackPositions = new Map<FriendlyRobot, Point>();
 		if (idealBot == undefined) {
 			if (defensePoints.length !== sortedRobots.length) {
 				throw new Error();
 			}
 			for (let i = 0; i < sortedRobots.length; i++) {
-				this.centerBackPositions[sortedRobots[i]] = defensePoints[i];
+				this._centerBackPositions[sortedRobots[i]] = defensePoints[i];
 			}
 		} else {
 			// first: Assign the ideal bot to the necessary defense Point
-			this.centerBackPositions[idealBot] = necessaryDefensePoint!;
+			this._centerBackPositions[idealBot] = necessaryDefensePoint!;
 			// second: partition the world in pre and post idealBot / defensePoint
 			let indexRobot = sortedRobots.indexOf(idealBot);
 			let firstRobots = sortedRobots.slice(0, indexRobot);
@@ -428,12 +428,12 @@ export class CenterBack implements Group {
 			let indexPoint = defensePoints.indexOf(necessaryDefensePoint!);
 			let firstPoints = defensePoints.slice(0, indexPoint);
 			let secondPoints = defensePoints.slice(indexPoint + 1);
-			assignRobotsToPoints(firstRobots, firstPoints, this.centerBackPositions, necessaryDefensePoint!.way, true, delta, extraDistance);
-			assignRobotsToPoints(secondRobots, secondPoints, this.centerBackPositions, necessaryDefensePoint!.way, false, delta, extraDistance);
+			assignRobotsToPoints(firstRobots, firstPoints, this._centerBackPositions, necessaryDefensePoint!.way, true, delta, extraDistance);
+			assignRobotsToPoints(secondRobots, secondPoints, this._centerBackPositions, necessaryDefensePoint!.way, false, delta, extraDistance);
 		}
 
 		// calculate final positions for unimportant robots
-		this.privateCenterBackPositions = new Map<FriendlyRobot, Point>();
+		this._privateCenterBackPositions = new Map<FriendlyRobot, Point>();
 		for (let [robot, target] of unimportantApplications.entries()) {
 			// if the target is the ball, predict it
 			let targetPos = target.pos;
@@ -459,7 +459,7 @@ export class CenterBack implements Group {
 			}
 			let pos = <Position> Field.defenseIntersectionByWay(target_way, extraDistance, true);
 			vis.addCircle("g/centerback: Positions", pos, 0.1, vis.colors.greenHalf);
-			this.privateCenterBackPositions[robot] = { pos: pos, target: target, way: target_way };
+			this._privateCenterBackPositions[robot] = { pos: pos, target: target, way: target_way };
 		}
 	}
 
@@ -467,8 +467,8 @@ export class CenterBack implements Group {
 		this.calculateCenterBackPositions(messages);
 
 		for (let robot of messages.keys()) {
-			let pos_target = this.centerBackPositions[robot];
-			pos_target = pos_target || this.privateCenterBackPositions[robot];
+			let pos_target = this._centerBackPositions[robot];
+			pos_target = pos_target || this._privateCenterBackPositions[robot];
 			messaging.send(MessageType.centerBackPosTarget, robot, pos_target!);
 		}
 	}

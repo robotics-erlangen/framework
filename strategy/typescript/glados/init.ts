@@ -62,18 +62,18 @@ Processor.addPre(new PreProc());
 // Processor.addPre(new BallAnalyzer)
 
 class PostProc implements Process {
-	private takingAdvantage: boolean = false;
+	private _takingAdvantage: boolean = false;
 
 	public run() {
 		if (GameController.isConnected()) {
-			if (!this.takingAdvantage && Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage()) {
+			if (!this._takingAdvantage && Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage()) {
 				log("Taking advantage");
 				GameController.sendAdvantageReponse("continue");
-				this.takingAdvantage = true;
-			} else if (this.takingAdvantage && !(Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage())) {
+				this._takingAdvantage = true;
+			} else if (this._takingAdvantage && !(Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage())) {
 				log("Stopping advantage");
 				GameController.sendAdvantageReponse("stop");
-				this.takingAdvantage = false;
+				this._takingAdvantage = false;
 			}
 		}
 	}

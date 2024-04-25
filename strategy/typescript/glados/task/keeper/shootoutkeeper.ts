@@ -126,7 +126,7 @@ export class ShootoutKeeper extends Task {
 
 			vis.addCircle("t/a/chipToBorder", ballPos + robotDir.withLength(chipDist), 0.1, vis.colors.blue, true);
 			if (!Robot.hadBall(this._robot, 0)) {
-				this._forceShoot._forceShootTimer = undefined;
+				this._forceShoot.forceShootTimer = undefined;
 			}
 			this._forceShoot._doForceShoot();
 			this._robot.chip(chipDist);

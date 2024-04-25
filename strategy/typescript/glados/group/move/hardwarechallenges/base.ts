@@ -21,23 +21,23 @@ export abstract class HardwareChallengeBase extends Move {
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	// override with specific challenge
-	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
+	protected _challengeNumber: 1 | 2 | 3 | 4 | undefined = undefined;
 
-	protected friendlyTransforms: RobotState[];
-	protected opponentTransforms: RobotState[];
-	private ballPos: BallInfo;
-	private static initialized: boolean = false;
-	private static refHalt: boolean = false;
-	private static refStart: boolean = false;
-	private currentObstacleToSet: number = 0;
+	protected _friendlyTransforms: RobotState[];
+	protected _opponentTransforms: RobotState[];
+	private _ballPos: BallInfo;
+	private static _initialized: boolean = false;
+	private static _refHalt: boolean = false;
+	private static _refStart: boolean = false;
+	private _currentObstacleToSet: number = 0;
 
 	// only necessary to not spam log messages
-	private numberOfInsufficientFriendlyRobots: number = -1;
-	private numberOfInsufficientOpponentRobots: number = -1;
+	private _numberOfInsufficientFriendlyRobots: number = -1;
+	private _numberOfInsufficientOpponentRobots: number = -1;
 
-	private friendlyInitialized: boolean[];
-	private opponentInitialized: boolean[];
-	private ballInitialized: boolean = false;
+	private _friendlyInitialized: boolean[];
+	private _opponentInitialized: boolean[];
+	private _ballInitialized: boolean = false;
 
 	// any type meaning any of the scenarios in scenarios.ts from the JSONs
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox, positions: any) {
@@ -48,7 +48,7 @@ export abstract class HardwareChallengeBase extends Move {
 		let ball = positions.ball;
 
 		// third entry of pos is angle, which doesn't make sense for ball
-		this.ballPos = {
+		this._ballPos = {
 			// necessary transformation, because moveObjects assumes local coordinates
 			pos: Coordinates.fromVision(new Vector(ball.pos[0], ball.pos[1])),
 			posZ: 0,
@@ -76,15 +76,15 @@ export abstract class HardwareChallengeBase extends Move {
 		let blueTransforms = blueRobots.map(getTransform);
 
 		if (World.TeamIsBlue) {
-			this.friendlyTransforms = blueTransforms;
-			this.opponentTransforms = yellowTransforms;
+			this._friendlyTransforms = blueTransforms;
+			this._opponentTransforms = yellowTransforms;
 		} else {
-			this.friendlyTransforms = yellowTransforms;
-			this.opponentTransforms = blueTransforms;
+			this._friendlyTransforms = yellowTransforms;
+			this._opponentTransforms = blueTransforms;
 		}
 
-		this.friendlyInitialized = this.friendlyTransforms.map((_) => false);
-		this.opponentInitialized = this.opponentTransforms.map((_) => false);
+		this._friendlyInitialized = this._friendlyTransforms.map((_) => false);
+		this._opponentInitialized = this._opponentTransforms.map((_) => false);
 	}
 
 	public static canStart() {
@@ -112,18 +112,18 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	private placeOpponents(): MoveParameters | undefined {
-		if (this.currentObstacleToSet >= this.opponentTransforms.length) {
+		if (this._currentObstacleToSet >= this._opponentTransforms.length) {
 			return undefined;
 		}
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
-		let transform = this.opponentTransforms[this.currentObstacleToSet];
+		let transform = this._opponentTransforms[this._currentObstacleToSet];
 		let resetMoveToPos = false;
 		let everyoneInPosition = true;
-		for (let i = 0; i < this.opponentTransforms.length; ++i) {
-			let transform = this.opponentTransforms[i];
-			let previouslyCorrect = this.opponentInitialized[i];
+		for (let i = 0; i < this._opponentTransforms.length; ++i) {
+			let transform = this._opponentTransforms[i];
+			let previouslyCorrect = this._opponentInitialized[i];
 			let obstacleInPosition = false;
 			for (let robot of World.OpponentRobots) {
 				if (HardwareChallengeBase.compareRobotToState(robot, transform, previouslyCorrect)) {
@@ -132,20 +132,20 @@ export abstract class HardwareChallengeBase extends Move {
 				}
 			}
 			if (!obstacleInPosition) {
-				resetMoveToPos = this.currentObstacleToSet !== i;
-				this.currentObstacleToSet = i;
-				this.opponentInitialized[i] = false;
+				resetMoveToPos = this._currentObstacleToSet !== i;
+				this._currentObstacleToSet = i;
+				this._opponentInitialized[i] = false;
 				everyoneInPosition = false;
 				break;
 			}
-			this.opponentInitialized[i] = true;
+			this._opponentInitialized[i] = true;
 		}
 
 		if (everyoneInPosition) {
 			return undefined;
 		}
 
-		transform = this.opponentTransforms[this.currentObstacleToSet];
+		transform = this._opponentTransforms[this._currentObstacleToSet];
 		let dir = transform.dir + Math.PI;
 		if (dir > 2.0 * Math.PI) {
 			dir -= 2.0 * Math.PI;
@@ -157,12 +157,12 @@ export abstract class HardwareChallengeBase extends Move {
 		let pos = transform.pos + Vector.fromAngle(transform.dir) * 2.0 * radius;
 
 		let customObstacles: Obstacle[] = [];
-		for (let i = 0; i < this.opponentTransforms.length; ++i) {
-			if (i === this.currentObstacleToSet) {
+		for (let i = 0; i < this._opponentTransforms.length; ++i) {
+			if (i === this._currentObstacleToSet) {
 				continue;
 			}
 
-			let obstacleTransform = this.opponentTransforms[i];
+			let obstacleTransform = this._opponentTransforms[i];
 			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
@@ -172,8 +172,8 @@ export abstract class HardwareChallengeBase extends Move {
 			});
 		}
 
-		for (let i = 1; i < this.friendlyTransforms.length; ++i) {
-			let obstacleTransform = this.friendlyTransforms[i];
+		for (let i = 1; i < this._friendlyTransforms.length; ++i) {
+			let obstacleTransform = this._friendlyTransforms[i];
 			let obstacleName: string = `friendlyObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
@@ -206,20 +206,20 @@ export abstract class HardwareChallengeBase extends Move {
 		let maxDistance = END_DISTANCE;
 
 		// hysteresis
-		if (this.ballInitialized) {
+		if (this._ballInitialized) {
 			maxDistance += 0.02;
 		}
 
-		if (World.Ball.isPositionValid() && (World.Ball.pos - this.ballPos.pos).length() < maxDistance
+		if (World.Ball.isPositionValid() && (World.Ball.pos - this._ballPos.pos).length() < maxDistance
 			&& World.Ball.speed.length() < 0.1) {
-			this.ballInitialized = true;
+			this._ballInitialized = true;
 			return undefined;
 		}
-		this.ballInitialized = false;
+		this._ballInitialized = false;
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: PlaceBall,
-			params: [this.ballPos.pos],
+			params: [this._ballPos.pos],
 			restart: false
 		});
 
@@ -231,8 +231,8 @@ export abstract class HardwareChallengeBase extends Move {
 		let everyoneInPosition = true;
 
 		let customObstacles: Obstacle[] = [];
-		for (let i = 0; i < this.opponentTransforms.length; ++i) {
-			let obstacleTransform = this.opponentTransforms[i];
+		for (let i = 0; i < this._opponentTransforms.length; ++i) {
+			let obstacleTransform = this._opponentTransforms[i];
 			let obstacleName: string = `opponentObstacle${i}`;
 			customObstacles.push({
 				type: "circle",
@@ -248,10 +248,10 @@ export abstract class HardwareChallengeBase extends Move {
 			radius: World.Ball.radius + 0.005,
 			name: "ballObstacle"
 		});
-		for (let i = startIndex; i < this.friendlyTransforms.length; ++i) {
-			let transform = this.friendlyTransforms[i];
-			this.friendlyInitialized[i] = HardwareChallengeBase.compareRobotToState(this._robots[i], transform, this.friendlyInitialized[i]);
-			everyoneInPosition = everyoneInPosition && this.friendlyInitialized[i];
+		for (let i = startIndex; i < this._friendlyTransforms.length; ++i) {
+			let transform = this._friendlyTransforms[i];
+			this._friendlyInitialized[i] = HardwareChallengeBase.compareRobotToState(this._robots[i], transform, this._friendlyInitialized[i]);
+			everyoneInPosition = everyoneInPosition && this._friendlyInitialized[i];
 
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: MoveToPos,
@@ -261,7 +261,7 @@ export abstract class HardwareChallengeBase extends Move {
 		}
 
 		// avoid other robots dropping out of move
-		for (let i = this.friendlyTransforms.length; i < this._robots.length; ++i) {
+		for (let i = this._friendlyTransforms.length; i < this._robots.length; ++i) {
 			taskAssignments[this._robots[i]] = Assignment.create({
 				class: Halt
 			});
@@ -282,27 +282,27 @@ export abstract class HardwareChallengeBase extends Move {
 	}
 
 	private showVis() {
-		for (let transform of this.opponentTransforms) {
+		for (let transform of this._opponentTransforms) {
 			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, 2 * Math.PI + transform.dir - geom.degreeToRadian(20), transform.dir + geom.degreeToRadian(20), vis.colors.yellow, false);
 		}
-		for (let transform of this.friendlyTransforms) {
+		for (let transform of this._friendlyTransforms) {
 			vis.addPizza("HWChallenge/FriendlyPosition", transform.pos, this._robots[0].radius, 2 * Math.PI + transform.dir - geom.degreeToRadian(20), transform.dir + geom.degreeToRadian(20), vis.colors.blue, false);
 		}
-		vis.addCircle("HWChallenge/BallPosition", this.ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
+		vis.addCircle("HWChallenge/BallPosition", this._ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
 	}
 
 	public readonly _updateTasks: (() => MoveParameters) = () => {
-		if (HardwareChallengeBase.initialized) {
-			if (!HardwareChallengeBase.refHalt && World.RefereeState === "Halt") {
-				HardwareChallengeBase.refHalt = true;
-				PathHelper.setHardwareChallenge(this.challengeNumber);
+		if (HardwareChallengeBase._initialized) {
+			if (!HardwareChallengeBase._refHalt && World.RefereeState === "Halt") {
+				HardwareChallengeBase._refHalt = true;
+				PathHelper.setHardwareChallenge(this._challengeNumber);
 				amun.log("Finished initialization.");
 			}
 
-			if (HardwareChallengeBase.refHalt && World.RefereeState !== "Halt") {
-				HardwareChallengeBase.refStart = true;
+			if (HardwareChallengeBase._refHalt && World.RefereeState !== "Halt") {
+				HardwareChallengeBase._refStart = true;
 			}
-			if (HardwareChallengeBase.refStart) {
+			if (HardwareChallengeBase._refStart) {
 				return this.challengeSpecificUpdateTask();
 			} else {
 				this.showVis();
@@ -314,33 +314,33 @@ export abstract class HardwareChallengeBase extends Move {
 
 		if (World.WorldStateSource() === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
-			let numberFriendlies = Math.min(this.friendlyTransforms.length, this._robots.length);
+			let numberFriendlies = Math.min(this._friendlyTransforms.length, this._robots.length);
 			let blueRobots: RobotState[] = [];
 			for (let i = 0; i < numberFriendlies; ++i) {
-				let transform = this.friendlyTransforms[i];
+				let transform = this._friendlyTransforms[i];
 				transform.id = this._robots[i].id;
 				blueRobots.push(transform);
 			}
 
-			let numberOpponents = Math.min(this.opponentTransforms.length, World.OpponentRobots.length);
+			let numberOpponents = Math.min(this._opponentTransforms.length, World.OpponentRobots.length);
 			let yellowRobots: RobotState[] = [];
 			for (let i = 0; i < numberOpponents; ++i) {
-				let transform = this.opponentTransforms[i];
+				let transform = this._opponentTransforms[i];
 				transform.id = World.OpponentRobots[i].id;
 				yellowRobots.push(transform);
 			}
 
-			moveObjects(this.ballPos, blueRobots, yellowRobots);
+			moveObjects(this._ballPos, blueRobots, yellowRobots);
 
-			if (this.friendlyTransforms.length <= this._robots.length && this.opponentTransforms.length <= World.OpponentRobots.length) {
-				HardwareChallengeBase.initialized = true;
+			if (this._friendlyTransforms.length <= this._robots.length && this._opponentTransforms.length <= World.OpponentRobots.length) {
+				HardwareChallengeBase._initialized = true;
 				sendRefereeCommand("Halt");
 			} else {
-				if (this._robots.length !== this.numberOfInsufficientFriendlyRobots || World.OpponentRobots.length !== this.numberOfInsufficientOpponentRobots) {
-					this.numberOfInsufficientFriendlyRobots = this._robots.length;
-					this.numberOfInsufficientOpponentRobots = World.OpponentRobots.length;
-					amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", this.friendlyTransforms.length, "\n",
-							"Opponent robots present: ", World.OpponentRobots.length, "/", this.opponentTransforms.length);
+				if (this._robots.length !== this._numberOfInsufficientFriendlyRobots || World.OpponentRobots.length !== this._numberOfInsufficientOpponentRobots) {
+					this._numberOfInsufficientFriendlyRobots = this._robots.length;
+					this._numberOfInsufficientOpponentRobots = World.OpponentRobots.length;
+					amun.log("Not enough robots. Friendly robots present:\n", this._robots.length, "/", this._friendlyTransforms.length, "\n",
+							"Opponent robots present: ", World.OpponentRobots.length, "/", this._opponentTransforms.length);
 				}
 			}
 
@@ -359,9 +359,9 @@ export abstract class HardwareChallengeBase extends Move {
 
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		HardwareChallengeBase.initialized = this.assignFriendlyMoves(0, taskAssignments);
+		HardwareChallengeBase._initialized = this.assignFriendlyMoves(0, taskAssignments);
 
-		if (HardwareChallengeBase.initialized) {
+		if (HardwareChallengeBase._initialized) {
 			if (amun.isDebug) {
 				sendRefereeCommand("Halt");
 			} else {
@@ -372,9 +372,9 @@ export abstract class HardwareChallengeBase extends Move {
 	};
 
 	protected reset() {
-		HardwareChallengeBase.initialized = false;
-		HardwareChallengeBase.refHalt = false;
-		HardwareChallengeBase.refStart = false;
+		HardwareChallengeBase._initialized = false;
+		HardwareChallengeBase._refHalt = false;
+		HardwareChallengeBase._refStart = false;
 		PathHelper.setHardwareChallenge(0);
 	}
 }

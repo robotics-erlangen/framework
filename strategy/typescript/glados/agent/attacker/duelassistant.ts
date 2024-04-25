@@ -9,10 +9,10 @@ import * as Rating from "glados/util/rating";
 
 
 export class DuelAssistant extends Behavior {
-	public _opponentHasBall: boolean = false;
-	public _closerThanOpp: boolean = false;
-	public _lastChippedHysteresis: boolean = false;
-	public _lastTrue: number | undefined = undefined;
+	private _opponentHasBall: boolean = false;
+	private _closerThanOpp: boolean = false;
+	private _lastChippedHysteresis: boolean = false;
+	private _lastTrue: number | undefined = undefined;
 
 	protected _stop() {
 		this._opponentHasBall = false;

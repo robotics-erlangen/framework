@@ -66,7 +66,7 @@ export class CatchBall {
 	private _catchTime: number | undefined;
 	private _recalculateCatchTimeCounter: number = 0;
 	private _ignoringOpponents: boolean = false;
-	private lastWasBackOff: boolean = false;
+	private _lastWasBackOff: boolean = false;
 
 	private _robot: FriendlyRobot;
 	private _task: Task;
@@ -215,12 +215,12 @@ export class CatchBall {
 				}
 			}
 
-			const diffRadius = this._robot.radius + (this.lastWasBackOff ? 0.02 : 0.01);
+			const diffRadius = this._robot.radius + (this._lastWasBackOff ? 0.02 : 0.01);
 			const performBackOff = World.Ball.pos.distanceToSq(this._robot.pos) < diffRadius * diffRadius &&
 				this._robot.pos.distanceToSq(moveDest) > 0.05 * 0.05 && Ball.isSlowBall() &&
 				!isOpponentClose;
 
-			this.lastWasBackOff = performBackOff;
+			this._lastWasBackOff = performBackOff;
 			debug.set("CatchBall/backoff", performBackOff);
 			if (performBackOff) {
 				viewDir = this._robot.dir;

@@ -475,7 +475,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 }
 
 export class CurvedMaxAccel extends TrajectoryHandler {
-	private rotationCalculation: DirectRotation = new DirectRotation();
+	private _rotationCalculation: DirectRotation = new DirectRotation();
 
 	private _getPath(targetPos: Position): Position[] {
 		this._robot.path.setProbabilities(0.15, 0.65);
@@ -558,7 +558,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let waypoints = this._getPath(targetPos);
 		if (waypoints.length === 0) { // no waypoints left, just stay here but also update the orientation
 			targetDir = Coordinates.toGlobal(targetDir);
-			let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
+			let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
 				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 			let spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: endSpeed.x, a2: 0, a3: 0 },
@@ -638,7 +638,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		} else {
 			targetDir = Coordinates.toGlobal(targetDir);
 		}
-		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
+		let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir,
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		let spline = [{ t_start: 0, t_end: Infinity,

@@ -48,8 +48,8 @@ export class ShootPenalty extends Task {
 	private _shoot: Shoot;
 	private _rotateAndShoot: RotateAndShoot;
 
-	private collectedBallPosition: Position;
-	private ballCounter: number = 0;
+	private _collectedBallPosition: Position;
+	private _ballCounter: number = 0;
 
 	public constructor(behavior: Behavior) {
 		super(behavior);
@@ -62,17 +62,17 @@ export class ShootPenalty extends Task {
 		this._shoot = new Shoot(this);
 		this._rotateAndShoot = new RotateAndShoot(this);
 
-		this.collectedBallPosition = World.Ball.pos;
-		this.ballCounter = 1;
+		this._collectedBallPosition = World.Ball.pos;
+		this._ballCounter = 1;
 	}
 
 	public run() {
 		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.4) {
-			this.collectedBallPosition = this.collectedBallPosition + World.Ball.pos;
-			this.ballCounter += 1;
+			this._collectedBallPosition = this._collectedBallPosition + World.Ball.pos;
+			this._ballCounter += 1;
 		}
 
-		let assumedBallPos = this.collectedBallPosition / this.ballCounter;
+		let assumedBallPos = this._collectedBallPosition / this._ballCounter;
 		vis.addCircle("assumed ball", assumedBallPos, 0.03, vis.colors.red);
 
 		const DIST_TO_BALL = 0.015;
@@ -82,7 +82,7 @@ export class ShootPenalty extends Task {
 			let keeperInsideDefArea = keeper != undefined && Field.isInOpponentDefenseArea(keeper.pos, keeper.radius);
 			debug.set("keeperInsideDefArea", keeperInsideDefArea);
 			if (World.Time - this._startTime < this._waitTime) {
-				this._shoot._catchBall._catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
+				this._shoot.catchBall._catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
 				// detect random keeper movement
 				if (keeperInsideDefArea
 						&& ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left")

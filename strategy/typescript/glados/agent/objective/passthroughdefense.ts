@@ -22,23 +22,23 @@ const G = World.Geometry;
 export class PassThroughDefense extends Objective {
 	public constructor() {
 		super({
-			ma: PassThroughDefense.MA_RUNNER,
-			freekick: PassThroughDefense.FREEKICK_RUNNER,
-			support: PassThroughDefense.SUPPORT_RUNNER
+			ma: PassThroughDefense._MA_RUNNER,
+			freekick: PassThroughDefense._FREEKICK_RUNNER,
+			support: PassThroughDefense._SUPPORT_RUNNER
 		});
 	}
 
-	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _MA_RUNNER = parameterizeClass(CheckableList, [
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _SUPPORT_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FeintPass, { isStriker: false, samplingCtor: StrikerSampling }),
 		BreakPass,
 		parameterizeClass(Support, { isStriker: false, samplingCtor: StrikerSampling }),

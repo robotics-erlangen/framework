@@ -518,13 +518,13 @@ declare namespace Messaging {
 export class Messaging {
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public static readonly MessageBox = class {
-		private messaging: Messaging;
-		private origin: MessageOrigin;
+		private _messaging: Messaging;
+		private _origin: MessageOrigin;
 
 
 		public constructor(messaging: Messaging, origin: MessageOrigin) {
-			this.messaging = messaging;
-			this.origin = origin;
+			this._messaging = messaging;
+			this._origin = origin;
 		}
 
 		/**
@@ -621,7 +621,7 @@ export class Messaging {
 
 		// TODO: more specific send methods for the different cases to improve performance
 		private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
-			if (impersonation !== undefined && this.origin !== "trainer") {
+			if (impersonation !== undefined && this._origin !== "trainer") {
 				throw new Error("Only the trainer is allowed to impersonate agents");
 			}
 
@@ -629,16 +629,16 @@ export class Messaging {
 			// to the corresponding agent. This ensures that a robot only receives
 			// messages sent in frames where he has had the current agent
 			if (receiver !== "all" && receiver !== "trainer") {
-				receiver = (this.messaging._robotToAgent.get(receiver) as AgentLike).robot();
+				receiver = (this._messaging._robotToAgent.get(receiver) as AgentLike).robot();
 				if (receiver == undefined) {
 					return; // not registered yet
 				}
 			}
 
-			let messageBox = this.messaging._newMessages[type];
+			let messageBox = this._messaging._newMessages[type];
 			if (messageBox == undefined) {
 				messageBox = new Map<MessageOrigin, any>();
-				this.messaging._newMessages[type] = messageBox;
+				this._messaging._newMessages[type] = messageBox;
 			}
 			let receiveBox = messageBox.get(receiver);
 			if (receiveBox == undefined) {
@@ -646,7 +646,7 @@ export class Messaging {
 				messageBox.set(receiver, receiveBox);
 			}
 
-			const sender = impersonation ?? this.origin;
+			const sender = impersonation ?? this._origin;
 
 			let messageCount = 0;
 			if (repeated) {
@@ -663,7 +663,7 @@ export class Messaging {
 
 			// debug messages from the trainer to itself directly, since they can be immediately received
 			if (impersonation !== undefined
-				|| (receiver === "trainer" && this.origin === "trainer")) {
+				|| (receiver === "trainer" && this._origin === "trainer")) {
 				this.debugTrainerMessage(type, data, repeated, messageCount, impersonation);
 			}
 		}
@@ -743,9 +743,9 @@ export class Messaging {
 		}
 
 		public receiveGeneric<M extends MessageType>(type: M, receiveOwn?: boolean): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-			let mtypeBox = this.messaging._deliveredMessages[type];
-			if (this.origin === "trainer") {
-				mtypeBox = this.messaging._newMessages[type];
+			let mtypeBox = this._messaging._deliveredMessages[type];
+			if (this._origin === "trainer") {
+				mtypeBox = this._messaging._newMessages[type];
 			}
 			if (mtypeBox == undefined) {
 				return emptyMap;
@@ -757,14 +757,14 @@ export class Messaging {
 				}
 				return mtypeBox.get("all");
 			}
-			let receiveBox = mtypeBox.get(this.origin);
+			let receiveBox = mtypeBox.get(this._origin);
 			let allBox: Map<MessageOrigin, any> | undefined = mtypeBox.get("all");
 			if (receiveBox == undefined && allBox == undefined) {
 				return emptyMap;
 			} else {
 				if (receiveBox == undefined) {
 					receiveBox = new Map<FriendlyRobot, any>();
-					mtypeBox.set(this.origin, receiveBox);
+					mtypeBox.set(this._origin, receiveBox);
 				}
 				if (allBox) {
 					let allMerged = mtypeBox.get("allBoxMerged");
@@ -772,15 +772,15 @@ export class Messaging {
 						allMerged = new Map();
 						mtypeBox.set("allBoxMerged", allMerged);
 					}
-					if (allMerged.get(this.origin) == undefined) { // merge broadcasts into receiveBox
-						let receiverRobot = (this.origin === "trainer") ? "trainer" : this.origin;
+					if (allMerged.get(this._origin) == undefined) { // merge broadcasts into receiveBox
+						let receiverRobot = (this._origin === "trainer") ? "trainer" : this._origin;
 						for (let sender of allBox.keys()) {
 							let data = allBox.get(sender);
-							if (sender !== receiverRobot || this.origin === "trainer") {
+							if (sender !== receiverRobot || this._origin === "trainer") {
 								receiveBox.set(sender, data);
 							}
 						}
-						allMerged.set(this.origin, true);
+						allMerged.set(this._origin, true);
 					}
 				}
 
@@ -789,14 +789,14 @@ export class Messaging {
 		}
 
 		public receiveNoBroadcast<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-			let mtypeBox = this.messaging._deliveredMessages[type];
-			if (this.origin === "trainer") {
-				mtypeBox = this.messaging._newMessages[type];
+			let mtypeBox = this._messaging._deliveredMessages[type];
+			if (this._origin === "trainer") {
+				mtypeBox = this._messaging._newMessages[type];
 			}
 			if (mtypeBox == undefined) {
 				return emptyMap;
 			}
-			let receiveBox = mtypeBox.get(this.origin);
+			let receiveBox = mtypeBox.get(this._origin);
 			if (receiveBox == undefined) {
 				return emptyMap;
 			} else {
@@ -805,9 +805,9 @@ export class Messaging {
 		}
 
 		public receiveAllInbox<M extends MessageType>(type: M): ReadonlyRec<Map<MessageOrigin, ReceivedData<M>>> {
-			let mtypeBox = this.messaging._deliveredMessages[type];
-			if (this.origin === "trainer") {
-				mtypeBox = this.messaging._newMessages[type];
+			let mtypeBox = this._messaging._deliveredMessages[type];
+			if (this._origin === "trainer") {
+				mtypeBox = this._messaging._newMessages[type];
 			}
 			if (mtypeBox == undefined) {
 				return emptyMap;
@@ -824,11 +824,11 @@ export class Messaging {
 		 * to be able to do this, since it is an overseer. The same can't be
 		 * said for normal agents.
 		 */
-			if (this.origin !== "trainer") {
+			if (this._origin !== "trainer") {
 				throw new Error("Only the trainer is allowed to cancel messages");
 			}
 
-			this.messaging._newMessages[type]?.clear();
+			this._messaging._newMessages[type]?.clear();
 		}
 	};
 

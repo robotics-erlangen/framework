@@ -12,28 +12,28 @@ import { DribbleToPos } from "glados/task/shared/dribbletopos";
 import { Halt } from "glados/task/shared/halt";
 
 export class DribbleChallenge extends HardwareChallengeBase {
-	protected challengeNumber: 1 | 2 | 3 | 4 | undefined = 3;
+	protected _challengeNumber: 1 | 2 | 3 | 4 | undefined = 3;
 
-	private static gates: [Position, Vector][] = [];
-	private static currentGateIndex: number = 0;
-	private static moveToMidwayPos: boolean = true;
-	private static currentTargetPosition: Position = new Vector(0, 0);
-	private customObstacles: Obstacle[];
-	private static lastGate: number = -1;
-	private left: boolean = false;
-	private static previouslyLeft: boolean = false;
+	private static _gates: [Position, Vector][] = [];
+	private static _currentGateIndex: number = 0;
+	private static _moveToMidwayPos: boolean = true;
+	private static _currentTargetPosition: Position = new Vector(0, 0);
+	private _customObstacles: Obstacle[];
+	private static _lastGate: number = -1;
+	private _left: boolean = false;
+	private static _previouslyLeft: boolean = false;
 
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging, Scenarios.challenge3);
 
-		for (let i = this.opponentTransforms.length - 1; i > 0; --i) {
-			const posA = this.opponentTransforms[i].pos;
-			const posB = this.opponentTransforms[i - 1].pos;
+		for (let i = this._opponentTransforms.length - 1; i > 0; --i) {
+			const posA = this._opponentTransforms[i].pos;
+			const posB = this._opponentTransforms[i - 1].pos;
 			const relativePosition = posB - posA;
-			DribbleChallenge.gates[this.opponentTransforms.length - i - 1] = [posA, relativePosition];
+			DribbleChallenge._gates[this._opponentTransforms.length - i - 1] = [posA, relativePosition];
 		}
 
-		this.customObstacles = this.opponentTransforms.map((transform) => {
+		this._customObstacles = this._opponentTransforms.map((transform) => {
 			let name: string = `dribbleObstacleY${transform.pos.x}`;
 			return {
 				type: "circle",
@@ -43,37 +43,37 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			};
 		});
 
-		DribbleChallenge.currentTargetPosition = DribbleChallenge.moveToMidwayPos ? this.getMidwayPosition() : this.getCurrentGatePosition();
+		DribbleChallenge._currentTargetPosition = DribbleChallenge._moveToMidwayPos ? this.getMidwayPosition() : this.getCurrentGatePosition();
 	}
 
 	private getCurrentGatePosition(): Position {
-		const currentGate = DribbleChallenge.gates[DribbleChallenge.currentGateIndex];
+		const currentGate = DribbleChallenge._gates[DribbleChallenge._currentGateIndex];
 		return currentGate[0] + 0.5 * currentGate[1];
 	}
 
 	private getNextGateIndex(): number {
 		// if currentGate is the last gate return currentGate as the nextGate
-		return Math.min(DribbleChallenge.gates.length - 1, DribbleChallenge.currentGateIndex + 1);
+		return Math.min(DribbleChallenge._gates.length - 1, DribbleChallenge._currentGateIndex + 1);
 	}
 
 	private getNextGatePosition(): Position {
-		const nextGate = DribbleChallenge.gates[this.getNextGateIndex()];
+		const nextGate = DribbleChallenge._gates[this.getNextGateIndex()];
 		return nextGate[0] + 0.5 * nextGate[1];
 	}
 
 	private getMidwayPosition(): Position {
-		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 			const yOffset = 0.1 + this._robots[0].radius * 2;
-			if (this.left) {
+			if (this._left) {
 				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
 			} else {
 				return this.getCurrentGatePosition() + new Vector(0, yOffset);
 			}
 		}
 
-		const currentGate = DribbleChallenge.gates[DribbleChallenge.currentGateIndex];
+		const currentGate = DribbleChallenge._gates[DribbleChallenge._currentGateIndex];
 		const yOffset = 0.5;
-		if (this.left) {
+		if (this._left) {
 			return currentGate[0] + new Vector(0, -yOffset);
 		} else {
 			return currentGate[0] + new Vector(0, yOffset);
@@ -81,17 +81,17 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	}
 
 	private getNextMidwayPosition(): Position {
-		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
+		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 			const yOffset = 0.1 + this._robots[0].radius * 2;
-			if (this.left) {
+			if (this._left) {
 				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
 			} else {
 				return this.getCurrentGatePosition() + new Vector(0, yOffset);
 			}
 		} else {
-			const currentGate = DribbleChallenge.gates[this.getNextGateIndex()];
+			const currentGate = DribbleChallenge._gates[this.getNextGateIndex()];
 			const yOffset = 0.5;
-			if (this.left) {
+			if (this._left) {
 				return currentGate[0] + new Vector(0, -yOffset);
 			} else {
 				return currentGate[0] + new Vector(0, yOffset);
@@ -110,24 +110,24 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	private checkIfGatePassed(): boolean {
 		const gatePosition = this.getCurrentGatePosition();
 		let ballPosition: Position = this.getBallPosition();
-		const currentGate = DribbleChallenge.gates[DribbleChallenge.currentGateIndex];
+		const currentGate = DribbleChallenge._gates[DribbleChallenge._currentGateIndex];
 		const betweenObstacles = ballPosition.x > currentGate[0].x + this._robots[0].radius && ballPosition.x < (currentGate[0] + currentGate[1]).x + this._robots[0].radius;
 		const crossingThreshold = World.Ball.radius + 0.05;
 		let crossed = false;
-		if (this.left) {
+		if (this._left) {
 			crossed = ballPosition.y - gatePosition.y < -crossingThreshold;
 		} else {
 			crossed = ballPosition.y - gatePosition.y > crossingThreshold;
 		}
-		return (this.left !== DribbleChallenge.previouslyLeft) && betweenObstacles && crossed;
+		return (this._left !== DribbleChallenge._previouslyLeft) && betweenObstacles && crossed;
 	}
 
 	// returns true if position changed
 	private updateTargetPosition(): boolean {
-		if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
-			if ((DribbleChallenge.currentTargetPosition - this._robots[0].pos).length() < 0.1) {
-				DribbleChallenge.moveToMidwayPos = true;
-				DribbleChallenge.currentTargetPosition = this.getNextMidwayPosition();
+		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
+			if ((DribbleChallenge._currentTargetPosition - this._robots[0].pos).length() < 0.1) {
+				DribbleChallenge._moveToMidwayPos = true;
+				DribbleChallenge._currentTargetPosition = this.getNextMidwayPosition();
 
 				return true;
 			} else {
@@ -135,17 +135,17 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			}
 		}
 
-		if (DribbleChallenge.moveToMidwayPos) {
-			if ((this._robots[0].pos - DribbleChallenge.currentTargetPosition).length() < this._robots[0].radius * 2) {
-				DribbleChallenge.moveToMidwayPos = false;
-				DribbleChallenge.currentTargetPosition = this.getCurrentGatePosition();
+		if (DribbleChallenge._moveToMidwayPos) {
+			if ((this._robots[0].pos - DribbleChallenge._currentTargetPosition).length() < this._robots[0].radius * 2) {
+				DribbleChallenge._moveToMidwayPos = false;
+				DribbleChallenge._currentTargetPosition = this.getCurrentGatePosition();
 
 				return true;
 			}
 		} else {
-			if ((DribbleChallenge.currentTargetPosition - this._robots[0].pos).length() < 0.1) {
-				DribbleChallenge.moveToMidwayPos = true;
-				DribbleChallenge.currentTargetPosition = this.getNextMidwayPosition();
+			if ((DribbleChallenge._currentTargetPosition - this._robots[0].pos).length() < 0.1) {
+				DribbleChallenge._moveToMidwayPos = true;
+				DribbleChallenge._currentTargetPosition = this.getNextMidwayPosition();
 
 				return true;
 			}
@@ -159,17 +159,17 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		let restart = false;
 
 		if (this.checkIfGatePassed()) {
-			DribbleChallenge.previouslyLeft = this.left;
-			DribbleChallenge.currentGateIndex = this.getNextGateIndex();
-			if (DribbleChallenge.currentGateIndex === DribbleChallenge.gates.length - 1) {
-				DribbleChallenge.lastGate += 1;
-				amun.log("last gate", DribbleChallenge.lastGate);
+			DribbleChallenge._previouslyLeft = this._left;
+			DribbleChallenge._currentGateIndex = this.getNextGateIndex();
+			if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
+				DribbleChallenge._lastGate += 1;
+				amun.log("last gate", DribbleChallenge._lastGate);
 			}
 			restart = true;
-			amun.log("current gate", DribbleChallenge.currentGateIndex);
+			amun.log("current gate", DribbleChallenge._currentGateIndex);
 		}
 
-		if (DribbleChallenge.lastGate >= 3) {
+		if (DribbleChallenge._lastGate >= 3) {
 			taskAssignments[this._robots[0]] = Assignment.create({
 				class: Halt,
 				params: [],
@@ -178,19 +178,19 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			return { assignments: taskAssignments };
 		}
 
-		if (this.left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
-			this.left = false;
-			DribbleChallenge.previouslyLeft = true;
-		} else if (!this.left && this.getBallPosition().y - this.getCurrentGatePosition().y > 0.1) {
-			this.left = true;
-			DribbleChallenge.previouslyLeft = false;
+		if (this._left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
+			this._left = false;
+			DribbleChallenge._previouslyLeft = true;
+		} else if (!this._left && this.getBallPosition().y - this.getCurrentGatePosition().y > 0.1) {
+			this._left = true;
+			DribbleChallenge._previouslyLeft = false;
 		}
 
 		restart = restart || this.updateTargetPosition();
 
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: DribbleToPos,
-			params: [{ pos: DribbleChallenge.currentTargetPosition, customObstacles: this.customObstacles, useCMA: true, ignoreDefaultObstacles: true }],
+			params: [{ pos: DribbleChallenge._currentTargetPosition, customObstacles: this._customObstacles, useCMA: true, ignoreDefaultObstacles: true }],
 			restart: restart
 		});
 

@@ -16,7 +16,7 @@ import { BallEscort as BallEscortTask } from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
 	private _isDefender: boolean;
-	public _minRobot: Robot | undefined = undefined;
+	private _minRobot: Robot | undefined = undefined;
 
 	private _checkOpponentTimings(): [Robot | undefined, number] {
 		let [minOppRobot, minOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);

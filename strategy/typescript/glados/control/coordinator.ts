@@ -23,7 +23,7 @@ export class Coordinator {
 			this._poolsList.push(pool);
 		}
 
-		this._messaging = trainer._allMessaging;
+		this._messaging = trainer.allMessaging;
 	}
 
 	public run() {

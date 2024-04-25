@@ -28,7 +28,7 @@ export class MoveToPos extends Task {
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _customObstacles: Obstacle[]; // a list of obstacles to be added to the path, see base/path
 	private _suggestPass: SuggestPass | undefined;
-	private useCMA: boolean;
+	private _useCMA: boolean;
 
 	public constructor(behavior: Behavior, params: Parameters) {
 		super(behavior);
@@ -61,7 +61,7 @@ export class MoveToPos extends Task {
 		if (params.suggestPass) {
 			this._suggestPass = new SuggestPass(this);
 		}
-		this.useCMA = params.useCMA === true;
+		this._useCMA = params.useCMA === true;
 	}
 
 	public run() {
@@ -73,7 +73,7 @@ export class MoveToPos extends Task {
 
 		let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
 		let time;
-		if (this.useCMA) {
+		if (this._useCMA) {
 			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, undefined, endSpeed)[1];
 		} else {
 			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, undefined, endSpeed)[1];

@@ -17,43 +17,43 @@ import * as Rating from "glados/util/rating";
 type Trajectory = { pos: Position; speed: Speed; time: number }[];
 
 class PID {
-	private p: number;
-	private i: number;
-	private d: number;
+	private _p: number;
+	private _i: number;
+	private _d: number;
 
-	private maxLength: number;
+	private _maxLength: number;
 
-	private integral: Vector = new Vector(0, 0);
-	private previousError: Vector = new Vector(0, 0);
+	private _integral: Vector = new Vector(0, 0);
+	private _previousError: Vector = new Vector(0, 0);
 
 	public constructor(maxLength: number, p: number, i: number, d: number) {
-		this.maxLength = maxLength;
-		this.p = p;
-		this.i = i;
-		this.d = d;
+		this._maxLength = maxLength;
+		this._p = p;
+		this._i = i;
+		this._d = d;
 	}
 
 	public reset() {
-		this.integral = new Vector(0, 0);
+		this._integral = new Vector(0, 0);
 	}
 
 	public update(error: Vector) {
 		let timeDiff = World.TimeDiff;
 
-		let pOut = error * this.p;
-		this.integral = this.integral + error * timeDiff;
-		let iOut = this.integral * this.i;
+		let pOut = error * this._p;
+		this._integral = this._integral + error * timeDiff;
+		let iOut = this._integral * this._i;
 
-		let derivative = (error - this.previousError) / timeDiff;
-		let dOut = derivative * this.d;
+		let derivative = (error - this._previousError) / timeDiff;
+		let dOut = derivative * this._d;
 
 		let output = pOut + iOut + dOut;
 
-		if (output.length() > this.maxLength) {
-			output = output.withLength(this.maxLength);
+		if (output.length() > this._maxLength) {
+			output = output.withLength(this._maxLength);
 		}
 
-		this.previousError = error;
+		this._previousError = error;
 		return output;
 	}
 }
@@ -63,13 +63,13 @@ class PID {
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
 export class TrajectoryPath extends TrajectoryHandler {
-	private rotationCalculation: DirectRotation = new DirectRotation();
-	private speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
-	private positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
-	private dribbleWarning = true;
-	private slowSpeedHysteresis: boolean = false;
+	private _rotationCalculation: DirectRotation = new DirectRotation();
+	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
+	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
+	private _dribbleWarning = true;
+	private _slowSpeedHysteresis: boolean = false;
 
-	private lastTrajectory: Trajectory = [];
+	private _lastTrajectory: Trajectory = [];
 
 	public canHandle(...args: any[]): boolean {
 		return true;
@@ -78,8 +78,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 	public update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
 
-		if (this.dribbleWarning && dribble) {
-			this.dribbleWarning = false;
+		if (this._dribbleWarning && dribble) {
+			this._dribbleWarning = false;
 			amun.log("TrajectoryPath does not implement dribble = true right now");
 		}
 
@@ -125,15 +125,15 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let startSpeed = robotSpeed;
 		let futureStartPos = robotPos;
 		let futureStartSpeed = robotSpeed;
-		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this.lastTrajectory.length > 0
+		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this._lastTrajectory.length > 0
 			&& World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE;
 		if (usePositionControl) {
-			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0);
+			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
 			if (testPos.distanceTo(robotPos) < 0.1 && testSpeed.distanceTo(robotSpeed) < 0.3) {
 				startPos = testPos;
 				startSpeed = testSpeed;
-				[futureStartPos, futureStartSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this.lastTrajectory, 0.01);
+				[futureStartPos, futureStartSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0.01);
 			}
 		}
 
@@ -173,7 +173,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			}
 			TrajectoryPath.visualizeTrajectory(trajectory, pathColor);
 		}
-		this.lastTrajectory = trajectory;
+		this._lastTrajectory = trajectory;
 
 		let timeToEnd =	TrajectoryPath.trajectoryTime(trajectory);
 
@@ -190,7 +190,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let rotBrake = -Math.abs(this._robot.acceleration
 			? this._robot.acceleration.aBrakePhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
 		let rotMaxSpeed = this._robot.maxAngularSpeed * rotationFactor;
-		let [angularSpeed, angularAccel] = this.rotationCalculation.calculateRotationHysteresis(robotDir,
+		let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir,
 			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
 
 		// finish and return trajectory
@@ -214,11 +214,11 @@ export class TrajectoryPath extends TrajectoryHandler {
 				const QUERY_OFFSET = 0.3;
 				let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
 
-				let slowSpeedLimit = this.slowSpeedHysteresis ? 0.4 : 0.2;
-				this.slowSpeedHysteresis = false;
+				let slowSpeedLimit = this._slowSpeedHysteresis ? 0.4 : 0.2;
+				this._slowSpeedHysteresis = false;
 				if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
 					queryTime = QUERY_OFFSET;
-					this.slowSpeedHysteresis = true;
+					this._slowSpeedHysteresis = true;
 					startDriving = true;
 				}
 			}
@@ -233,8 +233,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 
 		if (usePositionControl) {
-			let posDiff = this.positionPID.update(futureStartPos - robotPos);
-			let speedDiff = this.speedPID.update(futureStartSpeed - robotSpeed);
+			let posDiff = this._positionPID.update(futureStartPos - robotPos);
+			let speedDiff = this._speedPID.update(futureStartSpeed - robotSpeed);
 			let controlSpeed = posDiff + speedDiff;
 			speed = speed.withLength(Math.max(0, speed.length() - controlSpeed.length()));
 			speed = speed + controlSpeed;

@@ -75,8 +75,8 @@ export class HandleBall extends Behavior {
 		return false;
 	}
 
-	private readonly DUEL_WIN_DISTANCE = 4 * this._robot.radius;
-	private readonly DUEL_WIN_HYSTERESIS = 0.5 * this._robot.radius;
+	private readonly _DUEL_WIN_DISTANCE = 4 * this._robot.radius;
+	private readonly _DUEL_WIN_HYSTERESIS = 0.5 * this._robot.radius;
 
 	private _checkAttacker(): boolean {
 		let isAttacker = this._taskDecision === "attacker";
@@ -87,7 +87,7 @@ export class HandleBall extends Behavior {
 		let distanceOffset = isAttacker ? 3 * this._robot.radius : 5 * this._robot.radius;
 		let [firstOpp, firstOppTime] = Ball.firstRobotAtBall(World.OpponentRobots);
 
-		let minDistance = this.DUEL_WIN_DISTANCE + this.DUEL_WIN_HYSTERESIS * (this._lastDuelWasWon ? -1 : 1);
+		let minDistance = this._DUEL_WIN_DISTANCE + this._DUEL_WIN_HYSTERESIS * (this._lastDuelWasWon ? -1 : 1);
 
 		// Do if we won a duel and are now in safe ball posession
 		if (firstOpp && ObserverRobot.hadBall(this._robot, 0) && firstOpp.pos.distanceTo(this._robot.pos) > minDistance) {

@@ -7,34 +7,34 @@ const DEACTIVATE: boolean = false;
 const START_FRAME_NUMBER: number = 100;
 
 class LowFPS {
-	private frameTimeOne: number = 0;
-	private prognosis: number = 0;
-	private frameCounter: number = 0;
-	private lastTime: number = 0;
+	private _frameTimeOne: number = 0;
+	private _prognosis: number = 0;
+	private _frameCounter: number = 0;
+	private _lastTime: number = 0;
 
 	public update() {
-		this.frameCounter += 1;
+		this._frameCounter += 1;
 		if (DEACTIVATE) {
 			return;
 		}
-		if (this.frameTimeOne === 0) {
-			this.frameTimeOne = World.Time;
+		if (this._frameTimeOne === 0) {
+			this._frameTimeOne = World.Time;
 		} else {
 			let frameTimeTwo = World.Time;
-			let frameTimeDiff = frameTimeTwo - this.frameTimeOne;
-			if (this.prognosis === 0) {
-				this.prognosis = frameTimeDiff;
+			let frameTimeDiff = frameTimeTwo - this._frameTimeOne;
+			if (this._prognosis === 0) {
+				this._prognosis = frameTimeDiff;
 			}
 			this.calculateExponentialSmoothing(frameTimeDiff);
-			this.frameTimeOne = frameTimeTwo;
+			this._frameTimeOne = frameTimeTwo;
 		}
 	}
 	private calculateExponentialSmoothing(frameTimeDiff: number) {
-		this.prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this.prognosis;
-		if (this.prognosis > MAX_FRAME_TIME_DIFF && this.frameCounter > START_FRAME_NUMBER
-			&& World.Time - this.lastTime > 5) {
+		this._prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this._prognosis;
+		if (this._prognosis > MAX_FRAME_TIME_DIFF && this._frameCounter > START_FRAME_NUMBER
+			&& World.Time - this._lastTime > 5) {
 			amun.log("<font color =red>run time too high!</font>");
-			this.lastTime = World.Time;
+			this._lastTime = World.Time;
 		}
 	}
 }

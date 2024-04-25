@@ -89,7 +89,7 @@ export class CenterBack extends Task {
 		dir = MathUtil.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt);
 
 		if (!ObserverRobot.hadBall(this._robot, 0)) {
-			this._forceShoot._forceShootTimer = undefined;
+			this._forceShoot.forceShootTimer = undefined;
 		}
 		let chipActivationAngle = Math.PI / 6;
 		if (Referee.isGameState() && toBallAngle > chipActivationAngle

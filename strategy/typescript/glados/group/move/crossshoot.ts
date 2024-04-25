@@ -31,10 +31,10 @@ export class CrossShoot extends Move {
 	public static readonly MIN_ROBOTS: number = 6;
 	public static readonly MAX_ROBOTS: number = 6;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
-	private pos: Vector[] = [];
-	private timeBegin: number | undefined = undefined;
-	private waitTwoSeconds: number | undefined = undefined;
-	private restart: boolean = true;
+	private _pos: Vector[] = [];
+	private _timeBegin: number | undefined = undefined;
+	private _waitTwoSeconds: number | undefined = undefined;
+	private _restart: boolean = true;
 
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
@@ -50,10 +50,10 @@ export class CrossShoot extends Move {
 
 	public canContinue(): boolean {
 		if (CrossShoot.Referee.isGameState()) {
-			if (this.timeBegin == undefined) {
-				this.timeBegin = World.Time;
+			if (this._timeBegin == undefined) {
+				this._timeBegin = World.Time;
 			}
-			return !(isShot() || ((World.Time - this.timeBegin) > MOVE_TIME_MAX));
+			return !(isShot() || ((World.Time - this._timeBegin) > MOVE_TIME_MAX));
 		} else {
 			if (CrossShoot.Referee.isFriendlyFreeKickState()) {
 				return true;
@@ -90,22 +90,22 @@ export class CrossShoot extends Move {
 		let receiverPos = geom.intersectLineLine(World.Ball.pos, firstContactPos - World.Ball.pos,
 			new Vector(G.DefenseWidthHalf, G.OpponentGoal.y - G.DefenseHeight - RECIEVER_POS_Y), new Vector(1, 0));
 		for (let i = 0; i < 4; i++) {
-			this.pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + i * WALL_SPACE),
+			this._pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + i * WALL_SPACE),
 				G.OpponentGoal.y - G.DefenseHeight);
 		}
-		for (let i = 0; i < this.pos.length; i++) {
-			taskAssignments[this._robots[i + 1]] = Assignment.create({ class: MoveToPos, params: [{ pos: this.pos[i] }] });
+		for (let i = 0; i < this._pos.length; i++) {
+			taskAssignments[this._robots[i + 1]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._pos[i] }] });
 		}
-		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }], restart: this.restart });
+		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }], restart: this._restart });
 
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 		} else if (Referee.isFriendlyFreeKickState()) {
-			if (this.waitTwoSeconds === undefined) {
-				this.restart = false;
-				this.waitTwoSeconds = World.Time;
+			if (this._waitTwoSeconds === undefined) {
+				this._restart = false;
+				this._waitTwoSeconds = World.Time;
 			}
-			if (World.Time - this.waitTwoSeconds > 2) {
+			if (World.Time - this._waitTwoSeconds > 2) {
 				taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
 			} else {
 				taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });

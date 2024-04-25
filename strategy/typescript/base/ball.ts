@@ -59,9 +59,9 @@ export class Ball {
 	// private attributes
 	private _isVisible: boolean = false;
 	private _hadRawData: boolean = false; // used for detecting old simulator logs with no recoded ball raw data
-	private ballPosInFrame: Position[] = [];
-	private counter: number = 0;
-	private ballIsNearToRobot: boolean = false;
+	private _ballPosInFrame: Position[] = [];
+	private _counter: number = 0;
+	private _ballIsNearToRobot: boolean = false;
 	// constructor must only be called by world!
 	public constructor() {
 		//
@@ -164,29 +164,29 @@ export class Ball {
 			if (this.speed.length() - lastSpeedLength > 0.2) {
 				this.framesDecelerating = 0;
 			} else {
-				this.ballPosInFrame[this.counter] = this.pos;
-				this.counter += 1;
+				this._ballPosInFrame[this._counter] = this.pos;
+				this._counter += 1;
 				this.framesDecelerating = this.framesDecelerating + 1;
 			}
 			// if the ball does not accelerate extremely for 3 frames straight, the current velocity
 			// is taken as the maximum ball speed
 			if (robots != undefined) {
-				for (let framepos of this.ballPosInFrame) {
+				for (let framepos of this._ballPosInFrame) {
 					for (let r of robots) {
 						if (r.pos.distanceToSq(framepos) < MAXSPEED_MIN_ROBOT_DIST * MAXSPEED_MIN_ROBOT_DIST) {
-							this.ballIsNearToRobot = true;
+							this._ballIsNearToRobot = true;
 							break;
 						}
 					}
 				}
 			}
-			if (this.framesDecelerating === 3 && this.ballIsNearToRobot) {
-				this.ballIsNearToRobot = false;
-				this.counter = 0;
+			if (this.framesDecelerating === 3 && this._ballIsNearToRobot) {
+				this._ballIsNearToRobot = false;
+				this._counter = 0;
 				this.maxSpeed = this.speed.length();
 			}
-			if (this.counter === 3) {
-				this.counter = 0;
+			if (this._counter === 3) {
+				this._counter = 0;
 			}
 			if (this.maxSpeed < this.speed.length()) {
 				this.maxSpeed = this.maxSpeed + 0.3 * (this.speed.length() - this.maxSpeed);

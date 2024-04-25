@@ -18,8 +18,8 @@ import * as Attack from "glados/util/attack";
 const BALL_APPROACH_BUFFER = 0.35;
 
 export class FeintGoalShot extends Behavior {
-	private lastKepperWasLeft: boolean = false;
-	private redecideCounter: number = 0;
+	private _lastKepperWasLeft: boolean = false;
+	private _redecideCounter: number = 0;
 
 	public constructor(agent: Agent) {
 		super(agent);
@@ -27,13 +27,13 @@ export class FeintGoalShot extends Behavior {
 
 	public check(): Behavior | undefined {
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) !== this._robot) {
-			this.redecideCounter = 0;
+			this._redecideCounter = 0;
 		}
 
 		this._messaging.receiveTrainer(MessageType.mainAttacker);
 		debug.push("FeintGoalShotCheck");
 
-		if (this.redecideCounter > 5) {
+		if (this._redecideCounter > 5) {
 			debug.set("return case", "active too long");
 			debug.pop();
 			return undefined;
@@ -121,7 +121,7 @@ export class FeintGoalShot extends Behavior {
 	}
 
 	public stop() {
-		this.lastKepperWasLeft = false;
+		this._lastKepperWasLeft = false;
 		this._task = undefined;
 	}
 
@@ -186,10 +186,10 @@ export class FeintGoalShot extends Behavior {
 		}
 
 		// Determine which corner we should look at to confuse the keeper
-		let keeperIsLeft = keeper.pos.x < (this.lastKepperWasLeft ? World.Geometry.GoalWidth / 8 : -World.Geometry.GoalWidth / 8);
-		let restart = this.lastKepperWasLeft !== keeperIsLeft;
-		this.redecideCounter += restart ? 1 : 0;
-		this.lastKepperWasLeft = keeperIsLeft;
+		let keeperIsLeft = keeper.pos.x < (this._lastKepperWasLeft ? World.Geometry.GoalWidth / 8 : -World.Geometry.GoalWidth / 8);
+		let restart = this._lastKepperWasLeft !== keeperIsLeft;
+		this._redecideCounter += restart ? 1 : 0;
+		this._lastKepperWasLeft = keeperIsLeft;
 
 		let target = keeperIsLeft ? World.Geometry.OpponentGoalRight : World.Geometry.OpponentGoalLeft;
 		let moveToDest = World.Ball.pos - (target - World.Ball.pos).withLength(this._robot.shootRadius + 0.01);

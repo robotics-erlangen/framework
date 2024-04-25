@@ -19,17 +19,17 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 };
 
 export class DefenseChip extends Task {
-	private forceShoot: ForceShoot;
+	private _forceShoot: ForceShoot;
 
 	public constructor(behavior: Behavior) {
 		super(behavior);
 
-		this.forceShoot = new ForceShoot(this);
+		this._forceShoot = new ForceShoot(this);
 	}
 
 	public run() {
 		if (!ObserverRobot.hadBall(this._robot, 0)) {
-			this.forceShoot._forceShootTimer = undefined;
+			this._forceShoot.forceShootTimer = undefined;
 		}
 
 		// rather move to close to the ball than not close enough
@@ -44,7 +44,7 @@ export class DefenseChip extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._robot.trajectory.update(ToTarget, moveDest, (World.Ball.pos - this._robot.pos).angle());
 
-		this.forceShoot._doForceShoot();
+		this._forceShoot._doForceShoot();
 		this._robot.chip(2);
 	}
 }

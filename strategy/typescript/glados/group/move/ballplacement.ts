@@ -89,14 +89,14 @@ export class BallPlacement extends Move {
 	private _computedShooterPos: Position = new Vector(0, 0);
 	private _computedReceiverPos: Position = new Vector(0, 0);
 
-	private shooter: FriendlyRobot;
-	private receiver: FriendlyRobot;
+	private _shooter: FriendlyRobot;
+	private _receiver: FriendlyRobot;
 
 	private _ballPlacementPos: Readonly<Position>;
 
-	private invisible: boolean = false;
-	private forceSetBackInvisible: boolean = false;
-	private setBackPosInvisible: Position = new Vector(0, 0);
+	private _invisible: boolean = false;
+	private _forceSetBackInvisible: boolean = false;
+	private _setBackPosInvisible: Position = new Vector(0, 0);
 
 	private _wallKickTryTime: number | undefined = undefined;
 	private _firstPosWallkick: Vector = new Vector(0, 0);
@@ -104,11 +104,11 @@ export class BallPlacement extends Move {
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
 		this._ballPlacementPos = <Position> World.BallPlacementPos;
-		this.shooter = this._robots[0];
-		this.receiver = this._robots[1];
+		this._shooter = this._robots[0];
+		this._receiver = this._robots[1];
 		this._determineRoles();
 		this._determinePositions();
-		this._mainAttacker = this.shooter;
+		this._mainAttacker = this._shooter;
 		this._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1];
 
 	}
@@ -153,12 +153,12 @@ export class BallPlacement extends Move {
 			case State.WAIT_FOR_BALL_STOP: {
 				let extraDistance = 0.05 + (Math.min(0.4, World.Ball.speed.length()) - BALL_STOP_SPEED);
 				this._determinePositions(extraDistance);
-				taskAssignments[this.receiver] = Assignment.create({
+				taskAssignments[this._receiver] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
 				});
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: Field.limitToField(this._computedShooterPos, -0.15),
@@ -172,13 +172,13 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.PULL_TO_FIELD: {
-				this._mainAttacker = this.shooter;
-				taskAssignments[this.receiver] = Assignment.create({
+				this._mainAttacker = this._shooter;
+				taskAssignments[this._receiver] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
 				});
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: PlaceBall,
 					params: [Field.limitToField(BallObserver.getRealisticBallPos(), -TOLERANCE)],
 					restart: this._stateChanged
@@ -187,14 +187,14 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.GET_INTO_POSITION: {
-				this._mainAttacker = this.shooter;
+				this._mainAttacker = this._shooter;
 				this._determinePositions(0.15);
-				taskAssignments[this.receiver] = Assignment.create({
+				taskAssignments[this._receiver] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: true
 				});
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: this._computedShooterPos,
@@ -208,19 +208,19 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.EXECUTE_PASS: {
-				this._mainAttacker = this.shooter;
+				this._mainAttacker = this._shooter;
 
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: Pass,
 					params: [{
-						targetRobot: this.receiver,
+						targetRobot: this._receiver,
 						targetPos: World.BallPlacementPos,
 						chip: false,
 						targetSpeed: PASS_TARGET_SPEED,
 					}],
 					restart: this._stateChanged
 				});
-				taskAssignments[this.receiver] = Assignment.create({
+				taskAssignments[this._receiver] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
@@ -229,16 +229,16 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.ACCEPT_PASS: {
-				this._mainAttacker = this.receiver;
+				this._mainAttacker = this._receiver;
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
+				taskAssignments[this._shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
 
-				this.receiver.setDribblerSpeed(MAX_DRIBBLER_SPEED);
+				this._receiver.setDribblerSpeed(MAX_DRIBBLER_SPEED);
 
 				let ballSpeed = World.Ball.speed;
-				let [intersection, ballLambda] = geom.intersectLineLine(BallObserver.getRealisticBallPos(), ballSpeed, this.receiver.pos, ballSpeed.perpendicular());
+				let [intersection, ballLambda] = geom.intersectLineLine(BallObserver.getRealisticBallPos(), ballSpeed, this._receiver.pos, ballSpeed.perpendicular());
 				this._ballReceiverIntersects = ballLambda != undefined && ballLambda > 0;
 
 				// We don't want to receive a pass out of field because setback may not be possible there
@@ -246,23 +246,23 @@ export class BallPlacement extends Move {
 					intersection = Field.nextLineCut(BallObserver.getRealisticBallPos(), ballSpeed) || BallObserver.getRealisticBallPos();
 				}
 
-				vis.addPath("g/m/ballplacement", [this.receiver.pos, intersection, BallObserver.getRealisticBallPos()], vis.colors.red);
+				vis.addPath("g/m/ballplacement", [this._receiver.pos, intersection, BallObserver.getRealisticBallPos()], vis.colors.red);
 
 				// Stop moving if the ball is near the receiver
 				// We don't use halt because Halt could possibly stop the dribbler from spinning
-				if (BallObserver.getRealisticBallPos().distanceTo(this.receiver.pos) < World.Ball.radius + this.receiver.shootRadius + 0.1) {
-					this.invisible = true;
-					taskAssignments[this.receiver] = Assignment.create({
+				if (BallObserver.getRealisticBallPos().distanceTo(this._receiver.pos) < World.Ball.radius + this._receiver.shootRadius + 0.1) {
+					this._invisible = true;
+					taskAssignments[this._receiver] = Assignment.create({
 						class: MoveToPos,
-						params: [{ pos: this.receiver.pos, dir: this._receiverBallDirection, ignoreBallPlacement: true, ignoreBall: true }],
+						params: [{ pos: this._receiver.pos, dir: this._receiverBallDirection, ignoreBallPlacement: true, ignoreBall: true }],
 						restart: true
 					});
 				} else {
-					if (this.invisible) {
-						this.forceSetBackInvisible = true;
+					if (this._invisible) {
+						this._forceSetBackInvisible = true;
 					}
-					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this.receiver.pos).angle();
-					taskAssignments[this.receiver] = Assignment.create({
+					this._receiverBallDirection = (BallObserver.getRealisticBallPos() - this._receiver.pos).angle();
+					taskAssignments[this._receiver] = Assignment.create({
 						class: MoveToPos,
 						params: [{ pos: intersection, ignoreBallPlacement: true }],
 						restart: true
@@ -272,38 +272,38 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.WAIT_FOR_SET_BACK: {
-				this._mainAttacker = this.receiver;
+				this._mainAttacker = this._receiver;
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
-				taskAssignments[this.receiver] = Assignment.create({ class: Halt, restart: this._stateChanged });
+				taskAssignments[this._shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
+				taskAssignments[this._receiver] = Assignment.create({ class: Halt, restart: this._stateChanged });
 
 				break;
 			}
 			case State.SET_BACK_INVISIBLE: {
-				this._mainAttacker = this.receiver;
+				this._mainAttacker = this._receiver;
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
+				taskAssignments[this._shooter] = Assignment.create({ class: MoveToPos, params: [{ pos: this._selectedEvadingPos }] });
 				if (this._stateChanged) {
-					this._computedReceiverPos = this.receiver.pos + (this.receiver.pos - BallObserver.getRealisticBallPos()).withLength(2 * this.receiver.radius);
+					this._computedReceiverPos = this._receiver.pos + (this._receiver.pos - BallObserver.getRealisticBallPos()).withLength(2 * this._receiver.radius);
 				}
-				if (this.forceSetBackInvisible) {
-					this.setBackPosInvisible = this.receiver.pos - (this._ballPlacementPos - this.receiver.pos).withLength(SET_BACK_INVISIBLE_LENGTH);
-					taskAssignments[this.receiver] = Assignment.create({
+				if (this._forceSetBackInvisible) {
+					this._setBackPosInvisible = this._receiver.pos - (this._ballPlacementPos - this._receiver.pos).withLength(SET_BACK_INVISIBLE_LENGTH);
+					taskAssignments[this._receiver] = Assignment.create({
 						class: MoveToPos,
 						params: [{
-							pos: this.setBackPosInvisible,
-							dir: (this._ballPlacementPos - this.receiver.pos).angle(),
+							pos: this._setBackPosInvisible,
+							dir: (this._ballPlacementPos - this._receiver.pos).angle(),
 							ignoreBallPlacement: true,
 							ignoreBall: true
 						}],
 						restart: this._stateChanged
 					});
 				} else {
-					taskAssignments[this.receiver] = Assignment.create({
+					taskAssignments[this._receiver] = Assignment.create({
 						class: MoveToPos,
 						params: [{
 							pos: this._computedReceiverPos,
@@ -316,15 +316,15 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.FINE_ADJUST: {
-				this._mainAttacker = this.receiver;
-				taskAssignments[this.receiver] = Assignment.create({
+				this._mainAttacker = this._receiver;
+				taskAssignments[this._receiver] = Assignment.create({
 					class: PlaceBall,
 					restart: this._stateChanged
 				});
 				if (this._stateChanged) {
 					this._calculateEvadingPos();
 				}
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: MoveToPos,
 					params: [{
 						pos: this._selectedEvadingPos,
@@ -337,14 +337,14 @@ export class BallPlacement extends Move {
 				break;
 			}
 			case State.WALLKICK: {
-				this._mainAttacker = this.shooter;
+				this._mainAttacker = this._shooter;
 
-				taskAssignments[this.shooter] = Assignment.create({
+				taskAssignments[this._shooter] = Assignment.create({
 					class: Wallkick,
 					params: [this._ballPlacementPos],
 					restart: this._stateChanged
 				});
-				taskAssignments[this.receiver] = Assignment.create({
+				taskAssignments[this._receiver] = Assignment.create({
 					class: MoveToPos,
 					params: [{ pos: this._computedReceiverPos, ignoreBallPlacement: true }],
 					restart: this._stateChanged
@@ -354,10 +354,10 @@ export class BallPlacement extends Move {
 			}
 		}
 
-		if (taskAssignments[this.shooter] == undefined) {
+		if (taskAssignments[this._shooter] == undefined) {
 			throw new Error(`SHOOTER has no task assigned in state=${this._state}`);
 		}
-		if (taskAssignments[this.receiver] == undefined) {
+		if (taskAssignments[this._receiver] == undefined) {
 			throw new Error(`RECEIVER has not task assigned in state=${this._state}`);
 		}
 		return {
@@ -383,8 +383,8 @@ export class BallPlacement extends Move {
 		let usedBallPos = BallObserver.getRealisticBallPos();
 		switch (currentState) {
 			case State.WAIT_FOR_BALL_STOP: {
-				this.forceSetBackInvisible = false;
-				this.invisible = false;
+				this._forceSetBackInvisible = false;
+				this._invisible = false;
 				nextState = State.WAIT_FOR_BALL_STOP;
 				if (World.Ball.speed.length() < BALL_STOP_SPEED) {
 					this._ballStartPos = usedBallPos;
@@ -432,7 +432,7 @@ export class BallPlacement extends Move {
 				nextState = State.PULL_TO_FIELD;
 				if (Field.isInField(usedBallPos) &&
 						!(Field.isInFriendlyGoal(usedBallPos) || Field.isInOpponentGoal(usedBallPos))
-						&& this.shooter.pos.distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
+						&& this._shooter.pos.distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
 					nextState = State.WAIT_FOR_BALL_STOP;
 				}
 
@@ -443,8 +443,8 @@ export class BallPlacement extends Move {
 				if (World.Ball.speed.length() > BALL_STOP_SPEED
 						|| usedBallPos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 					nextState = State.WAIT_FOR_BALL_STOP;
-				} else if (this.shooter.pos.distanceTo(this._computedShooterPos) < ARRIVED_DISTANCE
-						&& this.receiver.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
+				} else if (this._shooter.pos.distanceTo(this._computedShooterPos) < ARRIVED_DISTANCE
+						&& this._receiver.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
 					nextState = State.EXECUTE_PASS;
 				}
 
@@ -462,12 +462,12 @@ export class BallPlacement extends Move {
 			}
 			case State.ACCEPT_PASS: {
 				nextState = State.ACCEPT_PASS;
-				let ballDist = BallObserver.getRealisticBallPos().distanceTo(this.receiver.pos);
+				let ballDist = BallObserver.getRealisticBallPos().distanceTo(this._receiver.pos);
 				if (World.Ball.speed.length() < BALL_STOP_SPEED) {
 					nextState = ballDist > MAX_BALL_DISTANCE ? State.WAIT_FOR_BALL_STOP : State.WAIT_FOR_SET_BACK;
 				}
 				if (!this._ballReceiverIntersects && ballDist > MAX_BALL_DISTANCE) {
-					if (this.forceSetBackInvisible) {
+					if (this._forceSetBackInvisible) {
 						nextState = State.WAIT_FOR_SET_BACK;
 					} else {
 						nextState = State.WAIT_FOR_BALL_STOP;
@@ -519,16 +519,16 @@ export class BallPlacement extends Move {
 		}
 
 		if (firstIsReceiver) {
-			this.receiver = this._robots[0];
-			this.shooter = this._robots[1];
+			this._receiver = this._robots[0];
+			this._shooter = this._robots[1];
 		} else {
-			this.receiver = this._robots[1];
-			this.shooter = this._robots[0];
+			this._receiver = this._robots[1];
+			this._shooter = this._robots[0];
 		}
 	}
 
 	private _determinePositions(extraDistance: number = 0.05) {
-		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).withLength(this.receiver.shootRadius + World.Ball.radius + extraDistance);
+		let offset = (BallObserver.getRealisticBallPos() - this._ballPlacementPos).withLength(this._receiver.shootRadius + World.Ball.radius + extraDistance);
 		this._computedShooterPos = BallObserver.getRealisticBallPos() + offset;
 		this._computedReceiverPos = this._ballPlacementPos - offset;
 	}

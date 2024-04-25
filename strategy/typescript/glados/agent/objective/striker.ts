@@ -22,19 +22,19 @@ const G = World.Geometry;
 export class Striker extends Objective {
 	public constructor() {
 		super({
-			ma: Striker.MA_RUNNER,
-			freekick: Striker.FREEKICK_RUNNER,
-			support: Striker.SUPPORT_RUNNER
+			ma: Striker._MA_RUNNER,
+			freekick: Striker._FREEKICK_RUNNER,
+			support: Striker._SUPPORT_RUNNER
 		});
 	}
 
-	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _MA_RUNNER = parameterizeClass(CheckableList, [
 		BreakPass,
 		PassTiming,
 		FeintGoalShot,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		BreakPass,
 		parameterizeClass(FreeKick, defaultRatePass),
 		DoubleTouchGuard,
@@ -42,7 +42,7 @@ export class Striker extends Objective {
 		FeintGoalShot,
 		parameterizeClass(Shoot, defaultRatePass),
 	]);
-	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _SUPPORT_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FeintPass, { isStriker: true, samplingCtor: StrikerSampling }),
 		BreakPass,
 		parameterizeClass(Support, { isStriker: true, samplingCtor: StrikerSampling })

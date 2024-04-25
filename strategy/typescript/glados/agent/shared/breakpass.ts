@@ -14,7 +14,7 @@ import { BreakPass as BreakPassTask } from "glados/task/defender/breakpass";
 
 export class BreakPass extends Behavior {
 
-	private lastOppFirstAtBall: Map<Robot, boolean> = new Map();
+	private _lastOppFirstAtBall: Map<Robot, boolean> = new Map();
 
 	protected _stop() {
 
@@ -126,9 +126,9 @@ export class BreakPass extends Behavior {
 				const timeBallToTarget = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(attackPosition!));
 				const oppInPassZone = World.OpponentRobots.some((opp) => {
 					// Check if the opponent could reach the ball faster than the ball its target
-					const hysteresis = this.lastOppFirstAtBall[opp] ? 0 : -0.1;
+					const hysteresis = this._lastOppFirstAtBall[opp] ? 0 : -0.1;
 					const oppFaster = ObserverRobot.minTimeToBall(opp) < timeBallToTarget + hysteresis;
-					this.lastOppFirstAtBall[opp] = oppFaster;
+					this._lastOppFirstAtBall[opp] = oppFaster;
 					return oppFaster;
 				});
 				if (!oppInPassZone) {

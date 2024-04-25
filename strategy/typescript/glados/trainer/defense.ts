@@ -98,7 +98,7 @@ export class Defense {
 		}
 	}
 
-	private lastManmarkOrder: Map<number, Robot> = new Map();
+	private _lastManmarkOrder: Map<number, Robot> = new Map();
 	private nextManmarkAssignment(defenders: FriendlyRobot[], counter: number): [Robot, FriendlyRobot] | undefined {
 		if (defenders.length === 0) {
 			return undefined;
@@ -110,7 +110,7 @@ export class Defense {
 			defenders
 				.filter((defender) => defender === this._previousManmarkAssignments[robot])
 				.forEach((_) => dangerousness += 0.2);
-			if (this.lastManmarkOrder[counter] === robot) {
+			if (this._lastManmarkOrder[counter] === robot) {
 				dangerousness += 0.1;
 			}
 			if (dangerousness > highestDangerousness) {
@@ -160,7 +160,7 @@ export class Defense {
 			this._manmarkAssignments[mostDangerousRobot] = <FriendlyRobot> bestDefender;
 			this._manmarkTargets.delete(mostDangerousRobot);
 
-			this.lastManmarkOrder[counter] = mostDangerousRobot;
+			this._lastManmarkOrder[counter] = mostDangerousRobot;
 
 			return [mostDangerousRobot, <FriendlyRobot> bestDefender];
 		}
@@ -276,7 +276,7 @@ export class Defense {
 		}
 	}
 
-	private lastDefaultCB: FriendlyRobot | undefined;
+	private _lastDefaultCB: FriendlyRobot | undefined;
 	// assigns centerbacks for the current trajectory of the ball and predictShot if they intersect with the defense area
 	// both the trajectory of the ball and predictShot can intersect the defense area twice, but if both intersect twice
 	// we ignore the exit intersection of predictShot
@@ -376,7 +376,7 @@ export class Defense {
 				this._centerbackAssignments.push(closestAsFriendly);
 				defenders.splice(defenders.indexOf(closestAsFriendly), 1);
 				didBallCB = true;
-				this.lastDefaultCB = closestAsFriendly;
+				this._lastDefaultCB = closestAsFriendly;
 				this._messaging.send(
 					MessageType.roleAssignment,
 					closestAsFriendly,
@@ -399,13 +399,13 @@ export class Defense {
 				const hysteresisDistance = (r: FriendlyRobot, pos: Position) => {
 					const ballDist = World.Ball.pos.distanceTo(pos);
 					const hysteresisSize = 0.6 * Rating.valueToRating(ballDist, 2, 5);
-					const hysteresis = r === this.lastDefaultCB ? -hysteresisSize : 0;
+					const hysteresis = r === this._lastDefaultCB ? -hysteresisSize : 0;
 					return r.pos.distanceTo(pos) + hysteresis;
 				};
 				const defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB, hysteresisDistance)[0];
 				if (defaultCB != undefined) {
 					defenders.splice(defenders.indexOf(defaultCB), 1);
-					this.lastDefaultCB = defaultCB;
+					this._lastDefaultCB = defaultCB;
 					didBallCB = true;
 					this._messaging.send(MessageType.roleAssignment, defaultCB, { name: "CenterBack", params: { pos: World.Ball.pos } });
 				}
@@ -413,7 +413,7 @@ export class Defense {
 		}
 
 		if (!didBallCB) {
-			this.lastDefaultCB = undefined;
+			this._lastDefaultCB = undefined;
 		}
 	}
 

@@ -13,17 +13,17 @@ const MANMARKDISTANCE = 0.3;
 const SPEEDOFFSET = 0.07;
 
 export class DirtyManMarker extends Task {
-	private targetRobot: Robot;
-	private obstacleTable: PathHelper.PathHelperParameters;
-	private dir: number | undefined;
-	private direction: Vector | undefined;
-	private oldpos: Vector | undefined;
+	private _targetRobot: Robot;
+	private _obstacleTable: PathHelper.PathHelperParameters;
+	private _dir: number | undefined;
+	private _direction: Vector | undefined;
+	private _oldpos: Vector | undefined;
 
 	public constructor(behavior: Behavior, targetRobot: Robot) {
 		super(behavior);
 
-		this.targetRobot = targetRobot;
-		this.obstacleTable = {
+		this._targetRobot = targetRobot;
+		this._obstacleTable = {
 			ignoreBall: false,
 			task: this,
 		};
@@ -32,24 +32,24 @@ export class DirtyManMarker extends Task {
 	public run() {
 		let pos = new Vector(0, 0);
 
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this.obstacleTable);
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
 
-		if (this.targetRobot.speed.length() < 0.2) {
-			this.direction = World.Ball.pos - this.targetRobot.pos;
-			pos = this.targetRobot.pos + this.direction.withLength(MANMARKDISTANCE);
+		if (this._targetRobot.speed.length() < 0.2) {
+			this._direction = World.Ball.pos - this._targetRobot.pos;
+			pos = this._targetRobot.pos + this._direction.withLength(MANMARKDISTANCE);
 
 		} else {
-			let boundaryOne = this.targetRobot.pos + this.targetRobot.speed.withLength(MANMARKDISTANCE + this.targetRobot.speed.length() * SPEEDOFFSET);
-			let boundaryTwo = this.targetRobot.pos + this.targetRobot.speed.withLength(3 + this.targetRobot.speed.length() * SPEEDOFFSET);
+			let boundaryOne = this._targetRobot.pos + this._targetRobot.speed.withLength(MANMARKDISTANCE + this._targetRobot.speed.length() * SPEEDOFFSET);
+			let boundaryTwo = this._targetRobot.pos + this._targetRobot.speed.withLength(3 + this._targetRobot.speed.length() * SPEEDOFFSET);
 			let blockalpha;
-			if (this.oldpos == undefined) {
+			if (this._oldpos == undefined) {
 				blockalpha = 1;
 			} else {
 				blockalpha = 0.1;
 			}
-			pos = Defense.fastestPointInInterval(this._robot, boundaryOne, boundaryTwo, this.oldpos || new Vector(0, 0), 0.1, blockalpha);
-			this.oldpos = pos;
+			pos = Defense.fastestPointInInterval(this._robot, boundaryOne, boundaryTwo, this._oldpos || new Vector(0, 0), 0.1, blockalpha);
+			this._oldpos = pos;
 		}
-		this._robot.trajectory.update(CurvedMaxAccel, pos, this.dir);
+		this._robot.trajectory.update(CurvedMaxAccel, pos, this._dir);
 	}
 }

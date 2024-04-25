@@ -114,8 +114,8 @@ export interface Hyst<In, Out> {
  *   - ...
  */
 export class LessThanHyst implements Hyst<number, boolean> {
-	private lowerBound: number;
-	private upperBound: number;
+	private _lowerBound: number;
+	private _upperBound: number;
 	public state: boolean;
 
 	/**
@@ -131,8 +131,8 @@ export class LessThanHyst implements Hyst<number, boolean> {
 			throw Error(`trying to create hysteresis with a hysteresis value of ${hyst}`);
 		}
 		this.state = initialState;
-		this.lowerBound = threshold - hyst;
-		this.upperBound = threshold + hyst;
+		this._lowerBound = threshold - hyst;
+		this._upperBound = threshold + hyst;
 	}
 
 	/**
@@ -158,7 +158,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * @returns the right hand side of the comparison
 	 */
 	public get threshold(): number {
-		return (this.lowerBound + this.upperBound) / 2;
+		return (this._lowerBound + this._upperBound) / 2;
 	}
 
 	/**
@@ -171,7 +171,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * to be less than or greater than the threshold
 	 */
 	public get hyst(): number {
-		return (this.upperBound - this.lowerBound) / 2;
+		return (this._upperBound - this._lowerBound) / 2;
 	}
 
 	/**
@@ -181,10 +181,10 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: number): boolean {
-		if (x < this.lowerBound) {
+		if (x < this._lowerBound) {
 			this.state = true;
 		}
-		if (x > this.upperBound) {
+		if (x > this._upperBound) {
 			this.state = false;
 		}
 		return this.state;
@@ -218,7 +218,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
  * for usage info.
  */
 export class GreaterThanHyst implements Hyst<number, boolean> {
-	private lessThan: LessThanHyst;
+	private _lessThan: LessThanHyst;
 
 	/**
 	 * Constructs a hysteresis for < comparisons.
@@ -229,7 +229,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * @param initialState - The initial state of the hysteresis
 	 */
 	public constructor(threshold: number, hyst: number, initialState: boolean = false) {
-		this.lessThan = new LessThanHyst(threshold, hyst, !initialState);
+		this._lessThan = new LessThanHyst(threshold, hyst, !initialState);
 	}
 
 	/**
@@ -246,11 +246,11 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	}
 
 	public get state(): boolean {
-		return !this.lessThan.state;
+		return !this._lessThan.state;
 	}
 
 	public set state(newState: boolean) {
-		this.lessThan.state = !newState;
+		this._lessThan.state = !newState;
 	}
 
 	/**
@@ -263,7 +263,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * @returns the right hand side of the comparison
 	 */
 	public get threshold(): number {
-		return this.lessThan.threshold;
+		return this._lessThan.threshold;
 	}
 
 	/**
@@ -276,7 +276,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * to be less than or greater than the threshold
 	 */
 	public get hyst(): number {
-		return this.lessThan.hyst;
+		return this._lessThan.hyst;
 	}
 
 	/**
@@ -286,7 +286,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: number): boolean {
-		this.lessThan.update(x);
+		this._lessThan.update(x);
 		return this.state;
 	}
 
@@ -344,8 +344,8 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 export class InIntervalHyst implements Hyst<number, boolean> {
 	// if the value is lower than the upper bound of the interval
 	// and greater than the lower bound, it is in the interval
-	private lessThan: LessThanHyst;
-	private greaterThan: GreaterThanHyst;
+	private _lessThan: LessThanHyst;
+	private _greaterThan: GreaterThanHyst;
 
 	/**
 	 * Constructs a hysteresis to check if a number is in an interval.
@@ -365,18 +365,18 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 		// actually happen through updating the hysteresis.
 		// But this doesn't cause any trouble as for the hysteresis to be in the 'true' state, both lessThan
 		// and greaterThan must be in the 'true' state.
-		this.lessThan = new LessThanHyst(upper, hyst, initialState);
-		this.greaterThan = new GreaterThanHyst(lower, hyst, initialState);
+		this._lessThan = new LessThanHyst(upper, hyst, initialState);
+		this._greaterThan = new GreaterThanHyst(lower, hyst, initialState);
 	}
 
 	public get state(): boolean {
-		return this.lessThan.state && this.greaterThan.state;
+		return this._lessThan.state && this._greaterThan.state;
 	}
 
 	public set state(newState: boolean) {
 		// see comment in the constructor for newState = false
-		this.lessThan.state = newState;
-		this.greaterThan.state = newState;
+		this._lessThan.state = newState;
+		this._greaterThan.state = newState;
 	}
 
 	/**
@@ -385,7 +385,7 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 	 * @returns the targeted interval
 	 */
 	public get interval(): [number, number] {
-		return [this.greaterThan.threshold, this.lessThan.threshold];
+		return [this._greaterThan.threshold, this._lessThan.threshold];
 	}
 
 	/**
@@ -396,7 +396,7 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 	 */
 	public get hyst(): number {
 		// both lessThan and greaterThan have the same hyst value
-		return this.lessThan.hyst;
+		return this._lessThan.hyst;
 	}
 
 	/**
@@ -406,8 +406,8 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: number): boolean {
-		this.lessThan.update(x);
-		this.greaterThan.update(x);
+		this._lessThan.update(x);
+		this._greaterThan.update(x);
 		return this.state;
 	}
 
@@ -448,9 +448,9 @@ export class InIntervalHyst implements Hyst<number, boolean> {
  * and some tips for the choice of HYST.
  */
 export class MultiValueHyst<T> implements Hyst<number, T> {
-	private lessThans: LessThanHyst[];
-	private values: T[];
-	private index: number;
+	private _lessThans: LessThanHyst[];
+	private _values: T[];
+	private _index: number;
 
 	/**
 	 * Constructs a hysteresis to check if a number is in one of several intervals.
@@ -470,23 +470,23 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 			throw Error(`MultiValueHyst needs n + 1 values for n thresholds, but got ${thresholds.length} thresholds for ${values.length} values`);
 		}
 
-		this.values = values;
-		this.index = values.indexOf(initialState);
-		if (this.index === -1) {
+		this._values = values;
+		this._index = values.indexOf(initialState);
+		if (this._index === -1) {
 			throw Error(`MultiValueHyst got initial state ${initialState}, which is not in possible values [${values}]`);
 		}
 
-		this.lessThans = thresholds.map((thresh, i) => new LessThanHyst(thresh, hyst, i > this.index));
+		this._lessThans = thresholds.map((thresh, i) => new LessThanHyst(thresh, hyst, i > this._index));
 	}
 
 	public get state(): T {
-		return this.values[this.index];
+		return this._values[this._index];
 	}
 
 	public set state(newState: T) {
-		this.index = this.values.indexOf(newState);
-		if (this.index === -1) {
-			throw Error(`Trying to set state of MultiValueHyst to ${newState}, which is not in possible values [${this.values}]`);
+		this._index = this._values.indexOf(newState);
+		if (this._index === -1) {
+			throw Error(`Trying to set state of MultiValueHyst to ${newState}, which is not in possible values [${this._values}]`);
 		}
 	}
 
@@ -499,7 +499,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 * @returns the right hand side of the comparison
 	 */
 	public get thresholds(): number[] {
-		return this.lessThans.map((lt) => lt.threshold);
+		return this._lessThans.map((lt) => lt.threshold);
 	}
 
 	/**
@@ -510,7 +510,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 */
 	public get hyst(): number {
 		// all lessThans have the same hyst value
-		return this.lessThans[0].hyst;
+		return this._lessThans[0].hyst;
 	}
 
 	/**
@@ -520,10 +520,10 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: number): T {
-		this.index = 0;
-		for (const lessThan of this.lessThans) {
+		this._index = 0;
+		for (const lessThan of this._lessThans) {
 			if (!lessThan.update(x)) {
-				this.index++;
+				this._index++;
 			}
 		}
 		return this.state;
@@ -535,7 +535,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 * @returns A string representation of the hysteresis
 	 */
 	public _toString() {
-		return `MultiValueHyst(thresholds: [${this.thresholds}], hyst: ${this.hyst}, values: ${this.values}, state: ${this.state}=values[${this.index}])`;
+		return `MultiValueHyst(thresholds: [${this.thresholds}], hyst: ${this.hyst}, values: ${this._values}, state: ${this.state}=values[${this._index}])`;
 	}
 
 	/**
@@ -581,7 +581,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
  * choice of HYST.
  */
 export class VectorHyst implements Hyst<Vector, boolean> {
-	private lessThan: LessThanHyst;
+	private _lessThan: LessThanHyst;
 
 	/**
 	 * The targeted value, the vector the input has to be close to
@@ -620,18 +620,18 @@ export class VectorHyst implements Hyst<Vector, boolean> {
 
 		// to avoid having to calculate a square root every update, choose the appropriate bounds for
 		// the squared distance
-		this.lessThan = LessThanHyst.fromBounds((threshold - hyst) ** 2, (threshold + hyst) ** 2, initialState);
+		this._lessThan = LessThanHyst.fromBounds((threshold - hyst) ** 2, (threshold + hyst) ** 2, initialState);
 		this.target = target;
 		this.threshold = threshold;
 		this.hyst = hyst;
 	}
 
 	public get state(): boolean {
-		return this.lessThan.state;
+		return this._lessThan.state;
 	}
 
 	public set state(newState: boolean) {
-		this.lessThan.state = newState;
+		this._lessThan.state = newState;
 	}
 
 	/**
@@ -641,7 +641,7 @@ export class VectorHyst implements Hyst<Vector, boolean> {
 	 * @returns The new state of the hysteresis
 	 */
 	public update(x: Vector): boolean {
-		return this.lessThan.update(this.target.distanceToSq(x));
+		return this._lessThan.update(this.target.distanceToSq(x));
 	}
 
 
@@ -697,7 +697,7 @@ export class VectorHyst implements Hyst<Vector, boolean> {
  * choice of HYST.
  */
 export class AngleHyst implements Hyst<number, boolean> {
-	private inInterval: InIntervalHyst;
+	private _inInterval: InIntervalHyst;
 
 	/**
 	 * The targeted angle, i.e. the angle in the center of the interval
@@ -738,16 +738,16 @@ export class AngleHyst implements Hyst<number, boolean> {
 			throw new Error(`hyst needs to be less than diff (=${diff}), but is ${hyst}`);
 		}
 
-		this.inInterval = new InIntervalHyst([target - diff, target + diff], hyst, initialState);
+		this._inInterval = new InIntervalHyst([target - diff, target + diff], hyst, initialState);
 		this.target = target;
 	}
 
 	public get state(): boolean {
-		return this.inInterval.state;
+		return this._inInterval.state;
 	}
 
 	public set state(newState: boolean) {
-		this.inInterval.state = newState;
+		this._inInterval.state = newState;
 	}
 
 	/**
@@ -757,7 +757,7 @@ export class AngleHyst implements Hyst<number, boolean> {
 	 * @returns the hysteresis value
 	 */
 	public get diff(): number {
-		const [lower, upper] = this.inInterval.interval;
+		const [lower, upper] = this._inInterval.interval;
 		return (upper - lower) / 2;
 	}
 
@@ -768,7 +768,7 @@ export class AngleHyst implements Hyst<number, boolean> {
 	 * @returns the hysteresis value
 	 */
 	public get hyst(): number {
-		return this.inInterval.hyst;
+		return this._inInterval.hyst;
 	}
 
 	/**
@@ -796,7 +796,7 @@ export class AngleHyst implements Hyst<number, boolean> {
 		while (x > upper) {
 			x -= 2 * Math.PI;
 		}
-		return this.inInterval.update(x);
+		return this._inInterval.update(x);
 	}
 
 

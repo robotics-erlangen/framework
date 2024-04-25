@@ -21,25 +21,25 @@ const G = World.Geometry;
 export class Midfield extends Objective {
 	public constructor() {
 		super({
-			ma: Midfield.MA_RUNNER,
-			freekick: Midfield.FREEKICK_RUNNER,
-			support: Midfield.SUPPORT_RUNNER
+			ma: Midfield._MA_RUNNER,
+			freekick: Midfield._FREEKICK_RUNNER,
+			support: Midfield._SUPPORT_RUNNER
 		});
 	}
 
-	private static readonly MA_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _MA_RUNNER = parameterizeClass(CheckableList, [
 		BreakPass,
 		PassTiming,
 		parameterizeClass(Shoot, midfieldRatePass),
 	]);
-	private static readonly FREEKICK_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _FREEKICK_RUNNER = parameterizeClass(CheckableList, [
 		BreakPass,
 		parameterizeClass(FreeKick, midfieldRatePass),
 		DoubleTouchGuard,
 		PassTiming,
 		parameterizeClass(Shoot, midfieldRatePass),
 	]);
-	private static readonly SUPPORT_RUNNER = parameterizeClass(CheckableList, [
+	private static readonly _SUPPORT_RUNNER = parameterizeClass(CheckableList, [
 		parameterizeClass(FeintPass, { isStriker: false, samplingCtor: MidfieldSampling }),
 		BreakPass,
 		parameterizeClass(Support, { isStriker: false, samplingCtor: MidfieldSampling })

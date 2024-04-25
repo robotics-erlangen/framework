@@ -3,8 +3,8 @@ import * as MathUtil from "base/mathutil";
 import * as World from "base/world";
 
 export class DirectRotation {
-	private lastTargetDir: number | undefined;
-	private lastTime: number | undefined;
+	private _lastTargetDir: number | undefined;
+	private _lastTime: number | undefined;
 
 	public calculateRotationHysteresis(robotDir: number, currentOmega: number, targetDir: number, rotAccel: number, rotBrake: number,
 			rotSpeed: number, rotExpTime: number): [number, number] {
@@ -12,11 +12,11 @@ export class DirectRotation {
 		// as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
 		// TODO: only add a reasonable directionChange, not a million
 		// FIXME?: Assuming the direction change will keep on going, we can still calculate if it will be faster to do the piruette, or to break and return and break again and accelerate again. TODO: Is that even what we want? At some point the dir change will stop and then we have to break our speed again.
-		const feedforwardSpeed: number = this.lastTime == undefined ? 0 : geom.normalizeAngle(targetDir - this.lastTargetDir!) / (World.Time - this.lastTime);
+		const feedforwardSpeed: number = this._lastTime == undefined ? 0 : geom.normalizeAngle(targetDir - this._lastTargetDir!) / (World.Time - this._lastTime);
 		let [angularSpeed, angularAccel] = DirectRotation.calculateRotation(robotDir, currentOmega, targetDir,
 		rotAccel, rotBrake, rotSpeed, rotExpTime, feedforwardSpeed);
-		this.lastTargetDir = targetDir;
-		this.lastTime = World.Time;
+		this._lastTargetDir = targetDir;
+		this._lastTime = World.Time;
 		return [angularSpeed, angularAccel];
 	}
 

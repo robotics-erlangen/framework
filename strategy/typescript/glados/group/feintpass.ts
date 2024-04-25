@@ -29,8 +29,8 @@ export function feintPassTargetEquals(a: FeintPassTarget | undefined, b: FeintPa
 
 export class FeintPass implements Group {
 	public readonly name = "feintpass";
-	private lastRobotFeintPosMap: Map<FriendlyRobot, FeintPassTarget> = new Map<FriendlyRobot, FeintPassTarget>();
-	private lastMainAttacker: FriendlyRobot | undefined;
+	private _lastRobotFeintPosMap: Map<FriendlyRobot, FeintPassTarget> = new Map<FriendlyRobot, FeintPassTarget>();
+	private _lastMainAttacker: FriendlyRobot | undefined;
 
 	public run(messaging: MessageBox, messages: Map<FriendlyRobot, FeintPassTarget>) {
 		let robots = Array.from(messages.keys());
@@ -39,17 +39,17 @@ export class FeintPass implements Group {
 
 		// If the MA changed, we don't want to keep assignments in all cases
 		let mainAttacker = messaging.receiveTrainer(MessageType.mainAttacker);
-		if (mainAttacker !== this.lastMainAttacker) {
-			this.lastRobotFeintPosMap = new Map<FriendlyRobot, FeintPassTarget>();
+		if (mainAttacker !== this._lastMainAttacker) {
+			this._lastRobotFeintPosMap = new Map<FriendlyRobot, FeintPassTarget>();
 		}
 
 		// Keep robots who applied for the same FeintPosition with higher priority
 		let occupiedFeintPassTargets: FeintPassTarget[] = new Array(robots.length);
 		let index = 0;
-		for (let robot of this.lastRobotFeintPosMap.keys()) {
+		for (let robot of this._lastRobotFeintPosMap.keys()) {
 			if (robots.includes(robot)) {
 				let desiredFeintPos = messages.get(robot)!;
-				if (feintPassTargetEquals(this.lastRobotFeintPosMap.get(robot), desiredFeintPos)) {
+				if (feintPassTargetEquals(this._lastRobotFeintPosMap.get(robot), desiredFeintPos)) {
 					robotFeintPosMap.set(robot, desiredFeintPos);
 					occupiedFeintPassTargets[index] = desiredFeintPos;
 				}
@@ -62,7 +62,7 @@ export class FeintPass implements Group {
 			let desiredFeintPos = messages.get(robot)!;
 			// Check if the desired position is already feinted last frame and the robot reapplied
 			if (occupiedFeintPassTargets.find((element) => (feintPassTargetEquals(element, desiredFeintPos))) &&
-				Array.from(robotFeintPosMap.keys()).find((element) => (feintPassTargetEquals(this.lastRobotFeintPosMap[element], desiredFeintPos)))
+				Array.from(robotFeintPosMap.keys()).find((element) => (feintPassTargetEquals(this._lastRobotFeintPosMap[element], desiredFeintPos)))
 			) {
 				continue;
 			} else {
@@ -82,8 +82,8 @@ export class FeintPass implements Group {
 			}
 		}
 
-		this.lastRobotFeintPosMap = robotFeintPosMap;
-		this.lastMainAttacker = mainAttacker;
+		this._lastRobotFeintPosMap = robotFeintPosMap;
+		this._lastMainAttacker = mainAttacker;
 
 		for (let robot of robotFeintPosMap.keys()) {
 			messaging.send(MessageType.feintPassTarget, robot, robotFeintPosMap.get(robot)!);

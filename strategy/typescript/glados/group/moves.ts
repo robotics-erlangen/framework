@@ -31,7 +31,7 @@ export interface MoveInfo {
 
 export class Moves implements Group {
 	public readonly name = "moves";
-	private moveList: typeof Move[];
+	private _moveList: typeof Move[];
 	private _numAttackersSent: boolean = false;
 	private _chosenMove: undefined | {
 		ctor: typeof Move;
@@ -41,7 +41,7 @@ export class Moves implements Group {
 	private _participatingRobots: FriendlyRobot[] = [];
 
 	public constructor(moveList?: typeof Move[]) {
-		this.moveList = moveList ?? [
+		this._moveList = moveList ?? [
 			KickOff,
 			KickOffDefensive,
 			MrlTestCorner,
@@ -52,7 +52,7 @@ export class Moves implements Group {
 			None
 		];
 
-		for (let move of this.moveList) {
+		for (let move of this._moveList) {
 			if (move.MIN_ROBOTS > move.MAX_ROBOTS) {
 				throw new Error("Move: MIN_ROBOTS can't be greater than MAX_ROBOTS!");
 			}
@@ -90,7 +90,7 @@ export class Moves implements Group {
 			let numCandidateRobots = 0;
 			numCandidateRobots += messaging.receive(MessageType.attackerFlag).size;
 			numCandidateRobots += messaging.receive(MessageType.defenderFlag).size;
-			for (let move of this.moveList) {
+			for (let move of this._moveList) {
 				if (numCandidateRobots >= move.MIN_ROBOTS && move.canStart(numCandidateRobots)) {
 					candidates.push(move);
 				}

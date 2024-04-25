@@ -68,7 +68,7 @@ export class Shoot extends Behavior {
 	private _decisionFrames: number = 0;
 	private _ratePass: Attack.PassRater;
 
-	private readonly problematicDistance = 0.20 + this._robot.radius + World.Ball.radius;
+	private readonly _problematicDistance = 0.20 + this._robot.radius + World.Ball.radius;
 
 	/**
 	 * Create a new Shoot instance parameterized with a pass rating function.
@@ -307,8 +307,8 @@ export class Shoot extends Behavior {
 				return false;
 			}
 
-			return intersection[2] < this.problematicDistance
-				|| (intersection[3] !== undefined && intersection[3] < this.problematicDistance);
+			return intersection[2] < this._problematicDistance
+				|| (intersection[3] !== undefined && intersection[3] < this._problematicDistance);
 		});
 	}
 

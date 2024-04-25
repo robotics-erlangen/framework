@@ -19,16 +19,16 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 
 export class TIGERsTestGoalShot extends Task {
 
-	private rotateAndShoot: PerfectDribblerRotateAndShoot;
-	private lastWasWayTooFar: boolean;
-	private lastBallInDribbler: boolean;
-	private framesInDribbler: number = 0;
+	private _rotateAndShoot: PerfectDribblerRotateAndShoot;
+	private _lastWasWayTooFar: boolean;
+	private _lastBallInDribbler: boolean;
+	private _framesInDribbler: number = 0;
 
 	public constructor(behavior: Behavior) {
 		super(behavior);
-		this.rotateAndShoot = new PerfectDribblerRotateAndShoot(this);
-		this.lastWasWayTooFar = true;
-		this.lastBallInDribbler = false;
+		this._rotateAndShoot = new PerfectDribblerRotateAndShoot(this);
+		this._lastWasWayTooFar = true;
+		this._lastBallInDribbler = false;
 	}
 
 	private _setObstacles() {
@@ -53,14 +53,14 @@ export class TIGERsTestGoalShot extends Task {
 
 		let wayTooFar: boolean;
 		if (World.Ball.detectionQuality > 0.3) {
-			wayTooFar = World.Ball.pos.distanceTo(this._robot.pos) > (this.lastWasWayTooFar ? 1.5 : 3) * this._robot.shootRadius;
+			wayTooFar = World.Ball.pos.distanceTo(this._robot.pos) > (this._lastWasWayTooFar ? 1.5 : 3) * this._robot.shootRadius;
 		} else {
-			wayTooFar = this.lastWasWayTooFar;
+			wayTooFar = this._lastWasWayTooFar;
 		}
 
 		let ballInDribbler: boolean;
-		this.lastWasWayTooFar = wayTooFar;
-		let requiredAngleDiff = this.lastBallInDribbler ? geom.degreeToRadian(40) : geom.degreeToRadian(5);
+		this._lastWasWayTooFar = wayTooFar;
+		let requiredAngleDiff = this._lastBallInDribbler ? geom.degreeToRadian(40) : geom.degreeToRadian(5);
 		if ((World.Ball.pos - this._robot.pos).angleDiff(Vector.fromAngle(this._robot.dir)) < requiredAngleDiff && !wayTooFar) {
 			if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.3) {
 				const requiredDist = this._robot.shootRadius + 0.05;
@@ -73,16 +73,16 @@ export class TIGERsTestGoalShot extends Task {
 		}
 
 		if (ballInDribbler) {
-			this.framesInDribbler += 1;
+			this._framesInDribbler += 1;
 		} else {
-			this.framesInDribbler = 0;
+			this._framesInDribbler = 0;
 		}
 
 		debug.set("ballInDribbler", ballInDribbler);
-		debug.set("wayTooFar", this.lastWasWayTooFar);
+		debug.set("wayTooFar", this._lastWasWayTooFar);
 
-		if (this.framesInDribbler >= 5) {
-			this.rotateAndShoot._rotateAndShoot((target - this._robot.pos).angle());
+		if (this._framesInDribbler >= 5) {
+			this._rotateAndShoot._rotateAndShoot((target - this._robot.pos).angle());
 		} else {
 			this._robot.trajectory.update(ToTarget,
 				World.Ball.pos + (this._robot.pos - World.Ball.pos).withLength(this._robot.shootRadius),
@@ -90,6 +90,6 @@ export class TIGERsTestGoalShot extends Task {
 			this._robot.setDribblerSpeed(1);
 		}
 
-		this.lastBallInDribbler = ballInDribbler;
+		this._lastBallInDribbler = ballInDribbler;
 	}
 }

@@ -35,16 +35,16 @@ export class ShootGoal extends Task {
 
 	private _ballReceiptPos: Position | undefined;
 	private _lastReceivesPassTime: number = 0;
-	private alreadyTouchedBall: boolean = false;
-	private isFirstFrame: boolean = true;
+	private _alreadyTouchedBall: boolean = false;
+	private _isFirstFramee: boolean = true;
 	private _forceFast: boolean;
 
 	// last frames shoot information
-	private lastWasChip: boolean = false;
-	private lastMode: string = "";
-	private lastShootInfo: [Position, number, number?, Position?, number?] | undefined;
-	private lastChipInfo: [Position, Position?, undefined?, number?, number?] | undefined;
-	private localTarget: Position | undefined;
+	private _lastWasChip: boolean = false;
+	private _lastModee: string = "";
+	private _lastShootInfo: [Position, number, number?, Position?, number?] | undefined;
+	private _lastChipInfo: [Position, Position?, undefined?, number?, number?] | undefined;
+	private _localTarget: Position | undefined;
 
 	private _shoot: Shoot;
 
@@ -88,7 +88,7 @@ export class ShootGoal extends Task {
 
 	private _drawDebugInfo(target: Position, locked: boolean) {
 		let color;
-		let mode = this.lastMode;
+		let mode = this._lastModee;
 		if (this._desperate) {
 			mode = mode || "desperate unspecified";
 			color = vis.colors.redHalf;
@@ -115,18 +115,18 @@ export class ShootGoal extends Task {
 	// it can not prevent the case that we try to shoot, redecide after already touching the ball
 	// and then try to shoot again while crossing the 5cm radius while touching the ball
 	private canRedecide(): boolean {
-		let firstFrame = this.isFirstFrame;
-		this.isFirstFrame = false;
+		let firstFrame = this._isFirstFramee;
+		this._isFirstFramee = false;
 		if (firstFrame) {
 			return true;
 		}
 		if (Referee.isFriendlyFreeKickState() || Referee.isFriendlyKickoffState()) {
 			if (this._robot.hasBall(World.Ball, undefined, 0)) {
-				this.alreadyTouchedBall = true;
+				this._alreadyTouchedBall = true;
 			}
 			const MAX_TIMEFRAME = Referee.isFriendlyFreeKickState() ? 4.3 : 8.5; // has to be larger than freekick::MAX_TIMEFRAME
 			let timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME;
-			return !this.alreadyTouchedBall && !timeRunningOut;
+			return !this._alreadyTouchedBall && !timeRunningOut;
 		}
 		return true;
 	}
@@ -159,7 +159,7 @@ export class ShootGoal extends Task {
 		// TODO fix volley model
 		const limitCorners = this._hitCorners ? 1 : (2 / 3);
 		let localTargetX = (Rating.valueToRating(distance, maxDistance, minDistance) * limitCorners) * this._shootTargetPoint!.x;
-		this.localTarget = new Vector(localTargetX, this._shootTargetPoint!.y);
+		this._localTarget = new Vector(localTargetX, this._shootTargetPoint!.y);
 
 		if (!this._desperate) {
 			this._desperate = this._shootTargetWidth < geom.degreeToRadian(0.5);
@@ -171,14 +171,14 @@ export class ShootGoal extends Task {
 			this._lastReceivesPassTime = World.Time;
 		}
 
-		let linearOverride = World.Time - this._lastReceivesPassTime < 0.1 && ObserverShoot.volleyPossible(this._robot, this.localTarget);
+		let linearOverride = World.Time - this._lastReceivesPassTime < 0.1 && ObserverShoot.volleyPossible(this._robot, this._localTarget);
 		debug.set("linearOverride", linearOverride);
 
 		if (!this._desperate) {
 			// perform a linear shot
 			let targetWidth = this._shootTargetWidth != undefined ? this._shootTargetWidth : Infinity;
-			this.lastWasChip = false;
-			this.lastShootInfo = [this.localTarget, Infinity, undefined, ballReceiptPos, Math.min(geom.degreeToRadian(10), targetWidth)];
+			this._lastWasChip = false;
+			this._lastShootInfo = [this._localTarget, Infinity, undefined, ballReceiptPos, Math.min(geom.degreeToRadian(10), targetWidth)];
 		} else {
 			let maxAngleError = geom.degreeToRadian(10);
 			// prevent icing
@@ -195,7 +195,7 @@ export class ShootGoal extends Task {
 
 			let onlyOppOcc = [];
 			let disabled = true; // FIXME after solving TODO
-			this.localTarget = undefined;
+			this._localTarget = undefined;
 
 			if (!disabled) {
 
@@ -269,39 +269,39 @@ export class ShootGoal extends Task {
 					}
 
 					this._desperateTargetID = (selectedInterval[2] as OpponentRobot[])[0].id;
-					this.localTarget = Vector.fromAngle(selectedDir) + ballReceiptPos;
-					this.lastMode = "desperate clean";
-					this.lastWasChip = false;
-					this.lastShootInfo = [this.localTarget, Infinity, undefined, ballReceiptPos, angleError];
+					this._localTarget = Vector.fromAngle(selectedDir) + ballReceiptPos;
+					this._lastModee = "desperate clean";
+					this._lastWasChip = false;
+					this._lastShootInfo = [this._localTarget, Infinity, undefined, ballReceiptPos, angleError];
 				} while (this._desperateTargetID == undefined && onlyOppOcc.length === 0);
 			}
 			if ((ballReceiptPos.y < (this._desperateTargetPoint ? 0.5 : 0)) && !linearOverride && this._desperateTargetID == undefined) {
-				this.lastMode = "desperate chip";
-				this.localTarget = new Vector(0, (G.FieldHeightHalf + this._robot.pos.y) / 2);
-				this.lastWasChip = true;
-				this.lastChipInfo = [this.localTarget, ballReceiptPos, undefined, maxAngleError, 0.5];
-				this._desperateTargetPoint = this.localTarget;
+				this._lastModee = "desperate chip";
+				this._localTarget = new Vector(0, (G.FieldHeightHalf + this._robot.pos.y) / 2);
+				this._lastWasChip = true;
+				this._lastChipInfo = [this._localTarget, ballReceiptPos, undefined, maxAngleError, 0.5];
+				this._desperateTargetPoint = this._localTarget;
 			} else {
 				this._desperateTargetPoint = undefined;
 			}
-			if (this.localTarget == undefined) {
-				this.lastMode = "desperate desperate";
+			if (this._localTarget == undefined) {
+				this._lastModee = "desperate desperate";
 				// state: desperate desperate
 				// shoot at the center of the opponent goal
-				this.localTarget = new Vector(0, G.FieldHeightHalf);
-				this.lastWasChip = false;
-				this.lastShootInfo = [this.localTarget, Infinity, undefined, ballReceiptPos, maxAngleError];
+				this._localTarget = new Vector(0, G.FieldHeightHalf);
+				this._lastWasChip = false;
+				this._lastShootInfo = [this._localTarget, Infinity, undefined, ballReceiptPos, maxAngleError];
 			}
 		}
 		this.executeDecision(false);
 	}
 
 	private executeDecision(locked: boolean) {
-		this._drawDebugInfo(this.localTarget!, locked);
-		if (this.lastWasChip) {
-			this._shoot._chipPass(...this.lastChipInfo!);
+		this._drawDebugInfo(this._localTarget!, locked);
+		if (this._lastWasChip) {
+			this._shoot._chipPass(...this._lastChipInfo!);
 		} else {
-			this._shoot._shoot(...this.lastShootInfo!);
+			this._shoot._shoot(...this._lastShootInfo!);
 		}
 	}
 }

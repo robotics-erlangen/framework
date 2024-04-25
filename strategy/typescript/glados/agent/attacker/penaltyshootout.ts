@@ -101,8 +101,8 @@ export class PenaltyShootout extends Behavior {
 		}
 	}
 
-	private angleUncertanty: number = geom.degreeToRadian(3);
-	private turnspeed: number = 1;
+	private _angleUncertanty: number = geom.degreeToRadian(3);
+	private _turnspeed: number = 1;
 
 	private _checkFreeGoal() {
 		if (World.OpponentKeeper === undefined) {
@@ -111,12 +111,12 @@ export class PenaltyShootout extends Behavior {
 		let keeper = World.OpponentKeeper;
 		let robot = this._robot;
 		let ball = this._ball;
-		let toleftPost = (G.OpponentGoalLeft - robot.pos).rotated(-this.angleUncertanty);
-		let torightPost = (G.OpponentGoalRight - robot.pos).rotated(this.angleUncertanty);
+		let toleftPost = (G.OpponentGoalLeft - robot.pos).rotated(-this._angleUncertanty);
+		let torightPost = (G.OpponentGoalRight - robot.pos).rotated(this._angleUncertanty);
 		let anglediffleft = geom.normalizeAngle(toleftPost.angle() - robot.dir);
 		let anglediffright = geom.normalizeAngle(torightPost.angle() - robot.dir);
-		let turntimeLeft = Math.abs(anglediffleft) / this.turnspeed;
-		let turntimeRight = Math.abs(anglediffright) / this.turnspeed;
+		let turntimeLeft = Math.abs(anglediffleft) / this._turnspeed;
+		let turntimeRight = Math.abs(anglediffright) / this._turnspeed;
 
 
 		let timeLeft = getKeeperTime(robot.pos + toleftPost, turntimeLeft, ball, keeper);

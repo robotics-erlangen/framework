@@ -9,7 +9,7 @@ import { Direct } from "glados/trajectory/direct";
 
 
 export class RotateAndShoot {
-	private startTime: number | undefined;
+	private _startTime: number | undefined;
 
 	private _robot: FriendlyRobot;
 
@@ -18,10 +18,10 @@ export class RotateAndShoot {
 	}
 
 	public _rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {
-		if (this.startTime == undefined) {
-			this.startTime = World.Time;
+		if (this._startTime == undefined) {
+			this._startTime = World.Time;
 		}
-		let t = World.Time - this.startTime;
+		let t = World.Time - this._startTime;
 
 		// 1 when rotating ccw, -1 when rotating cw
 		let invert = this._robot.dir < destAngle ? 1 : -1;

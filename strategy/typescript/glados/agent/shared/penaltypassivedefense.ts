@@ -8,12 +8,12 @@ import { MoveToPos } from "glados/task/shared/movetopos";
 const G = World.Geometry;
 
 export class PenaltyPassiveDefense extends Behavior {
-	protected startPos: Position = -new Vector(G.FieldWidth, G.FieldHeight) * 2;
-	protected endX: number = G.FieldWidth * 2.0;
-	protected endYOffset: number = 1.3;
+	protected _startPos: Position = -new Vector(G.FieldWidth, G.FieldHeight) * 2;
+	protected _endX: number = G.FieldWidth * 2.0;
+	protected _endYOffset: number = 1.3;
 
 	// min 1.0m behind ball, 1.5 just in case
-	protected yOffset: number = 1.5;
+	protected _yOffset: number = 1.5;
 
 	public check(): Behavior | undefined {
 		return Referee.isOpponentPenaltyState() ? this : undefined;
@@ -22,13 +22,13 @@ export class PenaltyPassiveDefense extends Behavior {
 	protected _updateTask(): TaskAssignment<typeof MoveToPos> {
 		let x = (this._robot.id - World.FriendlyRobots[0].id + 0.5) * G.FieldWidth / World.MaxAllowedFriendlyRobots - G.FieldWidthHalf;
 
-		let y = World.Ball.pos.y + this.yOffset;
+		let y = World.Ball.pos.y + this._yOffset;
 		let pos = new Vector(x, y);
 
 		const penaltyObstacle = {
 			type: "rect" as "rect",
-			start: this.startPos,
-			end: new Vector(this.endX, World.Ball.pos.y + this.endYOffset),
+			start: this._startPos,
+			end: new Vector(this._endX, World.Ball.pos.y + this._endYOffset),
 			radius: 0,
 			name: "a/a/penaltyPassive"
 		};

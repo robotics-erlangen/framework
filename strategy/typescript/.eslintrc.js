@@ -124,6 +124,81 @@ module.exports = {
             {
                 "selector": "classProperty",
                 "format": ["camelCase", "snake_case"],
+                "modifiers": ["private"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["UPPER_CASE"],
+                "modifiers": ["private", "static", "readonly"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "modifiers": ["private", "static"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "UPPER_CASE"],
+                "modifiers": ["private", "readonly"],
+                "leadingUnderscore": "require",
+            },
+
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "modifiers": ["protected"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["UPPER_CASE"],
+                "modifiers": ["protected", "static", "readonly"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "modifiers": ["protected", "static"],
+                "leadingUnderscore": "require",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "UPPER_CASE"],
+                "modifiers": ["protected", "readonly"],
+                "leadingUnderscore": "require",
+            },
+
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "modifiers": ["public"],
+                "leadingUnderscore": "forbid",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["UPPER_CASE"],
+                "modifiers": ["public", "static", "readonly"],
+                "leadingUnderscore": "forbid",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
+                "modifiers": ["public", "static"],
+                "leadingUnderscore": "forbid",
+            },
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "UPPER_CASE"],
+                "modifiers": ["public", "readonly"],
+                "leadingUnderscore": "forbid",
+            },
+
+            {
+                "selector": "classProperty",
+                "format": ["camelCase", "snake_case"],
                 "leadingUnderscore": "allow",
             },
             {

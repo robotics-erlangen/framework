@@ -91,7 +91,7 @@ export class Shoot {
 
 	private _lastTargetPos: Position | undefined;
 	private _linearShoot: boolean = true;
-	private targetRobotDir: number = 0;
+	private _targetRobotDir: number = 0;
 
 	private _precision: number = 0;
 	private _rightOrientation: boolean = false;
@@ -103,7 +103,7 @@ export class Shoot {
 	private _directMovement: boolean = false;
 	private _catchBallActive: boolean = false;
 
-	private ballInDribbler: boolean = false;
+	private _ballInDribbler: boolean = false;
 
 	private _robot: FriendlyRobot;
 	private _task: Task;
@@ -112,13 +112,13 @@ export class Shoot {
 		return this._task.behavior().agent().messaging();
 	}
 
-	public _catchBall: CatchBall;
+	public catchBall: CatchBall;
 	private _forceShoot: ForceShoot;
 
 	public constructor(task: Task) {
 		this._robot = task.behavior().agent().robot();
 		this._task = task;
-		this._catchBall = new CatchBall(task);
+		this.catchBall = new CatchBall(task);
 		this._forceShoot = new ForceShoot(task);
 	}
 
@@ -204,7 +204,7 @@ export class Shoot {
 	private _getState(targetPos: Position, futureBall: Physics.BallLike, futureBallTime: number,
 			targetTime: number | undefined, chaseFutureBall: Physics.BallLike, chaseBallTime: number): ShootState {
 
-		if (this.ballInDribbler && HAS_STRONG_DRIBBLER) {
+		if (this._ballInDribbler && HAS_STRONG_DRIBBLER) {
 			return ShootState.RotateWithBall;
 		}
 		// rotatewithball should ONLY ever be active with ballInDribbler
@@ -327,7 +327,7 @@ export class Shoot {
 
 	private _shootStationaryBall(targetPos: Position, targetSpeed: number, targetTime: number | undefined, futureBall: Physics.BallLike) {
 		let shootDir = (targetPos - this._robot.pos).angle();
-		this.targetRobotDir = shootDir;
+		this._targetRobotDir = shootDir;
 
 		let maxSidewardsAngle;
 		let maxOrientationAngle;
@@ -402,7 +402,7 @@ export class Shoot {
 			let projectedPos = Field.limitToAllowedField(World.Ball.pos, -EXTRA_DISTANCE);
 			this._robot.trajectory.update(CurvedMaxAccel, projectedPos, (World.Ball.pos - projectedPos).angle());
 		} else {
-			let cBTime = this._catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed)[0];
+			let cBTime = this.catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed)[0];
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time + cBTime);
 			if (attackTime < World.Time + cBTime) {
 				attackTime = World.Time + cBTime;
@@ -444,9 +444,9 @@ export class Shoot {
 		// the tracking might place the ball quite far away from the robot even though it is in the dribbler
 		const requiredDist = this._robot.radius + 0.1;
 		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.3) {
-			this.ballInDribbler = this._robot.pos.distanceToSq(World.Ball.pos) < requiredDist * requiredDist;
+			this._ballInDribbler = this._robot.pos.distanceToSq(World.Ball.pos) < requiredDist * requiredDist;
 		} else {
-			this.ballInDribbler = true;
+			this._ballInDribbler = true;
 		}
 
 		this._messaging.sendBroadcast(MessageType.attackPosition, shootBallPos);
@@ -474,13 +474,13 @@ export class Shoot {
 		this._precision = MIN_PRECISION_CHASE;
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with no relaitve speed is questionable
-		this.targetRobotDir = targetDir;
+		this._targetRobotDir = targetDir;
 
 		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 		let endSpeed = futureBall.speed.withLength(futureBall.speed.length() + relativeEndSpeed);
 
-		endSpeed = this._catchBall.limitEndSpeedToField(moveDest, endSpeed);
+		endSpeed = this.catchBall.limitEndSpeedToField(moveDest, endSpeed);
 
 		this._setObstacles(moveDest);
 		this._robot.trajectory.update(ToTarget, moveDest, targetDir, undefined, endSpeed);
@@ -495,11 +495,11 @@ export class Shoot {
 		}
 	}
 
-	private static readonly MIN_TIME: number = 0.2;
-	private static readonly DISTRACTION_PERCENTAGE: number = 0.9;
+	private static readonly _MIN_TIME: number = 0.2;
+	private static readonly _DISTRACTION_PERCENTAGE: number = 0.9;
 	private _shootVolley(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike, futureBallTime: number) {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed);
-		this.targetRobotDir = targetDir;
+		this._targetRobotDir = targetDir;
 		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
@@ -512,9 +512,9 @@ export class Shoot {
 		// don't look in the correct direction from the beginning
 		let distance = World.Ball.pos.distanceTo(futureBall.pos);
 		let ballTravelTime = Physics.ballTravelTime(World.Ball, distance);
-		if (this._robot.pos.distanceTo(moveDest) < 0.05 && ballTravelTime > Shoot.MIN_TIME && ballTravelTime !== Infinity) {
+		if (this._robot.pos.distanceTo(moveDest) < 0.05 && ballTravelTime > Shoot._MIN_TIME && ballTravelTime !== Infinity) {
 			let [clockwiseRotation, counterClockwiseRotation] = Physics.robotRotationRangeForTime(this._robot,
-					Shoot.DISTRACTION_PERCENTAGE * ballTravelTime);
+					Shoot._DISTRACTION_PERCENTAGE * ballTravelTime);
 			let shootVector = targetPos - moveDest;
 			let shootAngle = shootVector.angle();
 			let angleDiff = Math.abs(this._robot.dir - shootAngle);
@@ -539,7 +539,7 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let [catchTime, catchPos] = this._catchBall._catchBall(targetPos, 0, targetSpeed);
+			let [catchTime, catchPos] = this.catchBall._catchBall(targetPos, 0, targetSpeed);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, catchTime + World.Time);
 			this._messaging.sendBroadcast(MessageType.plannedAttackTime, catchTime + World.Time);
 			this._catchBallActive = true;
@@ -557,7 +557,7 @@ export class Shoot {
 		let ballOrigin = futureBall.pos - futureBall.speed;
 		// the future ball might be standing still, so use the current ball speed. The direction is the same
 		let targetDir = (-World.Ball.speed).angle();
-		this.targetRobotDir = targetDir;
+		this._targetRobotDir = targetDir;
 		let dribblerOffset = Vector.fromPolar(targetDir, this._robot.shootRadius + World.Ball.radius);
 		let moveDest = futureBall.pos - dribblerOffset;
 
@@ -570,7 +570,7 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let [attackTime, catchPos] = this._catchBall._catchBall(ballOrigin, 0, undefined);
+			let [attackTime, catchPos] = this.catchBall._catchBall(ballOrigin, 0, undefined);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, attackTime + World.Time);
 			this._catchBallActive = true;
 			visBallStartPos = catchPos;
@@ -582,7 +582,7 @@ export class Shoot {
 
 			const ballDistance = this._robot.radius + World.Ball.radius;
 			if (this._robot.pos.distanceToSq(World.Ball.pos) < ballDistance * ballDistance) {
-				this.ballInDribbler = true;
+				this._ballInDribbler = true;
 			}
 		}
 
@@ -598,7 +598,7 @@ export class Shoot {
 
 	private _doShoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
 			linearShoot: boolean = false, precision: number = MIN_PRECISION) {
-		this.targetRobotDir = (targetPos - this._robot.pos).angle();
+		this._targetRobotDir = (targetPos - this._robot.pos).angle();
 		let [futureBall, futureBallTime] = this._calculateFutureBall(ballReceiptPos);
 		debug.set("Shoot/futureBallTime", futureBallTime);
 		let [chaseFutureBall, chaseBallTime] = this._calculateChaseFutureBall(targetPos);
@@ -634,7 +634,7 @@ export class Shoot {
 		if (this._state !== ShootState.StationaryBall) {
 			this._directMovement = false;
 		}
-		debug.set("Shoot/ball in dribbler", this.ballInDribbler);
+		debug.set("Shoot/ball in dribbler", this._ballInDribbler);
 
 		Shoot._visualizeShoot(visBallStartPos, targetPos, color);
 
@@ -643,7 +643,7 @@ export class Shoot {
 			// keep the robot rotating with the ball as mainattacker since it is guaranteed to have the ball
 			ratingOverwrite = 1.5;
 		}
-		this._task.setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this.targetRobotDir), this._robot.maxSpeed, ratingOverwrite);
+		this._task.setMainAttackerParameters(futureBall.pos + Vector.fromAngle(this._targetRobotDir), this._robot.maxSpeed, ratingOverwrite);
 		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
 
 		this._lastTargetPos = targetPos;

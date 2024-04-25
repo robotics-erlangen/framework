@@ -11,7 +11,7 @@ const ENABLE_FORCE_SHOOT = false;
 // if the kick was canceled but the task stays active
 
 export class ForceShoot {
-	public _forceShootTimer: number | undefined;
+	public forceShootTimer: number | undefined;
 
 	private _robot: FriendlyRobot;
 
@@ -32,14 +32,14 @@ export class ForceShoot {
 		if (relpos.x < this._robot.shootRadius + World.Ball.radius - 0.002 && World.Ball.isPositionValid() &&
 				this._robot.hasBall(World.Ball, -0.01)) {
 			// initialize if neccessary
-			this._forceShootTimer = this._forceShootTimer != undefined ? this._forceShootTimer : World.Time;
-			if (World.Time - this._forceShootTimer >= FORCE_SHOOT_DELAY) {
+			this.forceShootTimer = this.forceShootTimer != undefined ? this.forceShootTimer : World.Time;
+			if (World.Time - this.forceShootTimer >= FORCE_SHOOT_DELAY) {
 				debug.set("force shoot", true);
 				this._robot.forceShoot();
 			}
 		} else {
 			// reset time
-			this._forceShootTimer = World.Time;
+			this.forceShootTimer = World.Time;
 		}
 	}
 }

@@ -38,7 +38,7 @@ export class FeintPassTask extends Task {
 	public passRobot: FriendlyRobot;
 	public feintPos: Position;
 
-	private attackPosition: Position;
+	private _attackPosition: Position;
 	private _zone?: Zone;
 
 	private _reEvaluateTimestamp: number | undefined;
@@ -53,7 +53,7 @@ export class FeintPassTask extends Task {
 		this.relevantPassInfo = relevantPassInfo;
 		this.passRobot = passRobot;
 		this.feintPos = feintPos;
-		this.attackPosition = attackPosition;
+		this._attackPosition = attackPosition;
 
 		if (supportParameters) {
 			this._reEvaluateTimestamp = World.Time;
@@ -157,7 +157,7 @@ export class FeintPassTask extends Task {
 	public updatePass(relevantPassInfo: PassInfo, feintPos: Position, attackPosition: Position): void {
 		this.relevantPassInfo = relevantPassInfo;
 		this.feintPos = feintPos;
-		this.attackPosition = attackPosition;
+		this._attackPosition = attackPosition;
 	}
 
 	public run(): void {
@@ -222,7 +222,7 @@ export class FeintPassTask extends Task {
 		let [sender, passInfoTable] = this._messaging.receiveSingleSender(MessageType.passInfo);
 
 		let futureShotBall = { pos: attackPosition,
-			speed: (this.relevantPassInfo.ballPos - this.attackPosition).withLength(this.relevantPassInfo.passSpeed),
+			speed: (this.relevantPassInfo.ballPos - this._attackPosition).withLength(this.relevantPassInfo.passSpeed),
 			maxSpeed: this.relevantPassInfo.passSpeed,
 			radius: World.Ball.radius, posZ: 0
 		} as Physics.BallLike;
@@ -253,8 +253,8 @@ export class FeintPassTask extends Task {
 
 		if (this.passWasShot || this.evacuate || (
 			!Ball.isStanding()
-			&& Math.abs(World.Ball.speed.angleDiff(this.relevantPassInfo.ballPos - this.attackPosition)) < (Math.PI / 180) * 10
-			&& Math.abs((World.Ball.pos - this.attackPosition).angleDiff(this.relevantPassInfo.ballPos - this.attackPosition)) < (Math.PI / 180) * 10
+			&& Math.abs(World.Ball.speed.angleDiff(this.relevantPassInfo.ballPos - this._attackPosition)) < (Math.PI / 180) * 10
+			&& Math.abs((World.Ball.pos - this._attackPosition).angleDiff(this.relevantPassInfo.ballPos - this._attackPosition)) < (Math.PI / 180) * 10
 		)) {
 			if (ballTime < robotTime) {
 				triggerEvacuate = true;

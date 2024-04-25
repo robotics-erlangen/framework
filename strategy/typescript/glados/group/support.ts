@@ -23,7 +23,7 @@ export class Support implements Group {
 	private _lastRobots: FriendlyRobot[] | undefined;
 	private _lastAssignments: Map<UtilZone.Zone, FriendlyRobot> | undefined = undefined;
 
-	private objective: Objective | undefined = undefined;
+	private _objective: Objective | undefined = undefined;
 
 	private _chooseEmptyZone(mainAttackerPos?: Position) {
 		let emptyZoneHysteresis = this._emptyZone ? 0.2 : 0;
@@ -90,13 +90,13 @@ export class Support implements Group {
 				.some((zone) => UtilZone.isInZone(mainAttackerPos!, zone, -0.3));
 
 		// update zones if necessary
-		if (robots.length !== this._supportCount || this.objective !== objective || mainAttackerPosChangedZone) {
+		if (robots.length !== this._supportCount || this._objective !== objective || mainAttackerPosChangedZone) {
 			this._supportCount = robots.length;
 			this._zones = objective.getSupporterZones(robots, mainAttackerPos);
 			// reset empty zone hysteresis
 			this._emptyZone = undefined;
 
-			this.objective = objective;
+			this._objective = objective;
 
 			updateAssignments = true;
 		}

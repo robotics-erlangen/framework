@@ -26,7 +26,7 @@ const GOAL_BUFFER = 0.3;
 export class Keeper extends Task {
 	private _defendCorner: boolean = false;
 	private _forceShoot: ForceShoot;
-	private lastBallBehindKeeper: boolean = false;
+	private _lastBallBehindKeeper: boolean = false;
 
 	public constructor(behavior: Behavior) {
 		super(behavior);
@@ -157,9 +157,9 @@ export class Keeper extends Task {
 				Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
 			let ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0);
 			let robotDist = Field.distanceToFriendlyGoalLine(this._robot.pos, 0);
-			let hysteresisDist = this.lastBallBehindKeeper ? 0.15 : 0;
+			let hysteresisDist = this._lastBallBehindKeeper ? 0.15 : 0;
 			let ballBehindKeeper = ballDist - hysteresisDist < robotDist;
-			this.lastBallBehindKeeper = ballBehindKeeper;
+			this._lastBallBehindKeeper = ballBehindKeeper;
 			if (ballBehindKeeper) {
 				ignoreBall = false;
 				moveTo = intersectPos;
@@ -267,7 +267,7 @@ export class Keeper extends Task {
 		this._robot.trajectory.update(ToTarget, moveTo, (atkPos - moveTo).angle(), undefined, endSpeed);
 
 		if (!Robot.hadBall(this._robot, 0)) {
-			this._forceShoot._forceShootTimer = undefined;
+			this._forceShoot.forceShootTimer = undefined;
 		}
 		let chipActivationAngle = Math.PI / 6;
 		let ballToRobot = this._robot.pos - World.Ball.pos;

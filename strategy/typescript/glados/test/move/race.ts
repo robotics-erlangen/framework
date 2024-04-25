@@ -47,16 +47,16 @@ export class Race extends Move {
 	 *                +-------------+-------------+                        *
 	 *                                                                     *
 	 ***********************************************************************/
-	private static readonly PADDING = 0.5;
-	private static readonly CORNERS = {
-		FGL: new Vector(-G.FieldWidthHalf + Race.PADDING, -G.FieldHeightHalf + Race.PADDING),
-		FGR: new Vector(+G.FieldWidthHalf - Race.PADDING, -G.FieldHeightHalf + Race.PADDING),
-		FML: new Vector(-G.FieldWidthHalf + Race.PADDING, -Race.PADDING),
-		FMR: new Vector(+G.FieldWidthHalf - Race.PADDING, -Race.PADDING),
-		OGL: new Vector(-G.FieldWidthHalf + Race.PADDING, +G.FieldHeightHalf - Race.PADDING),
-		OGR: new Vector(+G.FieldWidthHalf - Race.PADDING, +G.FieldHeightHalf - Race.PADDING),
-		OML: new Vector(-G.FieldWidthHalf + Race.PADDING, +Race.PADDING),
-		OMR: new Vector(+G.FieldWidthHalf - Race.PADDING, +Race.PADDING),
+	private static readonly _PADDING = 0.5;
+	private static readonly _CORNERS = {
+		FGL: new Vector(-G.FieldWidthHalf + Race._PADDING, -G.FieldHeightHalf + Race._PADDING),
+		FGR: new Vector(+G.FieldWidthHalf - Race._PADDING, -G.FieldHeightHalf + Race._PADDING),
+		FML: new Vector(-G.FieldWidthHalf + Race._PADDING, -Race._PADDING),
+		FMR: new Vector(+G.FieldWidthHalf - Race._PADDING, -Race._PADDING),
+		OGL: new Vector(-G.FieldWidthHalf + Race._PADDING, +G.FieldHeightHalf - Race._PADDING),
+		OGR: new Vector(+G.FieldWidthHalf - Race._PADDING, +G.FieldHeightHalf - Race._PADDING),
+		OML: new Vector(-G.FieldWidthHalf + Race._PADDING, +Race._PADDING),
+		OMR: new Vector(+G.FieldWidthHalf - Race._PADDING, +Race._PADDING),
 	};
 
 	/***********************************************************************
@@ -66,10 +66,10 @@ export class Race extends Move {
 	 * (c) have 4 robots drive back and forth in the opponent half         *
 	 * (d) have 4 robots drive back and forth on the full field            *
 	 ***********************************************************************/
-	/* (a) */ private static readonly POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
-	/* (b) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FML, Race.CORNERS.FGR);
-	/* (c) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.OML, Race.CORNERS.OGR);
-	/* (d) */ // private static readonly POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FGL, Race.CORNERS.OGR);
+	/* (a) */ private static readonly _POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
+	/* (b) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FML, Race.CORNERS.FGR);
+	/* (c) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.OML, Race.CORNERS.OGR);
+	/* (d) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FGL, Race.CORNERS.OGR);
 
 	/***********************************************************************
 	 * If you want the robots to wait for each other and only start        *
@@ -78,17 +78,17 @@ export class Race extends Move {
 	 * If it is set to false, every robot cycles through its               *
 	 * positions independently of the others.                              *
 	 ***********************************************************************/
-	private static readonly SYNC: boolean = true;
+	private static readonly _SYNC: boolean = true;
 
 	/***********************************************************************
 	 * To control how close to its target each robot has to drive and how  *
 	 * slow it needs to be, you can use these parameters                   *
 	 ***********************************************************************/
-	private static readonly POS_TOLERANCE: number = 0.2;
-	private static readonly SPEED_TOLERANCE: number = 0.05;
+	private static readonly _POS_TOLERANCE: number = 0.2;
+	private static readonly _SPEED_TOLERANCE: number = 0.05;
 
-	private static readonly N: number = Race.POSITIONS.length;
-	private static readonly COLORS: vis.Color[] = [
+	private static readonly _N: number = Race._POSITIONS.length;
+	private static readonly _COLORS: vis.Color[] = [
 		vis.colors.red,
 		vis.colors.blue,
 		vis.colors.green,
@@ -102,10 +102,10 @@ export class Race extends Move {
 	];
 
 	public static readonly MIN_ROBOTS = 1;
-	public static readonly MAX_ROBOTS = Race.N;
+	public static readonly MAX_ROBOTS = Race._N;
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
-	private posIndices: number[] = Race.POSITIONS.map((_) => 0);
+	private _posIndices: number[] = Race._POSITIONS.map((_) => 0);
 
 	public static canStart() {
 		return true;
@@ -147,32 +147,32 @@ export class Race extends Move {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		const posReached = this._robots.map((r, i) => {
-			const positions = Race.POSITIONS[i];
-			const pos = positions[this.posIndices[i]];
-			return r.pos.distanceToSq(pos) < Race.POS_TOLERANCE * Race.POS_TOLERANCE
-				&& r.speed.lengthSq() < Race.SPEED_TOLERANCE * Race.SPEED_TOLERANCE;
+			const positions = Race._POSITIONS[i];
+			const pos = positions[this._posIndices[i]];
+			return r.pos.distanceToSq(pos) < Race._POS_TOLERANCE * Race._POS_TOLERANCE
+				&& r.speed.lengthSq() < Race._SPEED_TOLERANCE * Race._SPEED_TOLERANCE;
 		});
 
-		const synchronized = posReached.every((x) => x) || !Race.SYNC;
-		for (let i = 0; i < Math.min(this._robots.length, Race.POSITIONS.length); i++) {
+		const synchronized = posReached.every((x) => x) || !Race._SYNC;
+		for (let i = 0; i < Math.min(this._robots.length, Race._POSITIONS.length); i++) {
 			const r = this._robots[i];
-			const positions = Race.POSITIONS[i];
-			const pos = positions[this.posIndices[i]];
+			const positions = Race._POSITIONS[i];
+			const pos = positions[this._posIndices[i]];
 
-			vis.addPath("te/m/race: positions", [r.pos, pos], Race.COLORS[i]);
+			vis.addPath("te/m/race: positions", [r.pos, pos], Race._COLORS[i]);
 			for (const p of positions) {
 				const radius = r.radius + (p === pos ? 0.05 : 0);
-				vis.addCircle("te/m/race: positions", p, radius, Race.COLORS[i]);
+				vis.addCircle("te/m/race: positions", p, radius, Race._COLORS[i]);
 			}
 
 			if (posReached[i] && synchronized) {
-				this.posIndices[i] += 1;
-				this.posIndices[i] %= positions.length;
+				this._posIndices[i] += 1;
+				this._posIndices[i] %= positions.length;
 			}
 
 			taskAssignments[r] = Assignment.create({
 				class: MoveToPos,
-				params: [{ pos: positions[this.posIndices[i]], ignoreDefaultObstacles: true, dir: 0 }],
+				params: [{ pos: positions[this._posIndices[i]], ignoreDefaultObstacles: true, dir: 0 }],
 				restart: posReached[i] && synchronized,
 			});
 		}

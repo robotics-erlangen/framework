@@ -23,31 +23,31 @@ const IS_REACHABLE_TIMEDIFF = 0.5;
 
 export class FeintPass extends Behavior {
 
-	private lastFeintSamplings = new Map<PassInfo, number>();
-	private supportParams: SupportParameters | undefined;
+	private _lastFeintSamplings = new Map<PassInfo, number>();
+	private _supportParams: SupportParameters | undefined;
 
-	private restartTask: boolean = false;
-	private nextPassInfo: PassInfo | undefined;
-	private nextSender: FriendlyRobot | undefined;
-	private lastSender: FriendlyRobot | undefined;
-	private nextFeintpos: Position | undefined;
-	private nextAttackPosition: Position | undefined;
-	private canDoPasses: boolean;
+	private _restartTask: boolean = false;
+	private _nextPassInfo: PassInfo | undefined;
+	private _nextSender: FriendlyRobot | undefined;
+	private _lastSender: FriendlyRobot | undefined;
+	private _nextFeintpos: Position | undefined;
+	private _nextAttackPosition: Position | undefined;
+	private _canDoPasses: boolean;
 
 	public constructor(agent: Agent, supportParams?: SupportParameters) {
 		super(agent);
-		this.supportParams = supportParams;
-		this.canDoPasses = supportParams !== undefined;
+		this._supportParams = supportParams;
+		this._canDoPasses = supportParams !== undefined;
 	}
 
 	protected _stop() {
-		this.lastFeintSamplings = new Map<PassInfo, number>();
-		this.restartTask = false;
-		this.nextPassInfo = undefined;
-		this.nextSender = undefined;
-		this.lastSender = undefined;
-		this.nextFeintpos = undefined;
-		this.nextAttackPosition = undefined;
+		this._lastFeintSamplings = new Map<PassInfo, number>();
+		this._restartTask = false;
+		this._nextPassInfo = undefined;
+		this._nextSender = undefined;
+		this._lastSender = undefined;
+		this._nextFeintpos = undefined;
+		this._nextAttackPosition = undefined;
 	}
 
 	private getFeintPosition(sender: FriendlyRobot | undefined, passInfoTable: ReadonlyRec<PassInfo[]>,
@@ -58,8 +58,8 @@ export class FeintPass extends Behavior {
 		let feintSamplings = new Map<PassInfo, number>();
 
 		// Reset lastFeintSamplings if the MA changed since the passes are guaranteed to be new
-		if (sender !== this.lastSender) {
-			this.lastFeintSamplings = new Map<PassInfo, number>();
+		if (sender !== this._lastSender) {
+			this._lastFeintSamplings = new Map<PassInfo, number>();
 		}
 
 		for (let passInfo of passInfoTable) {
@@ -72,12 +72,12 @@ export class FeintPass extends Behavior {
 			// If there is a well-defined previous behaviour and we are close to one of the thresholds
 			// Consider two passInfos to be the same if it came from the same MA (otherwise lastFeintSamplings will be empty)
 			// and have the same target
-			let passInfoLastFrame = Array.from(this.lastFeintSamplings.keys()).find((element) => element.target === passInfo.target);
+			let passInfoLastFrame = Array.from(this._lastFeintSamplings.keys()).find((element) => element.target === passInfo.target);
 			if (passInfoLastFrame !== undefined
 				&& (Math.abs(passDist - PASS_DIST_SMALL_THRESHOLD) < PASS_DISTANCE_HYSTERESIS
 				|| Math.abs(passDist - PASS_DIST_LARGE_THRESHOLD) < PASS_DISTANCE_HYSTERESIS)) {
 				// Hysteresis says: continue what you were doing before
-				feintSamplings[passInfo] = this.lastFeintSamplings[passInfoLastFrame];
+				feintSamplings[passInfo] = this._lastFeintSamplings[passInfoLastFrame];
 			} else {
 				// Just make hard cuts
 				feintSamplings[passInfo] = MathUtil.bound(0, Math.floor((passDist - 1) / 2), 2);
@@ -135,8 +135,8 @@ export class FeintPass extends Behavior {
 
 			}
 		}
-		this.lastFeintSamplings = feintSamplings;
-		this.lastSender = sender;
+		this._lastFeintSamplings = feintSamplings;
+		this._lastSender = sender;
 		return [relevantPassInfoMessage, bestPosition];
 	}
 
@@ -146,7 +146,7 @@ export class FeintPass extends Behavior {
 		let plannedAttackTime = this._messaging.receiveSingleSender(MessageType.plannedAttackTime)[1];
 
 		// If we don't have a zone yet, do something else
-		let zoneType = this.canDoPasses ? MessageType.supportZone : MessageType.dummyZone;
+		let zoneType = this._canDoPasses ? MessageType.supportZone : MessageType.dummyZone;
 		let zone = this._messaging.receiveTrainer(zoneType);
 		if (zone == undefined) {
 			return undefined;
@@ -158,8 +158,8 @@ export class FeintPass extends Behavior {
 		// Check if we needed to accept the next planned pass last frame
 		let prevRobotTime = (this._task instanceof AcceptPass) ? this._task.getLastTime() : undefined;
 		let [acceptingPass, _timeLeft] = passInfoTable ? checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];
-		let escapeToAccept = acceptingPass && this.nextAttackPosition !== undefined &&
-		 this.nextPassInfo !== undefined && this.nextSender !== undefined && this.nextFeintpos !== undefined;
+		let escapeToAccept = acceptingPass && this._nextAttackPosition !== undefined &&
+		 this._nextPassInfo !== undefined && this._nextSender !== undefined && this._nextFeintpos !== undefined;
 
 		debug.set("passPlanned", passPlanned);
 
@@ -179,7 +179,7 @@ export class FeintPass extends Behavior {
 				// Never abort during evacuation
 				if (this._task.evacuate) {
 					this.applyForMainAttacker(undefined, undefined, 0);
-					this.restartTask = false;
+					this._restartTask = false;
 					doFeintPass = true;
 
 					let feintTarget = { passRobot: this._task.passRobot,
@@ -218,15 +218,15 @@ export class FeintPass extends Behavior {
 						if (this._task instanceof FeintPassTask) {
 							// Update info on this pass and continue
 							this._task.updatePass(passInfo, feintPos, attackPosition);
-							this.restartTask = false;
+							this._restartTask = false;
 						} else {
 							// Need to reconstruct the old FeintPassTask
-							this.nextAttackPosition = attackPosition;
-							this.nextFeintpos = feintPos;
-							this.nextSender = lastFeintPassTarget.passRobot;
+							this._nextAttackPosition = attackPosition;
+							this._nextFeintpos = feintPos;
+							this._nextSender = lastFeintPassTarget.passRobot;
 							// Use the new passInfo for most recent timing info
-							this.nextPassInfo = passInfo;
-							this.restartTask = true;
+							this._nextPassInfo = passInfo;
+							this._restartTask = true;
 						}
 
 						this.applyForMainAttacker(undefined, undefined, 0);
@@ -241,15 +241,15 @@ export class FeintPass extends Behavior {
 							this.applyForMainAttacker(undefined, undefined, 0);
 							if (this._task instanceof FeintPassTask) {
 								// Just reuse the current task if it still exists
-								this.restartTask = false;
+								this._restartTask = false;
 							} else {
 								// Else reconstruct it
-								this.nextAttackPosition = attackPosition;
+								this._nextAttackPosition = attackPosition;
 								// Explicitly don't update the feintPos here, since the new one belongs to the new pass
-								this.nextFeintpos = lastFeintPassTarget.feintPos;
-								this.nextPassInfo = lastPassInfo;
-								this.nextSender = lastPassRobot;
-								this.restartTask = true;
+								this._nextFeintpos = lastFeintPassTarget.feintPos;
+								this._nextPassInfo = lastPassInfo;
+								this._nextSender = lastPassRobot;
+								this._restartTask = true;
 							}
 
 							doFeintPass = true;
@@ -258,11 +258,11 @@ export class FeintPass extends Behavior {
 						} else {
 							// Our pass wasn't shot yet ---> it is probably dead. Feint the new pass
 							this.applyForMainAttacker(undefined, undefined, 0);
-							this.restartTask = true;
-							this.nextAttackPosition = attackPosition;
-							this.nextFeintpos = feintPos;
-							this.nextSender = sender;
-							this.nextPassInfo = passInfo;
+							this._restartTask = true;
+							this._nextAttackPosition = attackPosition;
+							this._nextFeintpos = feintPos;
+							this._nextSender = sender;
+							this._nextPassInfo = passInfo;
 
 							doFeintPass = true;
 							let feintTarget = { passRobot: sender!, passInfo: passInfo, feintPos: feintPos };
@@ -275,14 +275,14 @@ export class FeintPass extends Behavior {
 					this.applyForMainAttacker(undefined, undefined, 0);
 					if (this._task instanceof FeintPassTask) {
 						// Reuse the old task if possible
-						this.restartTask = false;
+						this._restartTask = false;
 					} else {
 						// Else reconstruct the old pass
-						this.restartTask = true;
-						this.nextAttackPosition = attackPosition;
-						this.nextFeintpos = lastFeintPassTarget.feintPos;
-						this.nextPassInfo = lastPassInfo;
-						this.nextSender = lastPassRobot;
+						this._restartTask = true;
+						this._nextAttackPosition = attackPosition;
+						this._nextFeintpos = lastFeintPassTarget.feintPos;
+						this._nextPassInfo = lastPassInfo;
+						this._nextSender = lastPassRobot;
 					}
 
 					doFeintPass = true;
@@ -297,14 +297,14 @@ export class FeintPass extends Behavior {
 
 				if (this._task instanceof FeintPassTask) {
 					// Reuse the old task if possible
-					this.restartTask = false;
+					this._restartTask = false;
 				} else {
 					// Else reconstruct the old pass
-					this.restartTask = true;
-					this.nextAttackPosition = attackPosition;
-					this.nextFeintpos = lastFeintPassTarget.feintPos;
-					this.nextPassInfo = lastPassInfo;
-					this.nextSender = lastPassRobot;
+					this._restartTask = true;
+					this._nextAttackPosition = attackPosition;
+					this._nextFeintpos = lastFeintPassTarget.feintPos;
+					this._nextPassInfo = lastPassInfo;
+					this._nextSender = lastPassRobot;
 				}
 
 				doFeintPass = true;
@@ -318,11 +318,11 @@ export class FeintPass extends Behavior {
 			// That means we need to stay in this behavior until the passline is evacuated again
 
 			// This is very hacky
-			if (this._robot.pos.orthogonalDistance(this.nextAttackPosition!, this.nextPassInfo!.ballPos) < this._robot.radius + World.Ball.radius + 0.1) {
-				this._robot.path.addLine(World.Ball.pos, this.nextPassInfo!.ballPos, this._robot.radius, "PassEvacuation", 1);
+			if (this._robot.pos.orthogonalDistance(this._nextAttackPosition!, this._nextPassInfo!.ballPos) < this._robot.radius + World.Ball.radius + 0.1) {
+				this._robot.path.addLine(World.Ball.pos, this._nextPassInfo!.ballPos, this._robot.radius, "PassEvacuation", 1);
 
 				doFeintPass = true;
-				let feintTarget = { passRobot: this.nextSender!, passInfo: this.nextPassInfo!, feintPos: this.nextFeintpos! };
+				let feintTarget = { passRobot: this._nextSender!, passInfo: this._nextPassInfo!, feintPos: this._nextFeintpos! };
 				this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "feintpass", payload: feintTarget });
 			}
 
@@ -334,11 +334,11 @@ export class FeintPass extends Behavior {
 			if (passInfo !== undefined && feintPos !== undefined && passInfo.target !== this._robot) {
 				// Feint the pass
 				this.applyForMainAttacker(undefined, undefined, 0);
-				this.restartTask = true;
-				this.nextAttackPosition = attackPosition;
-				this.nextFeintpos = feintPos;
-				this.nextSender = sender;
-				this.nextPassInfo = passInfo;
+				this._restartTask = true;
+				this._nextAttackPosition = attackPosition;
+				this._nextFeintpos = feintPos;
+				this._nextSender = sender;
+				this._nextPassInfo = passInfo;
 
 				doFeintPass = true;
 				let feintTarget = { passRobot: sender!, passInfo: passInfo, feintPos: feintPos };
@@ -360,15 +360,15 @@ export class FeintPass extends Behavior {
 		let [acceptingPass, _timeLeft] = passInfoTable ? checkPassInfos(this._robot, passInfoTable, false, prevRobotTime) : [false, undefined];
 
 		if (acceptingPass) {
-			if (!this.canDoPasses) {
+			if (!this._canDoPasses) {
 				amun.log("Dummy can't accept Pass, this is a Bug!");
 			}
 			return [AcceptPass];
 		}
 
-		if (this.restartTask) {
-			this.restartTask = false;
-			return [FeintPassTask, [this.supportParams, this.nextPassInfo!, this.nextSender!, this.nextFeintpos!, this.nextAttackPosition!], true];
+		if (this._restartTask) {
+			this._restartTask = false;
+			return [FeintPassTask, [this._supportParams, this._nextPassInfo!, this._nextSender!, this._nextFeintpos!, this._nextAttackPosition!], true];
 		} else {
 			return CONTINUE_TASK;
 		}

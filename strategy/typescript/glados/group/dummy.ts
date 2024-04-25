@@ -9,16 +9,16 @@ import { assignRobotsToZones, Boundaries, getRandomPosition, Zone, zoneToPolygon
 
 export class Dummy implements Group {
 	public readonly name = "dummy";
-	private lastNumberOfParticipants: number = 0;
-	private lastRobotZoneMap: Map<Zone, FriendlyRobot> | undefined = undefined;
-	private lastRefereeStateWasPenalty = false;
+	private _lastNumberOfParticipants: number = 0;
+	private _lastRobotZoneMap: Map<Zone, FriendlyRobot> | undefined = undefined;
+	private _lastRefereeStateWasPenalty = false;
 
 	public run(messaging: MessageBox, messages: Map<FriendlyRobot, undefined>) {
 		let robots = Array.from(messages.keys());
 		let numberOfParticipants = robots.length;
 
-		if (numberOfParticipants !== this.lastNumberOfParticipants || !this.lastRobotZoneMap ||
-            World.RefereeState.includes("Penalty") !== this.lastRefereeStateWasPenalty) {
+		if (numberOfParticipants !== this._lastNumberOfParticipants || !this._lastRobotZoneMap ||
+            World.RefereeState.includes("Penalty") !== this._lastRefereeStateWasPenalty) {
 
 			if (robots.length === 0) {
 				return;
@@ -30,18 +30,18 @@ export class Dummy implements Group {
 			for (let robot of robots) {
 				robotPosMap[robot] = robot;
 			}
-			this.lastRobotZoneMap = assignRobotsToZones(robotPosMap, zones);
-			this.lastNumberOfParticipants = numberOfParticipants;
+			this._lastRobotZoneMap = assignRobotsToZones(robotPosMap, zones);
+			this._lastNumberOfParticipants = numberOfParticipants;
 		}
 
-		for (let [zone, robot] of this.lastRobotZoneMap.entries()) {
+		for (let [zone, robot] of this._lastRobotZoneMap.entries()) {
 			const color = World.TeamIsBlue ? vis.colors.skyBlue : vis.colors.gold;
 			vis.addPolygon("g/Dummy zones", zoneToPolygon(zone), color);
 			messaging.send(MessageType.dummyZone, robot, zone);
 		}
 
-		if (World.RefereeState.includes("Penalty") !== this.lastRefereeStateWasPenalty) {
-			this.lastRefereeStateWasPenalty = World.RefereeState.includes("Penalty");
+		if (World.RefereeState.includes("Penalty") !== this._lastRefereeStateWasPenalty) {
+			this._lastRefereeStateWasPenalty = World.RefereeState.includes("Penalty");
 		}
 	}
 

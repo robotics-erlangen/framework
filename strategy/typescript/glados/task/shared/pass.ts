@@ -50,7 +50,7 @@ export class Pass extends Task {
 	private _passSpeed: number;
 	private _ballReceiptPos: Position | undefined;
 	private _highPrecision: boolean;
-	private ignoreCrash: boolean;
+	private _ignoreCrash: boolean;
 
 	private _shoot: Shoot;
 
@@ -66,7 +66,7 @@ export class Pass extends Task {
 			?? DEFAULT_PASS_SPEED;
 		this._ballReceiptPos = parameters.ballReceiptPos;
 		this._highPrecision = parameters.highPrecision === true;
-		this.ignoreCrash = parameters.ignoreCrash === true;
+		this._ignoreCrash = parameters.ignoreCrash === true;
 
 		// retrieve targetPos from messages if no argument was given
 		let pos: Position;
@@ -116,7 +116,7 @@ export class Pass extends Task {
 		let isFreekickLike = Referee.isFriendlyFreeKickState()
 			|| World.RefereeState === "KickoffOffensive"
 			|| this._highPrecision
-			|| (!this.ignoreCrash && ObserverCrash.isCrashed());
+			|| (!this._ignoreCrash && ObserverCrash.isCrashed());
 
 		if (isFreekickLike) {
 			maxAngleError = geom.degreeToRadian(2.5);

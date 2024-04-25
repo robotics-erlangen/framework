@@ -87,9 +87,9 @@ export class PlaceBall extends Task {
 
 	private _firstFrame: boolean;
 
-	private readonly OFFSET_SHOOT_LENGTH: number;
-	private readonly OFFSET_EXTRA_LENGTH: number;
-	private readonly FAR_NEAR_CUT: number;
+	private readonly _OFFSET_SHOOT_LENGTH: number;
+	private readonly _OFFSET_EXTRA_LENGTH: number;
+	private readonly _FAR_NEAR_CUT: number;
 
 	private _ball: Ball;
 
@@ -152,9 +152,9 @@ export class PlaceBall extends Task {
 
 		this._firstFrame = true;
 
-		this.OFFSET_SHOOT_LENGTH = this._robot.shootRadius + World.Ball.radius;
-		this.OFFSET_EXTRA_LENGTH = this.OFFSET_SHOOT_LENGTH + 0.1;
-		this.FAR_NEAR_CUT = this._robot.shootRadius + World.Ball.radius;
+		this._OFFSET_SHOOT_LENGTH = this._robot.shootRadius + World.Ball.radius;
+		this._OFFSET_EXTRA_LENGTH = this._OFFSET_SHOOT_LENGTH + 0.1;
+		this._FAR_NEAR_CUT = this._robot.shootRadius + World.Ball.radius;
 
 		this._ball = World.Ball;
 		this._placementPos = placementPos || <Position> World.BallPlacementPos;
@@ -224,10 +224,10 @@ export class PlaceBall extends Task {
 					 *
 					 */
 					if (this._placementOffsetAverage == undefined) {
-						this._placementOffsetAverage = this._robot.pos.withLength(this.OFFSET_EXTRA_LENGTH);
+						this._placementOffsetAverage = this._robot.pos.withLength(this._OFFSET_EXTRA_LENGTH);
 					}
 					if (this._borderOffsetAverage == undefined) {
-						this._borderOffsetAverage = this._robot.pos.withLength(this.OFFSET_EXTRA_LENGTH);
+						this._borderOffsetAverage = this._robot.pos.withLength(this._OFFSET_EXTRA_LENGTH);
 					}
 
 					let ballVisible = this._ball.isPositionValid();
@@ -300,9 +300,9 @@ export class PlaceBall extends Task {
 
 				// TODO faster push at higher distance
 				this._robot.setDribblerSpeed(PUSH_DRIBBLER_SPEED);
-				this._currentTargetPos = this._placementPos + this._placementOffsetAverage!.withLength(this.OFFSET_SHOOT_LENGTH);
+				this._currentTargetPos = this._placementPos + this._placementOffsetAverage!.withLength(this._OFFSET_SHOOT_LENGTH);
 
-				let speed = this._robot.pos.distanceTo(this._currentTargetPos) > this.FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
+				let speed = this._robot.pos.distanceTo(this._currentTargetPos) > this._FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
 
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos, (-this._placementOffsetAverage!).angle(), speed, undefined, PUSH_ACCEL_SCALE);
 
@@ -322,7 +322,7 @@ export class PlaceBall extends Task {
 			case State.BACK_UP: {
 				// Ever making the the offset dependent on something near the target position was a mistake
 				if (this._stateChanged) {
-					let offset = (this._robotStartPos - this._ballStartPos).withLength(this.OFFSET_EXTRA_LENGTH);
+					let offset = (this._robotStartPos - this._ballStartPos).withLength(this._OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
 				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._robot.dir, BACK_UP_SPEED);
@@ -545,13 +545,13 @@ export class PlaceBall extends Task {
 		if (usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE) {
 			const offset = (usedBallPos - this._placementPos).normalized();
 			this._placementOffsets.putOrReplace(offset);
-			this._placementOffsetAverage = this._placementOffsets.mean()!.withLength(this.OFFSET_EXTRA_LENGTH);
+			this._placementOffsetAverage = this._placementOffsets.mean()!.withLength(this._OFFSET_EXTRA_LENGTH);
 		}
 
 		if (usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE) {
 			const offset = (usedBallPos - this._nearestFieldPos).normalized();
 			this._borderOffsets.putOrReplace(offset);
-			this._borderOffsetAverage = this._borderOffsets.mean()!.withLength(this.OFFSET_EXTRA_LENGTH);
+			this._borderOffsetAverage = this._borderOffsets.mean()!.withLength(this._OFFSET_EXTRA_LENGTH);
 		}
 	}
 }
