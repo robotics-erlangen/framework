@@ -126,7 +126,7 @@ export class FeintGoalShot extends Behavior {
 		return undefined;
 	}
 
-	public stop() {
+	protected _stop() {
 		this._lastKepperWasLeft = false;
 		this._task = undefined;
 	}
