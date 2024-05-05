@@ -41,11 +41,6 @@ export abstract class Task {
 
 	public abstract run(): void;
 
-	// use for type stubs, to avoid cyclic imports
-	public isTask(): boolean {
-		return true;
-	}
-
 	public clearMainAttackerParameters() {
 		this._mainAttackerParameters = undefined;
 	}
