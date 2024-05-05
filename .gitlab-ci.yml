@@ -13,7 +13,7 @@ stages:
   script:
     - mkdir -p build
     - cd build
-    - cmake -GNinja -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ..
+    - cmake -GNinja -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_FIRMWARE=ON ..
     # limit average load to enforce some load distribution between different ninja instances
     - cmake --build . -- -l $(( $(nproc) * 3 / 2))
   stage: build
@@ -21,7 +21,7 @@ stages:
     # Increase the number in the cache key to start with
     # a fresh build cache. This is only useful in case of
     # build system bug and/or updates of ExternalProjects!
-    key: "$CI_JOB_NAME-2"
+    key: "$CI_JOB_NAME-3"
     paths:
       - build/
   artifacts:
