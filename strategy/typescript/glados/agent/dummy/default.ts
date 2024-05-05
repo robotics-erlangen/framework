@@ -16,7 +16,7 @@ export class Default extends Behavior {
 		return this;
 	}
 
-	public stop() {
+	protected _stop() {
 		this._lastPos = undefined;
 	}
 
