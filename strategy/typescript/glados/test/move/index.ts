@@ -23,6 +23,7 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 // victory moves
 /* eslint-disable import/order */
 import { Circle } from "glados/group/move/victory/circle";
+import { LoadingCenter, LoadingBack } from "glados/group/move/victory/loading";
 import { MovingOwlLogoBack, MovingOwlLogoFull } from "glados/group/move/victory/movinglogo";
 /* eslint-enable import/order */
 
@@ -41,6 +42,8 @@ let testMoves: (typeof Move)[] = [
 ];
 let victoryMoves: (typeof Move)[] = [
 	Circle,
+	LoadingCenter,
+	LoadingBack,
 	MovingOwlLogoFull,
 	MovingOwlLogoBack,
 ];
