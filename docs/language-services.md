@@ -45,17 +45,21 @@ There are multiple plugins providing language server integration for Vim but I u
 #### Helix
 1. Install the typescript-language-server in a way that it's in your PATH.
   Recommended:
-    npm install -g typescript typescript-language-server
+    `npm install -g typescript typescript-language-server`
     The global TypeScript installation is required here, but it's automatically in the PATH.
   Alternatively install the language server locally:
-    npm install typescript-language-server
-    and add the local strategy/typescript/node_modules/.bin/ to your PATH.
+    `npm install typescript-language-server`
+    and add the local `strategy/typescript/node_modules/.bin/` to your PATH.
 2. Add a config file under strategy/typescript/.helix/languages.toml with the following contents:
+    ```
+    [[language-server.tsserver]]
+    command = "tsserver"
+    config = { "path" = "../../node_modules/.bin/tsserver" }
+
     [[language]]
     name = "typescript"
-    config = { tsserver = { "path" = "node_modules/.bin/tsserver" } }
-  but use the absolute path of the node_modules, e.g.
-  "/home/user/robotics/software/strategy/typescript/node_modules/.bin/tsserver"
+    indent = { tab-width = 4, unit = "\t" }
+    ```
 
 ## Luacheck
 Install according to the following platform dependent instructions.
