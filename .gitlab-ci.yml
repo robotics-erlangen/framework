@@ -114,14 +114,6 @@ tests:
   only:
     - schedules
 
-compile-ra-18.04:
-  extends: .compile-ra-schedule
-  image: ci:ubuntu-18.04
-
-compile-ra-18.04-no-v8:
-  extends: .compile-ra-schedule
-  image: ci:ubuntu-18.04-no-v8
-
 compile-ra-20.04:
   extends: .compile-ra-schedule
   image: ci:ubuntu-20.04
@@ -134,20 +126,6 @@ compile-ra-22.04:
   extends: .test-template
   only:
     - schedules
-
-tests-18.04:
-  extends: .test-schedule
-  image: ci:ubuntu-18.04
-  dependencies:
-    - compile-ra-18.04
-  needs: [compile-ra-18.04]
-
-tests-18.04-no-v8:
-  extends: .test-schedule
-  image: ci:ubuntu-18.04-no-v8
-  dependencies:
-    - compile-ra-18.04-no-v8
-  needs: [compile-ra-18.04-no-v8]
 
 tests-20.04:
   extends: .test-schedule
@@ -168,16 +146,6 @@ tests-22.04:
   extends: .sanitize-template
   only:
     - schedules
-
-sanitize-18.04:
-  extends: .sanitize-schedule
-  image: ci:ubuntu-18.04
-  needs: [tests-18.04]
-
-sanitize-18.04-no-v8:
-  extends: .sanitize-schedule
-  image: ci:ubuntu-18.04-no-v8
-  needs: [tests-18.04-no-v8]
 
 sanitize-20.04:
   extends: .sanitize-schedule
