@@ -7,7 +7,7 @@ Building is tested automatically on recent Ubuntu versions (currently 18.04 and
 Currently, the software is also manually tested and proven to run for openSuse Leap and Manjaro
 
 In order to build the framework, you will need:
-- `cmake` >= `3.5` (`3.7` on Windows)
+- `cmake` >= `3.11`
 - `g++` >= `7.5`
 - `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
 - `libssl`
