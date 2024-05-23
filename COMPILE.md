@@ -50,13 +50,24 @@ faster.
 
 ### Required packages
 
-#### Ubuntu 18.04/20.04
+#### Ubuntu 18.04/20.04/22.04
 The package names are
 ```
 cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev
 ```
 where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
 not already installed.
+
+These additional packages are needed to debug the firmware:
+```
+libncursesw5 python3.8
+```
+This custom repository contains python3.8 if it isn't available in the standard repos anymore:
+```
+sudo apt install software-properties-common
+sudo add-apt-repository ppa:deadsnakes/ppa
+sudo apt update
+```
 #### Manjaro
 The package names are
 ```
