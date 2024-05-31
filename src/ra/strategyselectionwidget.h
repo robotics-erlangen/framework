@@ -39,7 +39,7 @@ public:
 
     void shutdown();
     void enableContent(bool enable);
-    void init(QWidget *window);
+    void init(QWidget *window, bool tournamentMode);
     void loadStrategies();
     void forceAutoReload(bool force);
     std::shared_ptr<QStringList> recentScriptsList() const { return m_recentScripts; }

@@ -73,7 +73,7 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
 
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
-    ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF);
+    ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF, false);
 
     QSignalMapper *signalMapper = new QSignalMapper(this);
     connect(ui->btnRefereeAddCardBlue, SIGNAL(clicked()), signalMapper, SLOT(map()));

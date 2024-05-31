@@ -69,15 +69,15 @@ void StrategySelectionWidget::enableContent(bool enable)
     m_contentDisabled = !enable;
 }
 
-void StrategySelectionWidget::init(QWidget *window)
+void StrategySelectionWidget::init(QWidget *window, bool tournamentMode)
 {
     connect(window, SIGNAL(gotStatus(Status)), ui->blue, SLOT(handleStatus(Status)));
     connect(ui->blue, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
     connect(window, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
 
-    ui->blue->init(amun::StatusStrategyWrapper::BLUE);
-    ui->yellow->init(amun::StatusStrategyWrapper::YELLOW);
+    ui->blue->init(amun::StatusStrategyWrapper::BLUE, tournamentMode);
+    ui->yellow->init(amun::StatusStrategyWrapper::YELLOW, tournamentMode);
 }
 
 void StrategySelectionWidget::loadStrategies()

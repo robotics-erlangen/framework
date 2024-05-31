@@ -128,7 +128,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     ui->input->init(m_inputManager);
 
     connect(ui->strategies, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
-    ui->strategies->init(this);
+    ui->strategies->init(this, m_isTournamentMode);
 
     connect(ui->robots, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 #ifdef EASY_MODE

@@ -49,7 +49,7 @@ signals:
     void sendCommand(const Command &command);
 
 public:
-    void init(amun::StatusStrategyWrapper::StrategyType type);
+    void init(amun::StatusStrategyWrapper::StrategyType type, bool tournamentMode);
     void load();
     void setRecentScripts(std::shared_ptr<QStringList> recent);
     void forceAutoReload(bool force);
@@ -107,6 +107,7 @@ private:
     std::shared_ptr<QStringList> m_recentScripts;
     bool m_useDarkColors = false;
     bool m_contentEnabled = true;
+    bool m_isTournamentMode;
 };
 
 #endif // TEAMWIDGET_H

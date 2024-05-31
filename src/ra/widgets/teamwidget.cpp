@@ -78,9 +78,10 @@ void TeamWidget::saveConfig()
     s.endGroup();
 }
 
-void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
+void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type, bool tournamentMode)
 {
     m_type = type;
+    m_isTournamentMode = tournamentMode;
 
     QBoxLayout *hLayout = new QHBoxLayout(this);
     hLayout->setMargin(4);
@@ -125,6 +126,10 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type)
     m_reloadAction = reload_menu->addAction("Reload automatically");
     m_reloadAction->setCheckable(true);
     connect(m_reloadAction, SIGNAL(toggled(bool)), SLOT(sendAutoReload()));
+    if (m_isTournamentMode) {
+        m_reloadAction->setEnabled(false);
+        m_reloadAction->setChecked(true);
+    }
 
     m_debugAction = reload_menu->addAction("Trigger debugger");
     m_debugAction->setEnabled(false);
@@ -171,11 +176,14 @@ void TeamWidget::enableContent(bool enable)
     m_btnOpen->setEnabled(enable);
     m_btnEntryPoint->setEnabled(enable);
     m_btnReload->blockSignals(!enable);
-    m_reloadAction->setEnabled(enable);
     m_btnEnableDebug->setEnabled(enable && m_type != amun::StatusStrategyWrapper::AUTOREF);
     m_debugAction->setEnabled(enable);
     m_performanceAction->setEnabled(enable);
     m_contentEnabled = enable;
+
+    if (!m_isTournamentMode) {
+        m_reloadAction->setEnabled(enable);
+    }
 }
 
 void TeamWidget::load()
@@ -197,7 +205,9 @@ void TeamWidget::load()
     }
 
     m_entryPoint = s.value("EntryPoint").toString();
-    m_reloadAction->setChecked(s.value("AutoReload").toBool());
+    if (!m_isTournamentMode) {
+        m_reloadAction->setChecked(s.value("AutoReload").toBool());
+    }
     m_performanceAction->setChecked(s.value("PerformanceMode", true).toBool());
     if (m_type != amun::StatusStrategyWrapper::AUTOREF) {
         m_btnEnableDebug->setChecked(s.value("EnableDebug", false).toBool());
@@ -226,12 +236,19 @@ void TeamWidget::setRecentScripts(std::shared_ptr<QStringList> recent)
 
 void TeamWidget::forceAutoReload(bool force)
 {
-    // must be updated before call to setChecked!
-    m_reloadAction->setDisabled(force); // disable when forced
-    if (force) {
-        m_reloadAction->setChecked(true);
+    // If m_isTournamentMode == true the reload action should be disabled anyways, but check it just to be sure.
+    if (!m_isTournamentMode && m_reloadAction->isEnabled()) {
+        // must be updated before call to setChecked!
+        m_reloadAction->setDisabled(force); // disable when forced
+        if (force) {
+            m_reloadAction->setChecked(true);
+        } else {
+            m_reloadAction->setChecked(m_userAutoReload);
+        }
     } else {
-        m_reloadAction->setChecked(m_userAutoReload);
+        // If the widget is disabled and we are in tournament mode just call sendAutoReload directly,
+        // because it should already be checked and this way we avoid an unnecessary signal/slot interaction
+        sendAutoReload();
     }
 }
 

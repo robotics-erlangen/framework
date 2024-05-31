@@ -27,8 +27,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     ui(new Ui::ReplayTeamWidget)
 {
     ui->setupUi(this);
-    ui->blue->init(amun::StatusStrategyWrapper::REPLAY_BLUE);
-    ui->yellow->init(amun::StatusStrategyWrapper::REPLAY_YELLOW);
+    ui->blue->init(amun::StatusStrategyWrapper::REPLAY_BLUE, false);
+    ui->yellow->init(amun::StatusStrategyWrapper::REPLAY_YELLOW, false);
 
     ui->blue->load();
     ui->yellow->load();
