@@ -40,8 +40,8 @@ echo "${BOLD}Copying out V8${RESET}"
 # Warning, that > is not affected by sudo.
 # This is deliberate to let the resulting file be owned by the caller
 # shellcheck disable=SC2024
-sudo docker cp "$id":/v8 - >v8.tar
+sudo docker cp "$id":/v8 - > v8.tar
 tar xf v8.tar -C libs
 
 echo "${BOLD}Packaging V8 into 'v8-${tag}.tar.gz'${RESET}"
-tar cfz "v8-${tag}.tar.gz" libs
+tar cfz "v8-${tag}.tar.gz" -C libs/v8 v8
