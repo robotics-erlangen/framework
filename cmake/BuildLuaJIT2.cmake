@@ -53,19 +53,11 @@ set(LUAJIT_FLAGS "XCFLAGS=${LUAJIT_XCFLAGS}" "MACOSX_DEPLOYMENT_TARGET=" ${LUAJI
 set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_luajit-prefix")
 string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 
-if(APPLE)
-    set(LUAJIT_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/luajit.patch)
-    set(LUAJIT_PATCH_COMMAND PATCH_COMMAND cat ${LUAJIT_PATCH_FILE} | patch -p1)
-else()
-    set(LUAJIT_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
-    set(LUAJIT_PATCH_COMMAND)
-endif()
 ExternalProject_Add(project_luajit
-    URL http://www.robotics-erlangen.de/downloads/libraries/LuaJIT-2.0.5.tar.gz
-    URL_HASH SHA256=874b1f8297c697821f561f9b73b57ffd419ed8f4278c82e05b48806d30c1e979
+    URL http://www.robotics-erlangen.de/downloads/libraries/LuaJIT-2.1-93e8799.tar.gz
+    URL_HASH SHA256=fe333951105b6d65dccfe69cce2a7824d3e422da197c21572ec2fa4575374d5d
     DOWNLOAD_NO_PROGRESS true
     BUILD_IN_SOURCE true
-    ${LUAJIT_PATCH_COMMAND}
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make clean && make amalg ${LUAJIT_FLAGS}
     BUILD_BYPRODUCTS "<INSTALL_DIR>/${LUAJIT_SUBPATH}"
@@ -74,7 +66,7 @@ ExternalProject_Add(project_luajit
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
 )
 EPHelper_Add_Cleanup(project_luajit bin include lib share)
-EPHelper_Add_Clobber(project_luajit ${LUAJIT_PATCH_FILE})
+EPHelper_Add_Clobber(project_luajit ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 EPHelper_Mark_For_Download(project_luajit)
 
 externalproject_get_property(project_luajit install_dir)
@@ -82,10 +74,10 @@ set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
 add_library(lib::luajit UNKNOWN IMPORTED)
 add_dependencies(lib::luajit project_luajit)
 # cmake enforces that the include directory exists
-file(MAKE_DIRECTORY "${install_dir}/include/luajit-2.0")
+file(MAKE_DIRECTORY "${install_dir}/include/luajit-2.1")
 set_target_properties(lib::luajit PROPERTIES
     IMPORTED_LOCATION "${install_dir}/${LUAJIT_SUBPATH}"
-    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/luajit-2.0"
+    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/luajit-2.1"
 )
 
 if(APPLE)
