@@ -271,13 +271,13 @@ esac
 DOCKERFILE_DIR=$(mktemp --directory)
 trap 'rm -rf $DOCKERFILE_DIR' EXIT
 
+# The last command has to be run in bash. The SHELL-Step is not used to keep compatability with podman.
 cat <<-EOF >"$DOCKERFILE_DIR/Dockerfile"
 	FROM ubuntu:$UBUNTU_VERSION AS build-stage
 
 	COPY libs/v8 v8
 
 	ARG DEBIAN_FRONTEND=noninteractive
-	SHELL ["/bin/bash", "-c"]
 	RUN set -xe; \\
 	    # Install dependencies \\
 	    apt-get update; \\
@@ -288,7 +288,7 @@ cat <<-EOF >"$DOCKERFILE_DIR/Dockerfile"
 	    v8/build.sh; \\
 	    # Delete unneeded artifacts \\
 	    printf "%s\n" ${KEEPLIST[@]} >/KEEPLIST; \\
-	    comm -2 -3 <(find v8 | sort) <(sort KEEPLIST) | xargs rm -rf;
+	    bash -c "comm -2 -3 <(find v8 | sort) <(sort KEEPLIST) | xargs rm -rf;"
 
 	FROM alpine:3
 	COPY --from=build-stage /v8/v8 /v8/v8

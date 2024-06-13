@@ -4,6 +4,7 @@ This folder contains various scripts used at ER-Force
 Some of these scripts use Docker.
 In general, building these images requires **at least Docker 19.03** and [Docker BuildKit](https://docs.docker.com/develop/develop-images/build_enhancements/) to be enabled.
 Prefix `docker` commands with `DOCKER_BUILDKIT=1` or take a look at the link to get instructions on how to enable it permanently.
+`docker` aliased to Podman should also work.
 
 ## Table of Contents
 - [V8 Images](#v8-images)
