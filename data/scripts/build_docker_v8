@@ -10,16 +10,26 @@ set -euo pipefail
 cd "$(dirname "$0")/../../"
 
 usage() {
-	echo "Usage: $(basename "${BASH_SOURCE[0]}") [--dry-run] <v8 version (internal)> <ubuntu version number (dd.dd)>"
+	echo "Usage: $(basename "${BASH_SOURCE[0]}") [--dry-run] [--arch=x64|arm64] <v8 version (internal)> <ubuntu version number (dd.dd)>"
 	exit 1
 }
 
 DRY_RUN=false
 
+TARGET_ARCH="x64"
+
 while [[ "$#" -gt 2 ]]; do
 	case "$1" in
 	"--dry-run")
 		DRY_RUN=true
+		shift
+		;;
+	"--arch=x64")
+		TARGET_ARCH="x64"
+		shift
+		;;
+	"--arch=arm64")
+		TARGET_ARCH="arm64"
 		shift
 		;;
 	*)
@@ -98,6 +108,9 @@ case "$V8_VERSION" in
 		APT_DEPENDENCIES+=("python3")
 		;;
 	"22.04")
+		APT_DEPENDENCIES+=("python3")
+		;;
+	"24.04")
 		APT_DEPENDENCIES+=("python3")
 		;;
 	*)
@@ -262,6 +275,10 @@ case "$V8_VERSION" in
 		"v8/v8/out/x64.release/icudtl.dat"
 		"v8/v8/out/x64.release/obj"
 		"v8/v8/out/x64.release/obj/libv8_monolith.a"
+		"v8/v8/out/arm64.release"
+		"v8/v8/out/arm64.release/icudtl.dat"
+		"v8/v8/out/arm64.release/obj"
+		"v8/v8/out/arm64.release/obj/libv8_monolith.a"
 	)
 	;;
 esac
@@ -285,7 +302,7 @@ cat <<-EOF >"$DOCKERFILE_DIR/Dockerfile"
 	    # Silence git warning \\
 	    git config --global advice.detachedHead off; \\
 	    # Build V8 \\
-	    v8/build.sh; \\
+	    v8/build.sh --arch=${TARGET_ARCH}; \\
 	    # Delete unneeded artifacts \\
 	    printf "%s\n" ${KEEPLIST[@]} >/KEEPLIST; \\
 	    bash -c "comm -2 -3 <(find v8 | sort) <(sort KEEPLIST) | xargs rm -rf;"
@@ -316,6 +333,6 @@ fi
 # --no-cache
 sudo docker buildx build \
 	--no-cache \
-	--tag "roboticserlangen/v8:version-$V8_VERSION-ubuntu-$UBUNTU_VERSION" \
+	--tag "roboticserlangen/v8:version-$V8_VERSION-ubuntu-$UBUNTU_VERSION-$TARGET_ARCH" \
 	--file "$DOCKERFILE_DIR/Dockerfile" \
 	.

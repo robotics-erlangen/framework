@@ -50,7 +50,15 @@ endif()
 if(MINGW32)
     set(V8_ARCHITECTURE x86)
 else()
-    set(V8_ARCHITECTURE x64)
+    # CMAKE_SYSTEM_PROCESSOR uses uname -m on linux and these are all the possible values for arm64
+    if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64_be" OR
+        CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR
+        CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8b" OR
+        CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8l")
+            set(V8_ARCHITECTURE arm64)
+        else()
+            set(V8_ARCHITECTURE x64)
+        endif()
 endif()
 
 find_path(V8_OUTPUT_DIR_DYNAMIC
@@ -86,8 +94,13 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT ${V8_VERSION} MATCHES ${V8_FI
         set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-windows-x86_64.zip")
         set(V8_PRECOMPILED_HASH "78d8134808c0b57c5c8d595c7fff974f45e72cd78ef0cb88d50e916eea25c1b6")
     elseif(UNIX AND NOT APPLE)
-        set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-ubuntu-22.04.tar.gz")
-        set(V8_PRECOMPILED_HASH "9a38d9eff6e020ceb6004c5d56b45b83dfff03330230ce2c27ff8c1453bcb503")
+        if (V8_ARCHITECTURE STREQUAL "arm64")
+            set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version-2-ubuntu-24.04-arm64.tar.gz")
+            set(V8_PRECOMPILED_HASH "d80e64b83070f63a54e55103e1da103d3e5055765af7e9ef6d8191ce4035a2f9")
+        else()
+            set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version-2-ubuntu-24.04-x64.tar.gz")
+            set(V8_PRECOMPILED_HASH "f68bd515b5a0b71a7a261ec27b84c142aa9063d06a5098dd363f8da4267bd229")
+        endif()
     endif()
 
     set(V8_IS_DYNAMIC FALSE)

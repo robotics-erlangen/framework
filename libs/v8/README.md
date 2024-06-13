@@ -1,5 +1,5 @@
 # V8
-This directory contains a script `build.sh` to allow building V8 binaries on Linux, MinGW-w64 and MinGW-w32.
+This directory contains a script `build.sh` to allow building V8 binaries on Linux (Both native x64 and cross-compilation to arm64), MinGW-w64 and MinGW-w32.
 Building on MacOS is currently untested.
 
 ## Table of Contents
@@ -14,6 +14,7 @@ Building on MacOS is currently untested.
 
 ## Building V8
 Simply run `build.sh`.
+To cross-compile for arm64, pass `--arch=arm64` as an additional argument (Only supported on Linux).
 It may be beneficial to inspect and start the build manually (e.g. to set build parameters).
 To do this, add `depot_tools` to your `PATH`.
 Afterwards you can use the `gn` command to interact with the `v8/out` folder.

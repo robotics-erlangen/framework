@@ -13,6 +13,29 @@ export DEPOT_TOOLS_WIN_TOOLCHAIN=0
 # predictable working directory
 cd "$(dirname "$0")"
 
+usage() {
+    echo "Usage: $(basename "${BASH_SOURCE[0]}") [--arch=x64|arm64]"
+    exit 1
+}
+
+TARGET_ARCH="x64"
+
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+    "--arch=x64")
+        TARGET_ARCH="x64"
+        shift
+        ;;
+    "--arch=arm64")
+        TARGET_ARCH="arm64"
+        shift
+        ;;
+    *)
+        usage
+        ;;
+    esac
+done
+
 # Check whether the directory given through $1 already as a patch applied
 function already_patched {(
     cd "$1" && [[ -e .patched && "$(cat .patched)" == "$V8_BASE_REVISION" ]]
@@ -64,6 +87,11 @@ elif [[ "$unamestr" =~ MINGW ]]; then
     fi
 else
     echo "Unsupported operating system"
+    exit 1
+fi
+
+if [[ TARGET_ARCH == 'arm64' && !IS_LINUX ]]; then
+    echo "arm64 builds are currently only supported on linux"
     exit 1
 fi
 
@@ -130,6 +158,12 @@ solutions = [
 EOF
 
     ( mkdir v8 && cd v8 && git init && git remote add origin https://chromium.googlesource.com/v8/v8.git && git fetch --depth 1 origin $V8_BASE_REVISION && git checkout FETCH_HEAD )
+
+    # Hack that forces gn to download sysroot_arm64 even when not running on arm64 (for cross-compiling).
+    # There is probably a better way to do this.
+    if [[ "$TARGET_ARCH" == "arm64" ]]; then
+        sed -i 's/checkout_arm64/(checkout_arm64 or checkout_x64)/g' ./v8/DEPS
+    fi
 
     gclient sync --nohooks
 
@@ -205,6 +239,11 @@ if [[ "$IS_MINGW" == 1 ]]; then
 elif [[ "$IS_LINUX" == 1 ]]; then
     gclient sync
 
+    # Revert the hack that forces sysroot_arm64 download to make the patches apply
+    if [[ "$TARGET_ARCH" == "arm64" ]]; then
+        sed -i 's/(checkout_arm64 or checkout_x64)/checkout_arm64/g' ./v8/DEPS
+    fi
+
     if ! already_patched "v8"; then
         echo "### Patching V8"
         patch_safely "v8" "patches/0001-version-2-linux-v8.patch" "$V8_BASE_REVISION"
@@ -254,12 +293,15 @@ GN_ARGS=(
 if [[ "$IS_MINGW32" == 1 ]]; then
     GN_ARGS+=("target_cpu=\"x86\"")
     OUT_DIR="out/x86.release"
+elif [[ "$TARGET_ARCH" == "arm64" ]]; then
+    GN_ARGS+=("target_cpu=\"arm64\"")
+    OUT_DIR="out/arm64.release"
 else
     GN_ARGS+=("target_cpu=\"x64\"")
     OUT_DIR="out/x64.release"
 fi
 
-if [[ "$IS_LINUX" == 1 ]]; then
+if [[ "$IS_LINUX" == 1 && "$TARGET_ARCH" == "x64" ]]; then
     echo "### Using profile guided optimization"
 
     PROFILE="v8-version2-b1f56b4a8a7c.profdata"
