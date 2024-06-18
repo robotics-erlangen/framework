@@ -28,8 +28,8 @@ export class Race extends Move {
 	 ***********************************************************************/
 
 	/***********************************************************************
-	 * CORNERS defines some common points to use for this move. Namely, it *
-	 * defines the corners of the field, as well as the corners of each    *
+	 * _CORNERS defines some common points to use for this move. Namely,   *
+	 * it defines the corners of the field, as well as the corners of each *
 	 * field half, inset by PADDING to avoid having the robots drive on    *
 	 * the field lines and too close to the boundary of the field.         *
 	 *                                                                     *
@@ -67,9 +67,9 @@ export class Race extends Move {
 	 * (d) have 4 robots drive back and forth on the full field            *
 	 ***********************************************************************/
 	/* (a) */ private static readonly _POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
-	/* (b) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FML, Race.CORNERS.FGR);
-	/* (c) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.OML, Race.CORNERS.OGR);
-	/* (d) */ // private static readonly _POSITIONS: Vector[][] = Race.nRobots(4, Race.CORNERS.FGL, Race.CORNERS.OGR);
+	/* (b) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FML, Race._CORNERS.FGR);
+	/* (c) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.OML, Race._CORNERS.OGR);
+	/* (d) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FGL, Race._CORNERS.OGR);
 
 	/***********************************************************************
 	 * If you want the robots to wait for each other and only start        *
