@@ -31,7 +31,7 @@ TimingWidget::TimingWidget(QWidget *parent) :
     ui->setupUi(this);
 
     m_model = new QStandardItemModel(this);
-    m_model->setHorizontalHeaderLabels(QStringList() << "Component" << "Max time" << "FPS");
+    m_model->setHorizontalHeaderLabels(QStringList() << "Component" << "Max time (ms)" << "FPS");
     ui->treeView->setUniformRowHeights(true); // speedup
     ui->treeView->setModel(m_model);
 
