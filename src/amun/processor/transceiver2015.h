@@ -48,7 +48,8 @@ private:
 public:
     enum class Kind {
         Actual2015,
-        HBC,
+        HBC_Primary,
+        HBC_Secondary,
     };
 public:
     static int numDevicesPresent(Kind);

@@ -45,13 +45,15 @@ constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x03eb;
 constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x6127;
 
 constexpr qint16 HBC_VENDOR_ID  = 0x09fb;
-constexpr qint16 HBC_PRODUCT_ID = 0x0de2;
+constexpr qint16 HBC_PRODUCT_ID_PRIMARY = 0x0de2;
+constexpr qint16 HBC_PRODUCT_ID_SECONDARY = 0x0ee2;
 
 constexpr qint16 vidForKind(Transceiver2015::Kind kind) {
     switch (kind) {
         case Transceiver2015::Kind::Actual2015:
             return TRANSCEIVER2015_VENDOR_ID;
-        case Transceiver2015::Kind::HBC:
+        case Transceiver2015::Kind::HBC_Primary:
+        case Transceiver2015::Kind::HBC_Secondary:
             return HBC_VENDOR_ID;
     }
 }
@@ -60,8 +62,10 @@ constexpr qint16 pidForKind(Transceiver2015::Kind kind) {
     switch (kind) {
         case Transceiver2015::Kind::Actual2015:
             return TRANSCEIVER2015_PRODUCT_ID;
-        case Transceiver2015::Kind::HBC:
-            return HBC_PRODUCT_ID;
+        case Transceiver2015::Kind::HBC_Primary:
+            return HBC_PRODUCT_ID_PRIMARY;
+        case Transceiver2015::Kind::HBC_Secondary:
+            return HBC_PRODUCT_ID_SECONDARY;
     }
 }
 
@@ -110,6 +114,11 @@ bool Transceiver2015::open(int which)
 #ifdef USB_FOUND
     close();
 
+    // HACK THIS IS NOT HOW IT IS SUPPOSED TO BE
+    if (m_kind == Kind::HBC_Secondary) {
+        which = 0;
+    }
+
     QList<USBDevice*> devices = USBDevice::getDevices(vidForKind(m_kind), pidForKind(m_kind), m_context);
     if (devices.isEmpty()) {
         emit errorOccurred(m_debugName, "Device not found");
@@ -135,8 +144,21 @@ bool Transceiver2015::open(int which)
     }
 
     m_which = which;
+    QString name;
+    switch (m_kind) {
+        case Kind::Actual2015:
+            name = "T15";
+            break;
+        case Kind::HBC_Primary:
+            name = "HBCPrim";
+            break;
+        case Kind::HBC_Secondary:
+            name = "HBCSec";
+            break;
+    };
+
     m_debugName = QString { "%1%2" }
-        .arg(m_kind == Kind::Actual2015 ? "T15" : "HBC")
+        .arg(name)
         .arg(m_which);
 
     // publish transceiver status
@@ -162,6 +184,12 @@ bool Transceiver2015::open(int which)
 
 void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
 {
+    // the HBC transceivers can only send to one half of the ids of the robots, so it does not make sense to send commands for all 16 to
+    // every single one of them
+    if ((m_kind == Kind::HBC_Primary && target.unicastTarget() > 7) || (m_kind == Kind::HBC_Secondary && target.unicastTarget() < 8)) {
+        return;
+    }
+
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SEND_NRF24;
     senderCommand.size = len + sizeof(TransceiverSendNRF24Packet);

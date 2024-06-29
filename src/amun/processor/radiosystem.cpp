@@ -55,6 +55,7 @@ static Radio::Generation uintToGeneration(uint pbGeneration) {
 /* Used for RadioSystem::m_transceivers  to select the generation */
 constexpr size_t IndexGen2014 = 0;
 constexpr size_t IndexGen2020 = 1;
+constexpr size_t IndexGen2020_2 = 2;
 
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
@@ -163,7 +164,8 @@ void RadioSystem::openTransceiver()
         }
 
         constexpr size_t IndexTransceiver2015 = 0;
-        constexpr size_t IndexHBC = 1;
+        constexpr size_t IndexHBCPrimary = 1;
+        constexpr size_t IndexHBCSecondary = 2;
         struct Info {
             int numPresent;
             std::function<TransceiverLayer *()> create;
@@ -172,8 +174,11 @@ void RadioSystem::openTransceiver()
                 Transceiver2015::numDevicesPresent(Transceiver2015::Kind::Actual2015),
                 [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::Actual2015, m_timer, this }; } },
             {
-                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC),
-                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC, m_timer, this }; } },
+                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC_Primary),
+                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC_Primary, m_timer, this }; } },
+            {
+                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC_Secondary),
+                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC_Secondary, m_timer, this }; } },
         };
 
         if (std::all_of(
@@ -189,6 +194,16 @@ void RadioSystem::openTransceiver()
             return false;
         }
 
+        if (possibleDevices[IndexHBCPrimary].numPresent > 1) {
+            transceiverErrorOccurred(QString{}, "More than one HBC Primary does not make sense.", 0);
+            return false;
+        }
+
+        if (possibleDevices[IndexHBCSecondary].numPresent > 1) {
+            transceiverErrorOccurred(QString{}, "More than one HBC Secondary does not make sense.", 0);
+            return false;
+        }
+
         if (std::any_of(
                 std::begin(possibleDevices),
                 std::end(possibleDevices),
@@ -201,8 +216,12 @@ void RadioSystem::openTransceiver()
             m_transceivers[IndexGen2014][i] = possibleDevices[IndexTransceiver2015].create();
         }
 
-        for (int i = 0; i < possibleDevices[IndexHBC].numPresent; ++i) {
-            m_transceivers[IndexGen2020][i] = possibleDevices[IndexHBC].create();
+        for (int i = 0; i < possibleDevices[IndexHBCPrimary].numPresent; ++i) {
+            m_transceivers[IndexGen2020][i] = possibleDevices[IndexHBCPrimary].create();
+        }
+
+        for (int i = 0; i < possibleDevices[IndexHBCSecondary].numPresent; ++i) {
+            m_transceivers[IndexGen2020][i + possibleDevices[IndexHBCPrimary].numPresent] = possibleDevices[IndexHBCSecondary].create();
         }
 
         return anyTransceiverPresent();
