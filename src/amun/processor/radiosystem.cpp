@@ -33,8 +33,8 @@
 #include <QTimer>
 #include <algorithm>
 #include <array>
-#include <cmath>
 #include <functional>
+#include <numbers>
 
 using namespace Radio;
 
@@ -525,13 +525,13 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
         data.cur_v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
 
         float phi = command.cur_phi();
-        while (phi < -M_PIf) {
-            phi += M_PIf * 2;
+        while (phi < -std::numbers::pi) {
+            phi += std::numbers::pi * 2;
         }
-        while (phi >= M_PIf) {
-            phi -= M_PIf * 2;
+        while (phi >= std::numbers::pi) {
+            phi -= std::numbers::pi * 2;
         }
-        data.cur_phi = qBound<qint32>(-RADIOCOMMAND2018_PHI_MAX, phi * RADIOCOMMAND2018_PHI_MAX / M_PIf, RADIOCOMMAND2018_PHI_MAX);
+        data.cur_phi = qBound<qint32>(-RADIOCOMMAND2018_PHI_MAX, phi * RADIOCOMMAND2018_PHI_MAX / std::numbers::pi, RADIOCOMMAND2018_PHI_MAX);
     } else {
         data.cur_v_s = RADIOCOMMAND2018_INVALID_SPEED;
         data.cur_v_f = RADIOCOMMAND2018_INVALID_SPEED;
