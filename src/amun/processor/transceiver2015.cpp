@@ -41,8 +41,8 @@ typedef struct
 
 const int PROTOCOL_VERSION = 5;
 
-constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x09fb;
-constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x0de2;
+constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x03eb;
+constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x6127;
 
 constexpr qint16 HBC_VENDOR_ID  = 0x09fb;
 constexpr qint16 HBC_PRODUCT_ID = 0x0de2;
