@@ -28,10 +28,10 @@ TEST(Radio_Address, Generation) {
     ASSERT_EQ(unicast2014.generation, Generation::Gen2014);
     Address broadcast2014 { Broadcast, Generation::Gen2014 };
     ASSERT_EQ(broadcast2014.generation, Generation::Gen2014);
-    Address unicast2018 { Unicast, Generation::Gen2018, 1 };
-    ASSERT_EQ(unicast2018.generation, Generation::Gen2018);
-    Address broadcast2018 { Broadcast, Generation::Gen2018 };
-    ASSERT_EQ(broadcast2018.generation, Generation::Gen2018);
+    Address unicast2018 { Unicast, Generation::GenPasta, 1 };
+    ASSERT_EQ(unicast2018.generation, Generation::GenPasta);
+    Address broadcast2018 { Broadcast, Generation::GenPasta };
+    ASSERT_EQ(broadcast2018.generation, Generation::GenPasta);
 }
 
 TEST(Radio_Address, Unicast) {
@@ -39,7 +39,7 @@ TEST(Radio_Address, Unicast) {
     ASSERT_TRUE(addr2014.isUnicast());
     ASSERT_EQ(addr2014.unicastTarget(), 1);
 
-    Address addr2018 { Unicast, Generation::Gen2018, 1 };
+    Address addr2018 { Unicast, Generation::GenPasta, 1 };
     ASSERT_TRUE(addr2018.isUnicast());
     ASSERT_EQ(addr2018.unicastTarget(), 1);
 }
@@ -49,7 +49,7 @@ TEST(Radio_Address, Broadcast) {
     ASSERT_TRUE(addr2014.isBroadcast());
     ASSERT_EQ(addr2014.unicastTarget(), TARGET_BROADCAST);
 
-    Address addr2018 { Broadcast, Generation::Gen2018 };
+    Address addr2018 { Broadcast, Generation::GenPasta };
     ASSERT_TRUE(addr2018.isBroadcast());
     ASSERT_EQ(addr2018.unicastTarget(), TARGET_BROADCAST);
 }

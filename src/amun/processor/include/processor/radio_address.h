@@ -34,7 +34,7 @@ namespace Radio {
 
     enum class Generation {
         Gen2014 = 3,
-        Gen2018 = 4,
+        GenPasta = 4,
     };
 
     class Address {

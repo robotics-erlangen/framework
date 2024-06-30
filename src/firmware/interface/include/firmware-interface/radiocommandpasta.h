@@ -18,26 +18,26 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef COMMON_RADIOCOMMAND2018_H
-#define COMMON_RADIOCOMMAND2018_H
+#ifndef COMMON_RADIOCOMMANDPASTA_H
+#define COMMON_RADIOCOMMANDPASTA_H
 
 #include "radiocommand.h"
 #include "radiocommand2014.h"
 #include <stdint.h>
 
-static const uint8_t robot2018_address[] = { 0x40, 0xE8, 0xE4, 0xC7 };
-STATIC_ASSERT(sizeof(robot2018_address) == NRF_ADDRESS_SIZE,robot2018_address_has_wrong_size);
+static const uint8_t robotPasta_address[] = { 0x40, 0xE8, 0xE4, 0xC7 };
+STATIC_ASSERT(sizeof(robotPasta_address) == NRF_ADDRESS_SIZE,robotPasta_address_has_wrong_size);
 
-static const int16_t RADIOCOMMAND2018_V_MAX = 32767;
-static const int16_t RADIOCOMMAND2018_OMEGA_MAX = 32767;
-static const int16_t RADIOCOMMAND2018_PHI_MAX = 32767;
-static const int16_t RADIOCOMMAND2018_DELTA_V_MAX = 127;
-static const int16_t RADIOCOMMAND2018_DELTA_OMEGA_MAX = 127;
-static const uint8_t RADIOCOMMAND2018_KICK_MAX = 255;
-static const uint8_t RADIOCOMMAND2018_DRIBBLER_MAX = 100;
-static const float RADIOCOMMAND2018_LINEAR_MAX = 10;
-static const float RADIOCOMMAND2018_CHIP_MAX = 5;
-static const int16_t RADIOCOMMAND2018_INVALID_SPEED = 0x8000;
+static const int16_t RADIOCOMMANDPASTA_V_MAX = 32767;
+static const int16_t RADIOCOMMANDPASTA_OMEGA_MAX = 32767;
+static const int16_t RADIOCOMMANDPASTA_PHI_MAX = 32767;
+static const int16_t RADIOCOMMANDPASTA_DELTA_V_MAX = 127;
+static const int16_t RADIOCOMMANDPASTA_DELTA_OMEGA_MAX = 127;
+static const uint8_t RADIOCOMMANDPASTA_KICK_MAX = 255;
+static const uint8_t RADIOCOMMANDPASTA_DRIBBLER_MAX = 100;
+static const float RADIOCOMMANDPASTA_LINEAR_MAX = 10;
+static const float RADIOCOMMANDPASTA_CHIP_MAX = 5;
+static const int16_t RADIOCOMMANDPASTA_INVALID_SPEED = 0x8000;
 
 // WARNING: time slots for reply must be adjusted if the radio command size changes!
 typedef struct
@@ -65,10 +65,10 @@ typedef struct
     int8_t delta2_v_x; // mm/s
     int8_t delta2_v_y; // mm/s
     int8_t delta2_omega; // 5 mrad/s
-} __attribute__ ((packed)) RadioCommand2018;
+} __attribute__ ((packed)) RadioCommandPasta;
 
 // cannot be easily defined by typedef as it must be valid in pure C
-#define RadioExtension2018 RadioExtension2014
+#define RadioExtensionPasta RadioExtension2014
 
 typedef struct
 {
@@ -102,12 +102,12 @@ typedef struct
     int32_t v_s:14; // mm/s
     int32_t v_f:14; // mm/s
     int16_t omega; // mrad/s
-} __attribute__ ((packed)) RadioResponse2018;
+} __attribute__ ((packed)) RadioResponsePasta;
 
 typedef struct
 {
     uint8_t counter;
     int16_t time_offset; // microseconds
-} __attribute__ ((packed)) RadioSync2018;
+} __attribute__ ((packed)) RadioSyncPasta;
 
-#endif // COMMON_RADIOCOMMAND2018_H
+#endif // COMMON_RADIOCOMMANDPASTA_H

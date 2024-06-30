@@ -22,14 +22,14 @@
 #include "transceiver2015.h"
 
 #include "core/timer.h"
-#include "firmware-interface/radiocommand2018.h"
+#include "firmware-interface/radiocommandpasta.h"
 #include "firmware-interface/transceiver2012.h"
+#include "firmware-interface/radiocommand2014.h"
 #include "radio_address.h"
 #include "usbdevice.h"
 #include "usbthread.h"
 #include <QByteArray>
 #include <QString>
-#include <algorithm>
 #include <libusb.h>
 
 using namespace Radio;
@@ -219,9 +219,9 @@ void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expect
             0x20, robot2014_address, sizeof(robot2014_address)
         );
         break;
-    case Radio::Generation::Gen2018:
+    case Radio::Generation::GenPasta:
         targetAddress = getTargetAddress(
-            robot2018_address[0], robot2018_address, sizeof(robot2018_address)
+            robotPasta_address[0], robotPasta_address, sizeof(robotPasta_address)
         );
         break;
     }

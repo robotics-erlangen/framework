@@ -22,7 +22,7 @@
 #include "core/timer.h"
 #include "firmware-interface/radiocommand.h"
 #include "firmware-interface/radiocommand2014.h"
-#include "firmware-interface/radiocommand2018.h"
+#include "firmware-interface/radiocommandpasta.h"
 #include "firmware-interface/transceiver2012.h"
 #include "radiosystem.h"
 #include "transceiver2015.h"
@@ -40,22 +40,21 @@ using namespace Radio;
 
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommand2018) == 23, "Expected radio command packet of size 23");
-static_assert(sizeof(RadioResponse2018) == 10, "Expected radio response packet of size 10");
+static_assert(sizeof(RadioCommandPasta) == 23, "Expected radio command packet of size 23");
+static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet of size 10");
 
 static Radio::Generation uintToGeneration(uint pbGeneration) {
     switch (pbGeneration) {
         case (uint)Radio::Generation::Gen2014:
             return Radio::Generation::Gen2014;
-        case (uint)Radio::Generation::Gen2018:
-            return Radio::Generation::Gen2018;
+        case (uint)Radio::Generation::GenPasta:
+            return Radio::Generation::GenPasta;
     }
 }
 
 /* Used for RadioSystem::m_transceivers  to select the generation */
 constexpr size_t IndexGen2014 = 0;
-constexpr size_t IndexGen2020 = 1;
-constexpr size_t IndexGen2020_2 = 2;
+constexpr size_t IndexGenPasta = 1;
 
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
@@ -217,11 +216,11 @@ void RadioSystem::openTransceiver()
         }
 
         for (int i = 0; i < possibleDevices[IndexHBCPrimary].numPresent; ++i) {
-            m_transceivers[IndexGen2020][i] = possibleDevices[IndexHBCPrimary].create();
+            m_transceivers[IndexGenPasta][i] = possibleDevices[IndexHBCPrimary].create();
         }
 
         for (int i = 0; i < possibleDevices[IndexHBCSecondary].numPresent; ++i) {
-            m_transceivers[IndexGen2020][i + possibleDevices[IndexHBCPrimary].numPresent] = possibleDevices[IndexHBCSecondary].create();
+            m_transceivers[IndexGenPasta][i + possibleDevices[IndexHBCPrimary].numPresent] = possibleDevices[IndexHBCSecondary].create();
         }
 
         return anyTransceiverPresent();
@@ -380,7 +379,7 @@ float RadioSystem::calculateDroppedFramesRatio(Radio::Generation generation, uin
     }
 
     if (c.lastDroppedFrames >= 0 && skipedFrames >= 0) {
-        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014 / 2018)
+        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014 / Pasta)
         c.droppedFramesRatio = (c.lastDroppedFrames - skipedFrames)
                 / (256.f - c.startValue - skipedFrames);
         c.startValue = 0;
@@ -447,16 +446,16 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
         }
         responses.append(r);
-    } else if (header->command == RESPONSE_2018_DEFAULT && size == sizeof(RadioResponse2018)) {
-        const RadioResponse2018 *packet = (const RadioResponse2018 *)data;
+    } else if (header->command == RESPONSE_PASTA_DEFAULT && size == sizeof(RadioResponsePasta)) {
+        const RadioResponsePasta *packet = (const RadioResponsePasta *)data;
 
         robot::RadioResponse r;
         r.set_time(time);
-        r.set_generation((uint)Radio::Generation::Gen2018);
+        r.set_generation((uint)Radio::Generation::GenPasta);
         r.set_id(packet->id);
 
         int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2018, packet->id, packet->counter, packet_loss);
+        float df = calculateDroppedFramesRatio(Radio::Generation::GenPasta, packet->id, packet->counter, packet_loss);
         switch (packet->extension_id) {
         case EXTENSION_BASIC_STATUS:
             r.set_battery(packet->battery / 255.0f);
@@ -602,32 +601,32 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
     }
 }
 
-void RadioSystem::addRobot2018Command(int id, const robot::Command &command, bool charge, quint8 packetCounter)
+void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter)
 {
     // copy command
-    RadioCommand2018 data;
+    RadioCommandPasta data;
     data.charge = charge;
     data.standby = command.standby();
     data.counter = packetCounter;
-    data.dribbler = qBound<qint32>(-RADIOCOMMAND2018_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2018_DRIBBLER_MAX, RADIOCOMMAND2018_DRIBBLER_MAX);
+    data.dribbler = qBound<qint32>(-RADIOCOMMANDPASTA_DRIBBLER_MAX, command.dribbler() * RADIOCOMMANDPASTA_DRIBBLER_MAX, RADIOCOMMANDPASTA_DRIBBLER_MAX);
     data.chip = command.kick_style() == robot::Command::Chip;
     if (data.chip) {
-        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2018_CHIP_MAX * RADIOCOMMAND2018_KICK_MAX, RADIOCOMMAND2018_KICK_MAX);
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMANDPASTA_CHIP_MAX * RADIOCOMMANDPASTA_KICK_MAX, RADIOCOMMANDPASTA_KICK_MAX);
     } else {
-        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2018_LINEAR_MAX * RADIOCOMMAND2018_KICK_MAX, RADIOCOMMAND2018_KICK_MAX);
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMANDPASTA_LINEAR_MAX * RADIOCOMMANDPASTA_KICK_MAX, RADIOCOMMANDPASTA_KICK_MAX);
     }
-    data.v_x = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_x() * 1000.0f, RADIOCOMMAND2018_V_MAX);
-    data.v_y = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.output0().v_y() * 1000.0f, RADIOCOMMAND2018_V_MAX);
-    data.omega = qBound<qint32>(-RADIOCOMMAND2018_OMEGA_MAX, command.output0().omega() * 1000.0f, RADIOCOMMAND2018_OMEGA_MAX);
+    data.v_x = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.output0().v_x() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
+    data.v_y = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.output0().v_y() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMANDPASTA_OMEGA_MAX, command.output0().omega() * 1000.0f, RADIOCOMMANDPASTA_OMEGA_MAX);
 
     const int OMEGA_QUANTIZATION = 5;
     const int V_QUANTIZATION = 2;
     const float delta1_v_x = command.output1().v_x() - command.output0().v_x();
     const float delta1_v_y = command.output1().v_y() - command.output0().v_y();
     const float delta1_omega = command.output1().omega() - command.output0().omega();
-    data.delta1_v_x = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta1_v_y = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta1_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta1_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta1_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
+    data.delta1_v_x = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_V_MAX, delta1_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMANDPASTA_DELTA_V_MAX);
+    data.delta1_v_y = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_V_MAX, delta1_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMANDPASTA_DELTA_V_MAX);
+    data.delta1_omega = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_OMEGA_MAX, delta1_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMANDPASTA_DELTA_OMEGA_MAX);
 
     const float delta2_v_x = command.output2().v_x() - command.output1().v_x();
     const float delta2_v_y = command.output2().v_y() - command.output1().v_y();
@@ -635,19 +634,19 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
     const float sent_delta1_omega = data.delta1_omega * (OMEGA_QUANTIZATION / 1000.0f);
     const float omegaWithDelta1 = command.output0().omega() + sent_delta1_omega;
     const float delta2_omega = command.output2().omega() - omegaWithDelta1;
-    data.delta2_v_x = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta2_v_y = qBound<qint32>(-RADIOCOMMAND2018_DELTA_V_MAX, delta2_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2018_DELTA_V_MAX);
-    data.delta2_omega = qBound<qint32>(-RADIOCOMMAND2018_DELTA_OMEGA_MAX, delta2_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2018_DELTA_OMEGA_MAX);
+    data.delta2_v_x = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_V_MAX, delta2_v_x * 1000.0f / V_QUANTIZATION, RADIOCOMMANDPASTA_DELTA_V_MAX);
+    data.delta2_v_y = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_V_MAX, delta2_v_y * 1000.0f / V_QUANTIZATION, RADIOCOMMANDPASTA_DELTA_V_MAX);
+    data.delta2_omega = qBound<qint32>(-RADIOCOMMANDPASTA_DELTA_OMEGA_MAX, delta2_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMANDPASTA_DELTA_OMEGA_MAX);
 
     data.id = id;
     data.force_kick = command.force_kick();
-    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Radio::Generation::Gen2018, id)], 63);
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Radio::Generation::GenPasta, id)], 63);
     data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
 
     if (command.has_cur_v_s()) {
-        data.cur_v_s = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMAND2018_V_MAX);
-        data.cur_v_f = qBound<qint32>(-RADIOCOMMAND2018_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMAND2018_V_MAX);
+        data.cur_v_s = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
+        data.cur_v_f = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
 
         float phi = command.cur_phi();
         while (phi < -std::numbers::pi) {
@@ -656,26 +655,26 @@ void RadioSystem::addRobot2018Command(int id, const robot::Command &command, boo
         while (phi >= std::numbers::pi) {
             phi -= std::numbers::pi * 2;
         }
-        data.cur_phi = qBound<qint32>(-RADIOCOMMAND2018_PHI_MAX, phi * RADIOCOMMAND2018_PHI_MAX / std::numbers::pi, RADIOCOMMAND2018_PHI_MAX);
+        data.cur_phi = qBound<qint32>(-RADIOCOMMANDPASTA_PHI_MAX, phi * RADIOCOMMANDPASTA_PHI_MAX / std::numbers::pi, RADIOCOMMANDPASTA_PHI_MAX);
     } else {
-        data.cur_v_s = RADIOCOMMAND2018_INVALID_SPEED;
-        data.cur_v_f = RADIOCOMMAND2018_INVALID_SPEED;
-        data.cur_phi = RADIOCOMMAND2018_INVALID_SPEED;
+        data.cur_v_s = RADIOCOMMANDPASTA_INVALID_SPEED;
+        data.cur_v_f = RADIOCOMMANDPASTA_INVALID_SPEED;
+        data.cur_phi = RADIOCOMMANDPASTA_INVALID_SPEED;
     }
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2020]) {
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGenPasta]) {
         if (!transceiver) {
             continue;
         }
 
         transceiver->addSendCommand(
-            Address { Unicast, Generation::Gen2018, id },
-            sizeof(RadioResponseHeader) + sizeof(RadioResponse2018),
+            Address { Unicast, Generation::GenPasta, id },
+            sizeof(RadioResponseHeader) + sizeof(RadioResponsePasta),
             reinterpret_cast<const char *>(&data), sizeof(data));
     }
 }
 
-void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter)
+void RadioSystem::addRobotPastaSync(qint64 processingDelay, quint8 packetCounter)
 {
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
@@ -686,24 +685,24 @@ void RadioSystem::addRobot2018Sync(qint64 processingDelay, quint8 packetCounter)
     qint64 usbTransferTime = 250 * US_TO_NS;
     qint64 nrfRadioStartupTime = 130 * US_TO_NS;
     int nrfPacketHeaderBits = 65;
-    int syncPacketPayloadBytes = sizeof(RadioSync2018);
+    int syncPacketPayloadBytes = sizeof(RadioSyncPasta);
     int BITS_PER_BYTE = 8;
     // transfer rate: 1MBit/s
     int BIT_TRANSFER_TIME = 1 * US_TO_NS;
     qint64 syncPacketTransmissionTime = (nrfPacketHeaderBits + BITS_PER_BYTE * syncPacketPayloadBytes) * BIT_TRANSFER_TIME;
     qint64 syncPacketDelay = usbTransferTime + nrfRadioStartupTime + syncPacketTransmissionTime;
 
-    RadioSync2018 data;
+    RadioSyncPasta data;
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2020]) {
+    for (TransceiverLayer *transceiver : m_transceivers[IndexGenPasta]) {
         if (!transceiver) {
             continue;
         }
 
         transceiver->addSendCommand(
-            Address { Broadcast, Generation::Gen2018 },
+            Address { Broadcast, Generation::GenPasta },
             // Use a expected response size of 1 to add a delay of 240 us to
             // workaround reception issues our custom built nrf receivers fail to
             // receive their command packet if it immediatelly follows the sync
@@ -745,10 +744,10 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         const qint64 completionTime = m_timer->currentTime();
         addRobot2014Sync(processingStart - completionTime, m_packetCounter);
     }
-    bool hasRobot2018Commands = generations.contains(Radio::Generation::Gen2018);
-    if (hasRobot2018Commands) {
+    bool hasRobotPastaCommands = generations.contains(Radio::Generation::GenPasta);
+    if (hasRobotPastaCommands) {
         const qint64 completionTime = m_timer->currentTime();
-        addRobot2018Sync(processingStart - completionTime, m_packetCounter);
+        addRobotPastaSync(processingStart - completionTime, m_packetCounter);
     }
 
     QMapIterator<Radio::Generation, RobotList> it(generations);
@@ -758,8 +757,8 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         foreach (const robot::RadioCommand &radio_command, it.value()) {
             if (it.key() == Radio::Generation::Gen2014) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
-            } else if (it.key() == Radio::Generation::Gen2018) {
-                addRobot2018Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
+            } else if (it.key() == Radio::Generation::GenPasta) {
+                addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             }
         }
     }
