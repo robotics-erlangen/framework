@@ -40,7 +40,7 @@ using namespace Radio;
 
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommandPasta) == 23, "Expected radio command packet of size 23");
+static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet of size 10");
 
 static Radio::Generation uintToGeneration(uint pbGeneration) {
@@ -601,7 +601,7 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
     }
 }
 
-void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter)
+void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
 {
     // copy command
     RadioCommandPasta data;
@@ -662,37 +662,22 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
         data.cur_phi = RADIOCOMMANDPASTA_INVALID_SPEED;
     }
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGenPasta]) {
-        if (!transceiver) {
-            continue;
-        }
-
-        transceiver->addSendCommand(
-            Address { Unicast, Generation::GenPasta, id },
-            sizeof(RadioResponseHeader) + sizeof(RadioResponsePasta),
-            reinterpret_cast<const char *>(&data), sizeof(data));
-    }
-}
-
-void RadioSystem::addRobotPastaSync(qint64 processingDelay, quint8 packetCounter)
-{
     // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
     processingDelay = qMin((qint64)2*1000*1000, processingDelay);
 
     // times are in nanoseconds
-    qint64 US_TO_NS = 1000;
+    constexpr qint64 US_TO_NS = 1000;
     // just an estimate
-    qint64 usbTransferTime = 250 * US_TO_NS;
-    qint64 nrfRadioStartupTime = 130 * US_TO_NS;
-    int nrfPacketHeaderBits = 65;
-    int syncPacketPayloadBytes = sizeof(RadioSyncPasta);
-    int BITS_PER_BYTE = 8;
+    constexpr qint64 usbTransferTime = 250 * US_TO_NS;
+    constexpr qint64 nrfRadioStartupTime = 130 * US_TO_NS;
+    constexpr int nrfPacketHeaderBits = 65;
+    // TODO check if this even makes sense anymore since we don't directly send the sync packet and instead flush after preparing all robot commands
+    constexpr int syncPacketPayloadBytes = sizeof(RadioSync2014);
+    constexpr int BITS_PER_BYTE = 8;
     // transfer rate: 1MBit/s
-    int BIT_TRANSFER_TIME = 1 * US_TO_NS;
+    constexpr int BIT_TRANSFER_TIME = 1 * US_TO_NS;
     qint64 syncPacketTransmissionTime = (nrfPacketHeaderBits + BITS_PER_BYTE * syncPacketPayloadBytes) * BIT_TRANSFER_TIME;
     qint64 syncPacketDelay = usbTransferTime + nrfRadioStartupTime + syncPacketTransmissionTime;
-
-    RadioSyncPasta data;
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
@@ -702,12 +687,8 @@ void RadioSystem::addRobotPastaSync(qint64 processingDelay, quint8 packetCounter
         }
 
         transceiver->addSendCommand(
-            Address { Broadcast, Generation::GenPasta },
-            // Use a expected response size of 1 to add a delay of 240 us to
-            // workaround reception issues our custom built nrf receivers fail to
-            // receive their command packet if it immediatelly follows the sync
-            // packet adding the delay fixes the problem reliably
-            1,
+            Address { Unicast, Generation::GenPasta, id },
+            sizeof(RadioResponseHeader) + sizeof(RadioResponsePasta),
             reinterpret_cast<const char *>(&data), sizeof(data));
     }
 }
@@ -739,15 +720,12 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         }
     }
 
+    const qint64 completionTime = m_timer->currentTime();
+    const qint64 syncTime = processingStart - completionTime;
     bool hasRobot2014Commands = generations.contains(Radio::Generation::Gen2014);
     if (hasRobot2014Commands) {
         const qint64 completionTime = m_timer->currentTime();
-        addRobot2014Sync(processingStart - completionTime, m_packetCounter);
-    }
-    bool hasRobotPastaCommands = generations.contains(Radio::Generation::GenPasta);
-    if (hasRobotPastaCommands) {
-        const qint64 completionTime = m_timer->currentTime();
-        addRobotPastaSync(processingStart - completionTime, m_packetCounter);
+        addRobot2014Sync(syncTime, m_packetCounter);
     }
 
     QMapIterator<Radio::Generation, RobotList> it(generations);
@@ -758,7 +736,7 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
             if (it.key() == Radio::Generation::Gen2014) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             } else if (it.key() == Radio::Generation::GenPasta) {
-                addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter);
+                addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
             }
         }
     }

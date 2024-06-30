@@ -65,6 +65,8 @@ typedef struct
     int8_t delta2_v_x; // mm/s
     int8_t delta2_v_y; // mm/s
     int8_t delta2_omega; // 5 mrad/s
+    uint8_t sync_counter;
+    int16_t time_offset; // microseconds
 } __attribute__ ((packed)) RadioCommandPasta;
 
 // cannot be easily defined by typedef as it must be valid in pure C
@@ -103,11 +105,5 @@ typedef struct
     int32_t v_f:14; // mm/s
     int16_t omega; // mrad/s
 } __attribute__ ((packed)) RadioResponsePasta;
-
-typedef struct
-{
-    uint8_t counter;
-    int16_t time_offset; // microseconds
-} __attribute__ ((packed)) RadioSyncPasta;
 
 #endif // COMMON_RADIOCOMMANDPASTA_H
