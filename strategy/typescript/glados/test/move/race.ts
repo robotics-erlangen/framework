@@ -1,4 +1,5 @@
 import * as ListUtil from "base/listutil";
+import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -8,6 +9,8 @@ import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
+
+MathUtil.randomseed(1337);
 
 export class Race extends Move {
 	/***********************************************************************
@@ -66,10 +69,10 @@ export class Race extends Move {
 	 * (c) have 4 robots drive back and forth in the opponent half         *
 	 * (d) have 4 robots drive back and forth on the full field            *
 	 ***********************************************************************/
-	/* (a) */ private static readonly _POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
-	/* (b) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FML, Race._CORNERS.FGR);
-	/* (c) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.OML, Race._CORNERS.OGR);
-	/* (d) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FGL, Race._CORNERS.OGR);
+	/* (a) */ private static readonly _ORIGINAL_POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
+	/* (b) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FML, Race._CORNERS.FGR);
+	/* (c) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.OML, Race._CORNERS.OGR);
+	/* (d) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FGL, Race._CORNERS.OGR);
 
 	/***********************************************************************
 	 * If you want the robots to wait for each other and only start        *
@@ -86,6 +89,10 @@ export class Race extends Move {
 	 ***********************************************************************/
 	private static readonly _POS_TOLERANCE: number = 0.2;
 	private static readonly _SPEED_TOLERANCE: number = 0.05;
+
+	// random offset for carpet wear leveling
+	private static readonly _RANDOM_OFFSET = new Vector(MathUtil.random(), MathUtil.random()) * Race._PADDING * 0.4;
+	private static readonly _POSITIONS = Race._ORIGINAL_POSITIONS.map((ps) => ps.map((p) => p + Race._RANDOM_OFFSET));
 
 	private static readonly _N: number = Race._POSITIONS.length;
 	private static readonly _COLORS: vis.Color[] = [
