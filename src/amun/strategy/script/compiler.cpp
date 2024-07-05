@@ -31,6 +31,7 @@ Compiler::Compiler(QObject *parent)
 CompilerThreadWrapper::CompilerThreadWrapper(std::unique_ptr<Compiler> comp)
     : m_thread(new QThread), m_comp(comp.release())
 {
+    m_thread->setObjectName("StrategyScript Compiler Thread");
     m_comp->moveToThread(m_thread);
     QObject::connect(m_thread, SIGNAL(started()), m_comp, SLOT(init()));
     QObject::connect(m_thread, SIGNAL(finished()), m_comp, SLOT(deleteLater()));

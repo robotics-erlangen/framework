@@ -65,6 +65,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scrip
     // creates its own QThread and moves to it
     m_checkForScriptTimeout = new CheckForScriptTimeout(m_isolate, m_timeoutCounter);
     m_timeoutCheckerThread = new QThread(this);
+    m_timeoutCheckerThread->setObjectName("TypeScript Timeout Checker Thread");
     m_timeoutCheckerThread->start();
     m_checkForScriptTimeout->moveToThread(m_timeoutCheckerThread);
 

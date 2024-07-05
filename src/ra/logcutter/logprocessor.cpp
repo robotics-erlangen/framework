@@ -155,6 +155,7 @@ void LogProcessor::run()
     LogWriter* writerObject = new LogWriter(&writerExchanger, &dumpExchanger, m_semaphore);
     QThread *writerThread = new QThread();
     writerObject->moveToThread(writerThread);
+    writerObject->setObjectName("Logcutter LogWriter Thread");
     connect(this, &LogProcessor::outputSelected, writerObject, &LogWriter::write);
     connect(writerThread, SIGNAL(finished()), writerObject, SLOT(shutdown()));
 

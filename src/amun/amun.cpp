@@ -126,8 +126,28 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_networkThread->setObjectName("Network Thread");
 
     m_simulatorThread = new QThread(this);
+    m_networkThread->setObjectName("Simulator Thread");
     for (int i = 0;i<5;i++) {
+        const auto name = [i](){
+          switch(i) {
+              case 0:
+                  return "Strategy Blue Thread";
+              case 1:
+                  return "Strategy Yellow Thread";
+              case 2:
+                  return "AutoRef Thread";
+              case 3:
+                  return "ReplayStrategy Blue Thread";
+              case 4:
+                  return "ReplayStrategy Yellow Thread";
+              default:
+                  std::cerr << "Unknown strategy thread id found" << std::endl;
+                  return "UnknownStrategy Thread";
+          }
+        }();
+
         m_strategyThread[i] = new QThread(this);
+        m_strategyThread[i]->setObjectName(name);
     }
 
     m_debugHelperThread = new QThread(this);

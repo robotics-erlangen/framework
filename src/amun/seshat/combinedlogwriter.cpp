@@ -338,6 +338,7 @@ void CombinedLogWriter::recordButtonToggled(bool enabled, QString overwriteFilen
         // create thread if not done yet and move to seperate thread
         if (m_logFileThread == nullptr) {
             m_logFileThread = new QThread();
+            m_backlogThread->setObjectName("Seshat LogWriter Thread");
             m_logFileThread->start();
         }
         m_logFile->moveToThread(m_logFileThread);

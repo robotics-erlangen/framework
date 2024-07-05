@@ -37,6 +37,7 @@ AmunClient::~AmunClient()
 void AmunClient::start(bool simulatorOnly)
 {
     m_amunThread = new QThread(this);
+    m_amunThread->setObjectName("Amun Thread");
     m_amun = new Amun(simulatorOnly);
     m_amun->moveToThread(m_amunThread);
     connect(m_amunThread, SIGNAL(finished()), m_amun, SLOT(deleteLater()));
