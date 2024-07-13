@@ -9,6 +9,7 @@ import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
+import { Sampling } from "glados/task/attacker/support";
 import { Task } from "glados/task/base";
 import * as Rating from "glados/util/rating";
 
@@ -30,7 +31,7 @@ interface Suggestion {
 	manual: boolean;
 }
 
-export class MidfieldSampling {
+export class MidfieldSampling implements Sampling {
 	// note that these values will never be read as long as the functions are used in the correct order
 	// they are present to please our compiler overlord
 	private _attackPosition: Position = new Vector(0, 0);

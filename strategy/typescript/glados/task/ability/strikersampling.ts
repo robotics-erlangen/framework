@@ -9,6 +9,7 @@ import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
+import { Sampling } from "glados/task/attacker/support";
 import { Task } from "glados/task/base";
 import * as Rating from "glados/util/rating";
 
@@ -21,7 +22,7 @@ function visualizeRating(name: string, pos: Position, rating: number) {
 		vis.fromTemperature(1 - rating), true);
 }
 
-export class StrikerSampling {
+export class StrikerSampling implements Sampling {
 	private _attackPosition: Position = new Vector(0, 0);
 	private _attackTime: number = 0;
 	private _mainAttacker: FriendlyRobot | undefined;
