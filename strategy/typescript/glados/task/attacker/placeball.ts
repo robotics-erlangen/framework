@@ -330,9 +330,10 @@ export class PlaceBall extends Task {
 				break;
 			}
 			case State.MOVE_AWAY: {
-				const dist = Referee.isFriendlyFreeKickState(World.NextRefereeState)
-					? 0.08 + this._robot.radius
-					: Constants.stopBallDistance + 0.05 + this._robot.radius;
+				const ballDist = Referee.isFriendlyFreeKickState(World.NextRefereeState)
+					? obstacleTable.extraBallDistance!
+					: Constants.stopBallDistance;
+				const dist = this._robot.radius + this._ball.radius + ballDist + 0.02;
 				let offset;
 				if (Referee.isFriendlyFreeKickState(World.NextRefereeState)) {
 					offset = -Vector.fromPolar(UtilAttack.freekickPrepareRobotAngle(), dist);
