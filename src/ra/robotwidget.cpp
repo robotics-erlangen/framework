@@ -525,13 +525,13 @@ void RobotWidget::updateRobotStatus()
     if (m_mergedResponse.has_extended_error()) {
         const auto &extendedError = m_mergedResponse.extended_error();
 
-        m_motorVLError->setVisible(extendedError.motor_1_error());
-        m_motorHLError->setVisible(extendedError.motor_2_error());
-        m_motorHRError->setVisible(extendedError.motor_3_error());
-        m_motorVRError->setVisible(extendedError.motor_4_error());
-        m_motorDribblerError->setVisible(extendedError.dribbler_error());
-        m_kickerError->setVisible(extendedError.kicker_error());
-        m_breakBeamError->setVisible(extendedError.kicker_break_beam_error());
+        turnOnErrorLabel(m_motorVLError, extendedError.motor_1_error());
+        turnOnErrorLabel(m_motorHLError, extendedError.motor_2_error());
+        turnOnErrorLabel(m_motorHRError, extendedError.motor_3_error());
+        turnOnErrorLabel(m_motorVRError, extendedError.motor_4_error());
+        turnOnErrorLabel(m_motorDribblerError, extendedError.dribbler_error());
+        turnOnErrorLabel(m_kickerError, extendedError.kicker_error());
+        turnOnErrorLabel(m_breakBeamError, extendedError.kicker_break_beam_error());
 
         QString errorMsg = "";
         if (extendedError.motor_encoder_error()) {
@@ -582,5 +582,18 @@ void RobotWidget::generationChanged(uint generation, RobotWidget::Team team)
 {
     if (generation == m_specs.generation()) {
         selectTeam(team);
+    }
+}
+
+constexpr size_t ERROR_TIMEOUT = 1000; // ms
+void RobotWidget::turnOnErrorLabel(QLabel *label, const bool value) {
+    if (value) {
+        label->setVisible(value);
+        if (!m_errorLabelTimer.contains(label)) {
+            m_errorLabelTimer.insert(label, new QTimer(this));
+            const auto* timer = m_errorLabelTimer[label];
+            connect(timer, &QTimer::timeout, label, &QLabel::hide);
+        }
+        m_errorLabelTimer[label]->start(ERROR_TIMEOUT);
     }
 }
