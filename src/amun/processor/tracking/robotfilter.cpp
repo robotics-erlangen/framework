@@ -76,7 +76,7 @@ void RobotFilter::update(qint64 time)
             break;
         }
 
-        // only apply radio commands that have reached the robot yet
+        // only apply radio commands that have reached the robot before the vision frame we want to apply
         foreach (const RadioCommand &command, m_radioCommands) {
             const qint64 commandTime = command.second;
             if (commandTime > frame.time) {
@@ -153,6 +153,8 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     kalman->F(5, 5) = 1;
     // clear control input
     kalman->u = Kalman::Vector::Zero();
+
+    // after 2 * PROCESSOR_TICK_DURATION we stop using the command, because it is too old
     if (time < cmd.second + 2 * PROCESSOR_TICK_DURATION) {
         // radio commands are intended to be applied over 10ms
         float cmd_interval = (float)std::max(PROCESSOR_TICK_DURATION*1E-9, timeDiff);

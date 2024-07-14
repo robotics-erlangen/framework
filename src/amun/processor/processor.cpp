@@ -32,6 +32,7 @@
 #include <cmath>
 #include <QTimer>
 #include <QFile>
+#include <cstdint>
 #include <google/protobuf/text_format.h>
 #include <optional>
 
@@ -233,16 +234,25 @@ void Processor::process(qint64 overwriteTime)
 {
     const qint64 tracker_start = Timer::systemTime();
 
-    const qint64 current_time = overwriteTime == -1 ? m_timer->currentTime() : overwriteTime;
     // the controller runs with 100 Hz -> 10ms ticks
     const qint64 tickDuration = 1000 * 1000 * 1000 / FREQUENCY;
 
+    // We have these three different times to consider for each processing step.
+    // currentTime is the time we have *now*, which is used to compute the world state in this point in time.
+    const qint64 currentTime = overwriteTime == -1 ? m_timer->currentTime() : overwriteTime;
+    // controllerTime is supposed to be the time at which the command we will send out in this call arrives
+    // at the robot and the robot can actually act on it
+    const qint64 controllerTime = currentTime + m_trackingRadioCommandDelay;
+    // This is controllerTime for the next process call. This is relevant, because the strategy needs a world
+    // state that predicts the state at the time at which its commands reach the robot and the decision the
+    // strategy makes will be converted into a radio command at the next process call.
+    const qint64 nextProcessControllerTime = currentTime + tickDuration + m_trackingRadioCommandDelay;
+
     // run tracking
-    m_tracker->process(current_time);
-    m_speedTracker->process(current_time);
-    m_simpleTracker->process(current_time);
-    Status status = assembleStatus(current_time, false);
-    Status radioStatus = m_speedTracker->worldState(current_time, false);
+    m_tracker->process(currentTime);
+    m_speedTracker->process(currentTime);
+    m_simpleTracker->process(currentTime);
+    Status status = assembleStatus(currentTime, false);
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
@@ -318,25 +328,29 @@ void Processor::process(qint64 overwriteTime)
 
     {
         QList<robot::RadioCommand> radio_commands;
+        // compute world state and speed for the time at which the command reaches the robot
+        const Status commandStatus = m_tracker->worldState(controllerTime, false);
+        const Status radioStatus = m_speedTracker->worldState(controllerTime, false);
 
-        // assume that current_time is still "now"
-        const qint64 controllerTime = current_time + tickDuration;
-        processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands_prio, radio_commands,
+        processTeam(m_blueTeam, true, commandStatus->world_state().blue(), radio_commands_prio, radio_commands,
                     status, controllerTime, radioStatus->world_state().blue(), debug);
-        processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands_prio, radio_commands,
+        processTeam(m_yellowTeam, false, commandStatus->world_state().yellow(), radio_commands_prio, radio_commands,
                     status, controllerTime, radioStatus->world_state().yellow(), debug);
 
         radio_commands_prio.append(radio_commands);
     }
 
     if (m_transceiverEnabled) {
-        // the command is active starting from now
-        m_tracker->queueRadioCommands(radio_commands_prio, current_time+1);
+        // Add delay to time, because the command takes time before it arrives at the robot, which means we need to delay the time, before the
+        // tracking expects the command to take effect.
+        // Previous behavior was to just add 1 nanosecond to make sure that it is higher than m_futureTime of the robot filter, so it definitely
+        // gets applied to the future kalman.
+        m_tracker->queueRadioCommands(radio_commands_prio, currentTime + std::max(m_trackingRadioCommandDelay, static_cast<uint64_t>(1)));
     }
 
     // prediction which accounts for the strategy runtime
     // depends on the just created radio command
-    Status strategyStatus = assembleStatus(current_time + tickDuration, true);
+    Status strategyStatus = assembleStatus(nextProcessControllerTime, true);
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
     strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
@@ -355,7 +369,7 @@ void Processor::process(qint64 overwriteTime)
     emit sendStatus(status);
 
     if (m_transceiverEnabled) {
-        emit sendRadioCommands(radio_commands_prio, current_time);
+        emit sendRadioCommands(radio_commands_prio, currentTime);
     }
 
     m_tracker->finishProcessing();
@@ -546,6 +560,9 @@ void Processor::handleCommand(const Command &command)
         m_tracker->handleCommand(command->tracking(), currentTime);
         m_speedTracker->handleCommand(command->tracking(), currentTime);
         m_simpleTracker->handleCommand(command->tracking(), currentTime);
+        if (command->tracking().has_radio_command_delay()) {
+            m_trackingRadioCommandDelay = command->tracking().radio_command_delay();
+        }
     }
 
     if (command->has_transceiver()) {

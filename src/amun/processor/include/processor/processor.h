@@ -29,6 +29,8 @@
 #include <QPair>
 #include <QObject>
 #include <QThread>
+#include <cstddef>
+#include <cstdint>
 
 class CommandEvaluator;
 class Referee;
@@ -117,6 +119,12 @@ private:
     bool m_lastFlipped;
     InternalGameController *m_gameController;
     QThread *m_gameControllerThread;
+
+    // Models the time it takes for radio commands to reach the robots,
+    // after it leaves the processor.
+    // IMPORTANT: the value probably needs to be reevaluated if anything
+    // about the setup changes.
+    uint64_t m_trackingRadioCommandDelay = 0;
 
     Team m_blueTeam;
     Team m_yellowTeam;

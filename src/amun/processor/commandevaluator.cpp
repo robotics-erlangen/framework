@@ -75,7 +75,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     const float robotPhiBase = robotToPhi(robot);
     LocalSpeed localOutputBase = outputBase.toLocal(robotPhiBase);
 
-    const qint64 worldTimeOne = worldTime;
+    const qint64 worldTimeOne = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
     GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhiBase, worldTimeOne, command, debug, hasManualCommand);
     const float timeStepOne = (worldTimeOne - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
     GlobalSpeed limitedOutputOne = limitAcceleration(robotPhiBase, outputOne, timeStepOne, hasManualCommand);

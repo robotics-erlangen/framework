@@ -129,6 +129,7 @@ message CommandTracking {
     optional world.Geometry virtual_geometry = 7;
     optional bool tracking_replay_enabled = 8;
     optional world.BallModel ball_model = 9;
+    optional uint64 radio_command_delay = 10;
 }
 
 // the UI may not store the option state, therefore only single values will be changed (by hand)
