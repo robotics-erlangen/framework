@@ -48,4 +48,6 @@ message RealismConfigErForce {
     optional float object_position_offset = 16;
     // The percentage of times a robot is erroneously not "seen" by a camera [0-1]
     optional float missing_robot_detections = 17;
+    // The time it takes for the robot to receive the command, after the simulator receives the command. [ns]
+    optional uint64 command_delay = 18;
 }

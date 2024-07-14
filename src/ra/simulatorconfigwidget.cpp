@@ -29,6 +29,7 @@
 #include <QAction>
 #include <QSettings>
 #include <QDirIterator>
+#include <cstdint>
 #include <google/protobuf/text_format.h>
 
 SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
@@ -61,6 +62,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
 
     connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(sendAll()));
     connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(sendAll()));
+    connect(ui->spinCommandDelay, SIGNAL(valueChanged(int)), SLOT(sendAll()));
 
     connect(ui->enableWorstCaseVision, &QCheckBox::toggled, this, &SimulatorConfigWidget::sendAll);
     connect(ui->worstCaseBallDetections, SIGNAL(valueChanged(double)), this, SLOT(sendAll()));
@@ -134,6 +136,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinMissingDetections->setValue(config.missing_ball_detections() * 100.0f);
     ui->spinVisionDelay->setValue(config.vision_delay() / 1000000LL); // from ns to ms
     ui->spinProcessingTime->setValue(config.vision_processing_time() / 1000000LL);
+    ui->spinCommandDelay->setValue(config.command_delay() / 1000000LL);
     ui->chkSimulateDribbling->setChecked(config.simulate_dribbling());
     ui->spinMissingRobotDetections->setValue(config.missing_robot_detections() * 100.0f);
 
@@ -156,6 +159,7 @@ void SimulatorConfigWidget::sendAll()
     // from ms to ns
     command->mutable_simulator()->mutable_realism_config()->set_vision_delay(ui->spinVisionDelay->value() * 1000 * 1000);
     command->mutable_simulator()->mutable_realism_config()->set_vision_processing_time(ui->spinProcessingTime->value() * 1000 * 1000);
+    command->mutable_simulator()->mutable_realism_config()->set_command_delay(static_cast<uint64_t>(ui->spinCommandDelay->value()) * 1000 * 1000);
 
     // simulator noise
     {

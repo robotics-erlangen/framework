@@ -32,6 +32,7 @@
 #include <algorithm>
 #include <QtDebug>
 #include <QVector>
+#include <cstdint>
 
 using namespace camun::simulator;
 
@@ -95,6 +96,7 @@ struct camun::simulator::SimulatorData
     float missingBallDetections;
     bool dribblePerfect;
     float missingRobotDetections;
+    uint64_t commandDelay;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -169,6 +171,7 @@ Simulator::Simulator(const Timer *timer, const amun::SimulatorSetup &setup, bool
     m_data->missingBallDetections = 0;
     m_data->dribblePerfect = false;
     m_data->missingRobotDetections = 0;
+    m_data->commandDelay = 0;
 
     // no robots after initialisation
 
@@ -217,7 +220,7 @@ void Simulator::process()
     QList<robot::RadioResponse> responses;
 
     // apply only radio commands that were already received by the robots
-    while (m_radioCommands.size() > 0 && std::get<1>(m_radioCommands.head()) < m_time) {
+    while (m_radioCommands.size() > 0 && std::get<1>(m_radioCommands.head()) + m_data->commandDelay < m_time) {
         RadioCommand commands = m_radioCommands.dequeue();
         for (const sslsim::RobotCommand& command : std::get<0>(commands)->robot_commands()) {
 
@@ -803,6 +806,10 @@ void Simulator::handleCommand(const Command &command)
             if (realism.has_simulate_dribbling()) {
                 m_data->dribblePerfect = !realism.simulate_dribbling();
                 teamOrPerfectDribbleChanged = true;
+            }
+
+            if (realism.has_command_delay()) {
+                m_data->commandDelay = realism.command_delay();
             }
         }
 
