@@ -179,9 +179,11 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         float bounded_a_y = qBound(-MAX_LINEAR_ACCELERATION, accel_y, MAX_LINEAR_ACCELERATION);
         float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, accel_omega, MAX_ROTATION_ACCELERATION);
 
-        kalman->u(0) = 0;
-        kalman->u(1) = 0;
-        kalman->u(2) = 0;
+        // controls are piecewise constant accelerations
+        // -> equations of motion
+        kalman->u(0) = 0.5 * bounded_a_x * timeDiff * timeDiff;
+        kalman->u(1) = 0.5 * bounded_a_y * timeDiff * timeDiff;
+        kalman->u(2) = 0.5 * bounded_a_omega * timeDiff * timeDiff;
         kalman->u(3) = bounded_a_x * timeDiff;
         kalman->u(4) = bounded_a_y * timeDiff;
         kalman->u(5) = bounded_a_omega * timeDiff;
