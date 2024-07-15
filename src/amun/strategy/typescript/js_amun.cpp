@@ -103,18 +103,8 @@ static void amunGetWorldState(const FunctionCallbackInfo<Value>& args)
     state.clear_vision_frames();
     state.clear_simple_tracking_blue();
     state.clear_simple_tracking_yellow();
-    state.clear_radio_response();
     state.clear_reality();
     // collect ids of own robots and only give those to the strategy
-    std::vector<int> ownTeamIds;
-    for (const auto &robot : (t->isBlue() ? state.blue() : state.yellow())) {
-        ownTeamIds.push_back(robot.id());
-    }
-    for (const auto &response : t->worldState().radio_response()) {
-        if (std::find(ownTeamIds.begin(), ownTeamIds.end(), response.id()) != ownTeamIds.end()) {
-            state.add_radio_response()->CopyFrom(response);
-        }
-    }
     Local<Value> result = protobufToJs(isolate, state);
     args.GetReturnValue().Set(result);
 }
