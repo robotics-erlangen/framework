@@ -59,11 +59,6 @@ void RobotFilter::resetFutureKalman()
 {
     m_futureKalman = m_kalman;
     m_futureTime = m_lastTime;
-
-    m_futureKalman->H = Kalman::MatrixM::Zero();
-    m_futureKalman->H(0, 3) = 1.0;
-    m_futureKalman->H(1, 4) = 1.0;
-    m_futureKalman->H(2, 5) = 1.0;
 }
 
 // updates the filter to the best possible prediction for the given time
