@@ -64,9 +64,9 @@ export class HandleBall extends Behavior {
 		if (startInside && endPos.y < World.Geometry.FriendlyGoal.y + 0.01) {
 			// if ball is inside defense area and will enter the goal -> block the ball
 			return [Keeper];
-		} else if (startInside && endInside && !ballBehindKeeper && suggestions ||
-			Ball.getBallInDefenseTime() < maxTimeBallDefenseArea[World.DIVISION]
-			&& Robot.hadBall(this._robot, 0.1)) {
+		} else if (startInside && endInside && !ballBehindKeeper && suggestions
+				|| (Ball.getBallInDefenseTime() < maxTimeBallDefenseArea[World.DIVISION]
+					&& Robot.hadBall(this._robot, 0.1))) {
 			// if ball is inside defense area and will not leave it -> we have time to act
 			// try to find a good pass
 			const earliestAttackTime = this._messaging.receiveSingleSender(MessageType.earliestAttackTime, true)[1];
