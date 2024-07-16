@@ -114,6 +114,7 @@ export class Race extends Move {
 	private _posIndices: number[] = Race._POSITIONS.map((_) => 0);
 
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+		robots.sort((a, b) => a.id - b.id);
 		super(robots, messaging);
 
 		// random offset for carpet wear leveling
