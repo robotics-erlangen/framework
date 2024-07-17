@@ -266,7 +266,7 @@ function updateDoubleTouchingRobot() {
 	debug.pushtop("ObserverRobot");
 	debug.push("doubleTouchingRobot");
 	debug.set(undefined, _doubleTouchingRobot);
-	debug.set("lastFreekickTime", lastFreekickTime);
+	debug.set("lastFreekickTime", World.Time - lastFreekickTime);
 	debug.set("wasShot", wasShot);
 	debug.pop(); // doubleTouchingRobot
 	debug.pop(); // ObserverRobot
