@@ -13,6 +13,7 @@ import { InterceptPassMove } from "glados/test/move/interceptpass";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Race } from "glados/test/move/race";
 import { Rotate } from "glados/test/move/rotate";
+import { SimplePass } from "glados/test/move/simplepass";
 import { makeSingleTaskMove } from "glados/test/move/singletaskmove";
 import { TIGERsTestGoalShot } from "glados/test/move/tigerstestgoalshot";
 import { Victory } from "glados/test/move/victory";
@@ -27,6 +28,7 @@ let moves: (typeof Move)[] = [
 	MovingObstacles,
 	DribbleTest,
 	Race,
+	SimplePass,
 	Rotate,
 	makeSingleTaskMove(TrajectoryTimingTask),
 	Volley,
