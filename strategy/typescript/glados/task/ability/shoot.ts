@@ -192,12 +192,33 @@ export class Shoot {
 			return false;
 		}
 
+		// If our current estimation of where catching the ball is possible is too far off,
+		// we want to use CatchBall until we are very sure to arrive before the ball.
 		const robotTime = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
-		const hysteresis = this._catchBallActive ? 0 : 0.1;
-		if (robotTime < futureBallTime + hysteresis + 0.1) {
+		const hysteresis = this._catchBallActive ? -0.1 : 0.2;
+		debug.set("Shoot/CatchBallNecessary/robotTime", robotTime);
+		debug.set("Shoot/CatchBallNecessary/futureBallTime", futureBallTime);
+		if (robotTime < futureBallTime + hysteresis) {
 			return false;
 		}
 
+		// We don't want to use CatchBall when the ball is almost in our dribbler since it
+		// drifts.
+		// HACK: This is copied from a/a/shoot for now, we might want to adapt this
+		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(
+			World.Ball.radius + this._robot.shootRadius);
+		let ballTimeToDribbler = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+		debug.set("Shoot/CatchBallNecessary/ballTimeToDribbler", ballTimeToDribbler);
+
+		if (ballTimeToDribbler < 0.1 && !(ballTimeToDribbler < 0 &&
+			World.Ball.pos.distanceToSq(dribblerPos) > 4 * World.Ball.radius * World.Ball.radius) &&
+			(World.Ball.pos - this._robot.pos).absoluteAngleDiff(World.Ball.speed) < Math.acos(this._robot.dribblerWidth / (2 * this._robot.radius))) {
+			return false;
+		}
+
+
+		// We also don't want to switch back to CatchBall if our Timing is off when the ball
+		// we are almost there.
 		if (!this._catchBallActive && robotTime < 0.7 && World.Ball.speed.lengthSq() > 0.3
 				&& World.Ball.speed.dot(this._robot.pos - World.Ball.pos) > 0) {
 			return false;
