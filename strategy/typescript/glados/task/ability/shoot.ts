@@ -273,7 +273,12 @@ export class Shoot {
 
 		// check if the ball is stationary
 		let wobblingBallSpeed = WOBBLING_BALL_SPEED + (this._state === ShootState.StationaryBall ? 1 : -1) * WOBBLING_BALL_SPEED_HYST;
-		if (!Ball.wasShot(0.5) && futureBall.speed.length() < wobblingBallSpeed) {
+		// But don't switch to stationary ball if we are in StopBall and the ball is very imminent, since this deactivates the dribbler
+		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(
+			World.Ball.radius + this._robot.shootRadius);
+		let ballTimeToDribbler = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+		if (!Ball.wasShot(0.5) && futureBall.speed.length() < wobblingBallSpeed &&
+				!(this._state === ShootState.StopBall && ballTimeToDribbler < 0.1)) {
 			return ShootState.StationaryBall;
 		}
 
