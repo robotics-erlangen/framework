@@ -6,7 +6,7 @@ default {
   height: 0.15
   mass: 1.5
   angle: 0.98291
-  v_max: 3.5
+  v_max: 3
   omega_max: 6
   shot_linear_max: 6.5
   shot_chip_max: 3
@@ -21,7 +21,7 @@ default {
   }
   ir_param: 40
   strategy {
-    a_speedup_f_max: 4
+    a_speedup_f_max: 3
     a_speedup_s_max: 3
     a_speedup_phi_max: 45
     a_brake_f_max: 3
