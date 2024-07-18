@@ -63,7 +63,7 @@ const ENSURE_CONTACT_DIRECT_SPEED = 0.12;
 
 const PULL_DRIBBLER_SPEED = 0.8;
 const MAX_PULL_SPEED = 0.15;
-const MAX_PULL_ACCEL = 0.15;
+const MAX_PULL_ACCEL = 0.1;
 const PULL_LOST_BALL_HYSTERESIS = 1;
 
 // TODO test max speeds for push
