@@ -2,6 +2,7 @@ import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
 import * as Referee from "base/referee";
+import { Robot } from "base/robot";
 import { Position, RelativePosition, Vector } from "base/vector";
 // import * as vis from "base/vis";
 import * as World from "base/world";
@@ -23,6 +24,57 @@ function getNormalizedAngle(direction: RelativePosition): number {
 	let angle = direction.angle();
 	angle = geom.normalizeAnglePositive(angle);
 	return angle;
+}
+
+/** Determine the angle range the ball may be passed in by the opponent and
+ * bound it.
+ *
+ * We want to steal opponent passes, however the most important point to cover
+ * is the goal center so we bound the angle range to not stray too far from it.
+ */
+function determineMaxCoveredPassAngles(passReceivers: readonly Robot[], ballPos: Vector): [number, number] {
+	// Collect angles of opponent passes
+	const opponentPassAngles = passReceivers.map((receiver) => {
+		const receivingPos = Field.limitToAllowedField(
+			Physics.robotBrakePos(receiver),
+			-receiver.radius
+		);
+
+		// Should be within [-Pi; Pi]
+		return (receivingPos - ballPos).angle();
+	});
+
+	// This is the direction we want to cover the most
+	const shootPointToGoalAngle = (World.Geometry.FriendlyGoal - ballPos).angle();
+
+	// Determine the angle range in which the ball can be passed to the
+	// opponents - this is the cake slice we want to cover
+	//
+	// This area is possibly quite large so it will need to be bounded
+	//
+	// Since the output is counter-clockwise, the first diff is always <= 0 and
+	// the last diff is always >= 0
+	const [, , firstPassDiff, lastPassDiff] = geom.enclosingAngles(
+		shootPointToGoalAngle,
+		opponentPassAngles
+	);
+
+	// Some arbitrary value to bound the angle diff - may well be improved upon
+	//
+	// For example:
+	// - Consider the distance the robot can drive while the opponent shoots
+	//   across the stop distance
+	// - Cover a different angle range depending on the distance to the goal or
+	//   ballPos.x
+	const MAX_DIFF_TO_GOAL = geom.degreeToRadian(50);
+
+	const firstPassDiffBounded = Math.max(firstPassDiff, -MAX_DIFF_TO_GOAL);
+	const lastPassDiffBounded = Math.min(lastPassDiff, MAX_DIFF_TO_GOAL);
+
+	return [
+		shootPointToGoalAngle + firstPassDiffBounded,
+		shootPointToGoalAngle + lastPassDiffBounded,
+	];
 }
 
 export class StopAttack extends Task {
@@ -71,74 +123,15 @@ export class StopAttack extends Task {
 
 		let passReceivers = RobotList.excludeRobots(World.OpponentRobots, [opponentShooter!, World.OpponentKeeper!]);
 		if (dist < 0.2 + this._robot.radius && defendOpponentPasses && passReceivers.length > 0) {
-			let minAngle = Infinity;
-			let maxAngle = -Infinity;
-			for (let robot of passReceivers) {
-				let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), -robot.radius) - ballPos);
-				angle = geom.normalizeAnglePositive(angle);
-				if (angle < minAngle && angle >= Math.PI) {
-					minAngle = angle;
-				}
-				if (angle > maxAngle && angle >= Math.PI) {
-					maxAngle = angle;
-				}
+			let [firstPassAngle, lastPassAngle] = determineMaxCoveredPassAngles(passReceivers, ballPos);
 
-			}
-			if (minAngle === Infinity) {
-				minAngle = Math.PI;
-			}
-			if (maxAngle === -Infinity) {
-				maxAngle = 2 * Math.PI;
-			}
-			// used coordinate system from the attacker's point of view
-			// in this calculation 12 corresponds to 1.5 Pi (angle to opp Goal)
-			// 10 corresponds to 1.5 Pi - Pi/4 = 5/4 Pi
-			// 14 corresponds to 1.5 Pi + PI/4 = 7/4 Pi
-			let maxAllowedAngle = 14;
-			let minAllowedAngle = 10;
-			const middleShift = 0;
-			const quarterShift = 1;
-			const borderShift = 2;
-			const quarterBegin = 0.7;
-			const borderBegin = 1.7;
-			// vis.addPath("stopattack: MaxAngle", [ballPos, ballPos + Vector.fromAngle(maxAngle)], vis.colors.red);
-			// vis.addPath("stopattack: MinAngle", [ballPos, ballPos + Vector.fromAngle(minAngle)], vis.colors.redHalf);
-			if (ballPos.x > (quarterBegin * World.Geometry.FieldWidthQuarter) && ballPos.x < (borderBegin * World.Geometry.FieldWidthQuarter)) {
-				maxAllowedAngle -= quarterShift;
-				minAllowedAngle -= quarterShift;
-			} else if (ballPos.x < (-quarterBegin * World.Geometry.FieldWidthQuarter) && ballPos.x > (-borderBegin * World.Geometry.FieldWidthQuarter)) {
-				maxAllowedAngle += quarterShift;
-				minAllowedAngle += quarterShift;
-			} else if (ballPos.x >= (borderBegin * World.Geometry.FieldWidthQuarter)) {
-				maxAllowedAngle -= borderShift;
-				minAllowedAngle -= borderShift;
-			} else if (ballPos.x <= (-borderBegin * World.Geometry.FieldWidthQuarter)) {
-				maxAllowedAngle += borderShift;
-				minAllowedAngle += borderShift;
-			} else {
-				maxAllowedAngle -= middleShift;
-				minAllowedAngle += middleShift;
-			}
-			if (ballPos.y < -World.Geometry.FieldHeightQuarter) {
-				if (ballPos.x > quarterBegin) {
-					maxAllowedAngle = ((World.Geometry.FriendlyGoalRight - ballPos).angle());
-					minAllowedAngle = (maxAllowedAngle - Math.PI / 4);
-					minAllowedAngle = minAllowedAngle / Math.PI * 8;
-					maxAllowedAngle = maxAllowedAngle / Math.PI * 8;
-				} else if (ballPos.x < -quarterBegin) {
-					minAllowedAngle = ((World.Geometry.FriendlyGoalLeft - ballPos).angle());
-					maxAllowedAngle = (minAllowedAngle + Math.PI / 4);
-					minAllowedAngle = minAllowedAngle / Math.PI * 8;
-					maxAllowedAngle = maxAllowedAngle / Math.PI * 8;
-				}
-			}
-			maxAllowedAngle = maxAllowedAngle * Math.PI / 8;
-			minAllowedAngle = minAllowedAngle * Math.PI / 8;
-			// vis.addPath("stopattack: MaxAllowedAngle", [ballPos, ballPos + Vector.fromAngle(maxAllowedAngle)], vis.colors.green);
-			// vis.addPath("stopattack: MinAllowedAngle", [ballPos, ballPos + Vector.fromAngle(minAllowedAngle)], vis.colors.greenHalf);
+			// The code below expects the angle to be in the range [0; 2*Pi]
+			firstPassAngle = geom.normalizeAnglePositive(firstPassAngle);
+			lastPassAngle = geom.normalizeAnglePositive(lastPassAngle);
 
-			maxAngle = geom.angleBound(minAllowedAngle, maxAngle, maxAllowedAngle);
-			minAngle = geom.angleBound(minAllowedAngle, minAngle, maxAllowedAngle);
+			const minAngle = Math.min(firstPassAngle, lastPassAngle);
+			const maxAngle = Math.max(firstPassAngle, lastPassAngle);
+
 			// vis.addPath("stopattack: MaxAngleBounded", [ballPos, ballPos + Vector.fromAngle(maxAngle)], vis.colors.black);
 			// vis.addPath("stopattack: MinAngleBounded", [ballPos, ballPos + Vector.fromAngle(minAngle)], vis.colors.blackHalf);
 
