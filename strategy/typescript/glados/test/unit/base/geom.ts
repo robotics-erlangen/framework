@@ -30,6 +30,7 @@ export class BaseGeom extends UnitTest {
 		this.addTest("insideRect", this.testInsideRect);
 		this.addTest("isInStadium", this.testIsInStadium);
 		this.addTest("angleBound", this.testAngleBound);
+		this.addTest("enclosingAngles", this.testEnclosingAngles);
 	}
 
 	private testIntersectCircleCircle() {
@@ -547,6 +548,51 @@ export class BaseGeom extends UnitTest {
 		this.assert_eq(geom.angleBound(Math.PI, 1.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), 2 * Math.PI - EPSILON);
 		this.assert_eq(geom.angleBound(Math.PI, 3.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), 2 * Math.PI - EPSILON);
 		this.assert_eq(geom.angleBound(Math.PI, 5.0 / 8 * Math.PI, 2 * Math.PI - EPSILON), Math.PI);
+	}
+
+	private testEnclosingAngles() {
+		// Angle lists before and after center are empty
+		this.assert_deep_eq(
+			geom.enclosingAngles(0, []),
+			[0, 0, 0, 0],
+		);
+
+		// Angle lists before center is empty
+		this.assert_deep_eq(
+			geom.enclosingAngles(Math.PI / 2, [0]),
+			[0, Math.PI / 2, -Math.PI / 2, 0],
+		);
+		this.assert_deep_eq(
+			geom.enclosingAngles(Math.PI / 2, [0, -Math.PI / 4]),
+			[-Math.PI / 4, Math.PI / 2, -3 * Math.PI / 4, 0],
+		);
+
+		// Angle lists after center is empty
+		this.assert_deep_eq(
+			geom.enclosingAngles(Math.PI / 2, [Math.PI]),
+			[Math.PI / 2, Math.PI, 0, Math.PI / 2],
+		);
+		this.assert_deep_eq(
+			geom.enclosingAngles(Math.PI / 2, [Math.PI, 0.75 * Math.PI]),
+			[Math.PI / 2, Math.PI, 0, Math.PI / 2],
+		);
+
+		// Both angle lists are filled
+		this.assert_deep_eq(
+			geom.enclosingAngles(0, [Math.PI / 2, -Math.PI / 2]),
+			[-Math.PI / 2, Math.PI / 2, -Math.PI / 2, Math.PI / 2],
+		);
+
+		this.assert_deep_eq(
+			geom.enclosingAngles(0, [Math.PI / 2, -Math.PI / 2, Math.PI / 4, -Math.PI / 4]),
+			[-Math.PI / 2, Math.PI / 2, -Math.PI / 2, Math.PI / 2],
+		);
+
+		// Handles some weird cases
+		this.assert_deep_eq(
+			geom.enclosingAngles(3 * Math.PI, [Math.PI / 2, -Math.PI / 2]),
+			[Math.PI / 2, -Math.PI / 2, -Math.PI / 2, Math.PI / 2],
+		);
 	}
 }
 export let testClass = BaseGeom;

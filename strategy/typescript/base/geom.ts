@@ -473,3 +473,55 @@ export function angleBound(amin: number, val: number, amax: number): number {
 	if (diffMax < diffMin) return amax;
 	return amin;
 }
+
+/**
+ * Returns two angles, that enclose all angles in `angles`, as well as
+ * `center`, in counter-clockwise order. The return value also includes the
+ * angle difference.
+ *
+ * In other words, for a result `[a, b]`, the counter-clockwise order is:
+ *
+ * `a` -> first part of `angles` -> `center` -> second part of `angles` -> `b`
+ *
+ * where "first part of `angles`" and "second part of `angles`" are lists. Both
+ * lists may be empty, and thus `a` or `b` (or both) may be equal to `center`.
+ *
+ * There is no assumption whether angles are normalized in some form.
+ *
+ * @param center - The center angle.
+ * @param angles - The enclosing angles.
+ * @returns The first enclosing angle `a`
+ * @returns The second enclosing angle `b` (`a`, `b` are in counter-clockwise order)
+ * @returns The angle diff between `a` and `center`
+ * @returns The angle diff between `b` and `center`
+ */
+export function enclosingAngles(center: number, angles: number[]): [number, number, number, number] {
+	let firstAngle = center;
+	let firstDiff = 0;
+
+	let lastAngle = center;
+	let lastDiff = 0;
+
+	for (const current of angles) {
+		const currentDiff = getAngleDiff(center, current);
+		// current = center + currentDiff
+
+		if (currentDiff < 0) {
+			// current is counterclockwise to center
+
+			if (currentDiff < firstDiff) {
+				firstAngle = current;
+				firstDiff = currentDiff;
+			}
+		} else {
+			// current is clockwise to center
+
+			if (currentDiff > lastDiff) {
+				lastAngle = current;
+				lastDiff = currentDiff;
+			}
+		}
+	}
+
+	return [firstAngle, lastAngle, firstDiff, lastDiff];
+}
