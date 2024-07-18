@@ -1,6 +1,7 @@
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import * as Referee from "base/referee";
 import { Position, RelativePosition, Vector } from "base/vector";
 // import * as vis from "base/vis";
 import * as World from "base/world";
@@ -61,10 +62,11 @@ export class StopAttack extends Task {
 		}
 
 		// try to always be where the opponent shooter will try to shoot
-		let isOpponentFreekickState = World.RefereeState === "DirectDefensive";
-		let defendGoalDistance = 4;
-		defendGoalDistance = this._defendGoalHysteresis ? defendGoalDistance + DEFEND_GOAL_HYSTERESIS : defendGoalDistance - DEFEND_GOAL_HYSTERESIS;
-		let defendOpponentPasses = ((ballPos - World.Geometry.FriendlyGoal).length() > defendGoalDistance) && isOpponentFreekickState;
+		const defendGoalDistance = 4 + (this._defendGoalHysteresis ? DEFEND_GOAL_HYSTERESIS : -DEFEND_GOAL_HYSTERESIS);
+
+		const defendOpponentPasses = Referee.isOpponentFreeKickState()
+			&& ballPos.distanceTo(World.Geometry.FriendlyGoal) > defendGoalDistance;
+
 		this._defendGoalHysteresis = !defendOpponentPasses;
 
 		let passReceivers = RobotList.excludeRobots(World.OpponentRobots, [opponentShooter!, World.OpponentKeeper!]);
