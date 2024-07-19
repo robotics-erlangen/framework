@@ -638,9 +638,15 @@ function updateBallPlacementRobots() {
 	}
 }
 
-let lastIsStanding = false;
+let standingStartTime: AbsTime | undefined;
 export function isStanding() {
-	return lastIsStanding;
+	return standingStartTime != undefined;
+}
+
+export function standingFor(): RelTime | undefined {
+	return standingStartTime === undefined
+		? undefined
+		: World.Time - standingStartTime;
 }
 
 /** Threshold for how long a shot is allowed to be past for the ball to be considered as recently shot. */
@@ -690,7 +696,12 @@ function updateIsStanding() {
 	debug.set("wasShot", condWasShot);
 	debug.pop();
 
-	lastIsStanding = !(condSameDirection || condSpeed || condDeviation || condWasShot);
+	const isStanding = !(condSameDirection || condSpeed || condDeviation || condWasShot);
+	if (isStanding && standingStartTime === undefined) {
+		standingStartTime = World.Time;
+	} else if (!isStanding) {
+		standingStartTime = undefined;
+	}
 }
 
 let wasInterrupted = false;

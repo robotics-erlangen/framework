@@ -39,11 +39,17 @@ export class FeintGoalShot extends Behavior {
 			return undefined;
 		}
 
+		// Require the ball to be standing for at least 60ms in order to be
+		// less sensitive to a large tracking lookahead (due to a large
+		// system/command delay). Otherwise we may cancel a volley too early
+		const WAIT_TIME = 0.06;
+		const ballStanding = (Ball.standingFor() ?? 0) > WAIT_TIME;
+
 		if (this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot
 			&& Field.distanceToOpponentDefenseArea(this._robot.pos, this._robot.radius) < 1.5
 			&& (Robot.hadBall(this._robot, 0.1) || Ball.lastBallOwner() === this._robot)
 			&& Math.abs(this._robot.pos.x) < World.Geometry.DefenseWidthHalf
-			&& Ball.isStanding()) {
+			&& ballStanding) {
 
 			if (World.OpponentKeeper == undefined) {
 				debug.set("return case", "no Keeper");
