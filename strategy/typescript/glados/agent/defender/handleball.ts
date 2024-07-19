@@ -178,6 +178,18 @@ export class HandleBall extends Behavior {
 			return false;
 		}
 
+		let interceptPosDist = (this._robot.pos - World.Ball.pos).length();
+		let interceptPosBehindReceivers = receivers.every((opponentRobot) => {
+			let robot = opponentRobot.robot;
+
+			return interceptPosDist > (robot.pos - World.Ball.pos).length();
+		});
+
+		// don't intercept if intercept position is behind the receivers
+		if (interceptPosBehindReceivers) {
+			return false;
+		}
+
 		// don't intercept if it might have been kicked by our goalie
 		let defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, new Vector(1, 0),
 					World.Ball.pos, -World.Ball.speed)[0];
