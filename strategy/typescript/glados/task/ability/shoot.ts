@@ -65,6 +65,8 @@ const EXTRA_MOVE_SPEED_LIMIT = 0.5;
 const SIDEWARDS_KP = 9;
 const SIDEWARDS_KI = 2.4;
 const SIDEWARDS_SPEED_LIMIT = 0.5;
+// Time it takes the robot to actually shoot the ball, after we decide we want to shoot it now
+const DIRECT_MOVEMENT_EXTRA_TIME = 0.2;
 
 /** chip distance scaling factor for passes */
 const CHIP_PASS_DISTANCE_FACTOR = 0.4;
@@ -364,7 +366,7 @@ export class Shoot {
 			let kickSpeedVector = (targetPos - futureBallPos).withLength(kickSpeed);
 			let shootBall = { maxSpeed: kickSpeed, speed: kickSpeedVector };
 			let ballTime: number = Physics.ballRollTime(shootBall, futureBallPos.distanceTo(targetPos));
-			if (World.Time + 0.2 + ballTime < targetTime) {
+			if (World.Time + DIRECT_MOVEMENT_EXTRA_TIME + ballTime < targetTime) {
 				waitWithShot = true;
 			}
 			ballTravelTime = ballTime;
