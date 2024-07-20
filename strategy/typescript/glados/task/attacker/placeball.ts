@@ -78,6 +78,7 @@ const BACK_UP_SPEED = 0.4;
 
 const MIN_TIME_IN_STATE = 0.1;
 
+// ! If you came here because wallkick is still causing issues, please deprecate it. It seems to exist because GOT_TO_PULL was unreliable near walls (fixed)
 // for wallkick
 const MIN_BOUNDARY_DIST = 0.09;
 const BOUNDARY_WIDTH = G.BoundaryWidth;
