@@ -389,7 +389,12 @@ export class CenterBack implements Group {
 					};
 					if (necessaryWay != undefined && Math.abs(way - necessaryWay) < EPSILON) {
 						if (necessaryDefensePoint != undefined) {
-							throw new Error("two necessary Points are a problem");
+							const msg = "two necessary Points are a problem";
+							if (amun.isDebug) {
+								throw new Error(msg);
+							} else {
+								amun.log(`<font color=red>${msg} (treat this like a strategy crash)</font>`);
+							}
 						}
 						necessaryDefensePoint = point;
 					}
