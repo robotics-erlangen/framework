@@ -536,7 +536,8 @@ export class Shoot {
 	private _shootPushBall(targetPos: Position, targetSpeed: number, futureBall: Physics.BallLike) {
 		let relativeEndSpeed = 1;
 
-		this._precision = MIN_PRECISION_CHASE;
+		// require more precision for back passes on own half
+		this._precision = (targetPos.y < 0 && targetPos.y < this._robot.pos.y) ? MIN_PRECISION : MIN_PRECISION_CHASE;
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with no relaitve speed is questionable
 		this._targetRobotDir = targetDir;
