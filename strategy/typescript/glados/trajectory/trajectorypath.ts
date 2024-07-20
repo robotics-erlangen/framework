@@ -5,7 +5,7 @@ import * as Option from "base/option";
 import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
 import { FriendlyRobot } from "base/robot";
-import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
+import { TrajectoryHandler, TrajectoryResult, RobotLike } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -20,17 +20,21 @@ class PID {
 	private _p: number;
 	private _i: number;
 	private _d: number;
+	private _name: string;
+	private _robot: RobotLike;
 
 	private _maxLength: number;
 
 	private _integral: Vector = new Vector(0, 0);
 	private _previousError: Vector = new Vector(0, 0);
 
-	public constructor(maxLength: number, p: number, i: number, d: number) {
+	public constructor(maxLength: number, p: number, i: number, d: number, name: string, robot: RobotLike) {
 		this._maxLength = maxLength;
 		this._p = p;
 		this._i = i;
 		this._d = d;
+		this._name = name + robot.id + (World.TeamIsBlue ? "b" : "y");
+		this._robot = robot;
 	}
 
 	public reset() {
@@ -53,6 +57,12 @@ class PID {
 			output = output.withLength(this._maxLength);
 		}
 
+		vis.addPath(`Position Control/${this._name}/integral`, [this._robot.pos, this._robot.pos + this._integral], vis.colors.cyan);
+		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + pOut], vis.colors.brown);
+		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + iOut], vis.colors.pink);
+		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + dOut], vis.colors.blue);
+		vis.addPath(`Position Control/${this._name}/output`, [this._robot.pos, this._robot.pos + output], vis.colors.white);
+		vis.addPath(`Position Control/${this._name}/error`, [this._robot.pos, this._robot.pos + error], vis.colors.red);
 		this._previousError = error;
 		return output;
 	}
@@ -64,8 +74,8 @@ const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
 export class TrajectoryPath extends TrajectoryHandler {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
-	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0);
-	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1);
+	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0, "speed", this._robot);
+	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1, "position", this._robot);
 	private _dribbleWarning = true;
 	private _slowSpeedHysteresis: boolean = false;
 
