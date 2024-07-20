@@ -206,6 +206,14 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
         }
     }
 
+    // Ensure we are not overwriting the radio command delay if it was set by
+    // the tracking
+    //
+    // This is a bit tough software engineering wise, since we (at the time of
+    // writing) only use the radio command in the Processor, but assemble the
+    // world state in the Tracker.
+    Q_ASSERT(!status->world_state().has_radio_command_delay());
+    status->mutable_world_state()->set_radio_command_delay(m_trackingRadioCommandDelay);
 
     return status;
 }
