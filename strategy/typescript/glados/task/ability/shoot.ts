@@ -685,8 +685,8 @@ export class Shoot {
 		}
 
 		// activate dribbler to stop the ball
-		if (futureBallTime < 0.3) {
-			this._robot.setDribblerSpeed(0.6);
+		if (futureBallTime < 0.5) {
+			this._robot.setDribblerSpeed(0.8);
 
 			const ballDistance = this._robot.radius + World.Ball.radius;
 			if (this._robot.pos.distanceToSq(World.Ball.pos) < ballDistance * ballDistance) {
