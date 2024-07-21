@@ -103,6 +103,7 @@ export class Duel extends Task {
 			useCMAPathFinding: true
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
+		this._robot.setDribblerSpeed(1);
 		this._robot.trajectory.update(CurvedMaxAccel, destinationPos, viewDir);
 	}
 
