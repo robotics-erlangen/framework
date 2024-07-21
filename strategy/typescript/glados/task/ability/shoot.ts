@@ -475,8 +475,8 @@ export class Shoot {
 
 		const targetAngle = (targetPos - this._robot.pos).angle();
 		this._setObstacles(undefined);
-		this._robot.trajectory.update(CurvedMaxAccel, this._robot.pos, targetAngle);
-		this._robot.setDribblerSpeed(0.6);
+		this._robot.trajectory.update(CurvedMaxAccel, this._robot.pos, targetAngle, undefined, undefined, undefined, true);
+		this._robot.setDribblerSpeed(1);
 
 		const shootBallPos = this._robot.pos + (targetPos - this._robot.pos).withLength(this._robot.shootRadius);
 
