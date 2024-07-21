@@ -199,7 +199,7 @@ export class PlaceBall extends Task {
 								|| this._state === State.BACK_UP_WAIT
 								|| this._state === State.PUSH_TO_POS;
 		if (this._state === State.GO_TO_PUSH) {
-			obstacleTable.extraBallDistance = 2 * this._ball.radius;
+			obstacleTable.extraBallDistance = 3 * this._ball.radius;
 		} else if (this._state === State.MOVE_AWAY || this._state === State.WAIT_FOR_BALL_STOP) {
 			obstacleTable.extraBallDistance = this._robot.radius;
 		}
