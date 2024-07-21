@@ -534,7 +534,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let sidewardsErrorFactor = 10; // used to scale sidewards speed error
 
 		let rotationExponentialTime = 0.1;
-		let rotationAccelerationFactor = dribble ? 0.25 : 1;
+		let rotationAccelerationFactor = dribble ? 0.5 : 1;
 
 		// insert default values
 		if (Referee.isSlowDriveState()) {
