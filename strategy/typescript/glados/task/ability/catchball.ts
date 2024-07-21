@@ -234,6 +234,7 @@ export class CatchBall {
 
 		// move to the predicted ball
 		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir, maxSpeed);
+		this._robot.setDribblerSpeed(0.6);
 		let time = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
 		this._messaging.sendBroadcast(MessageType.moveDest, moveDest);
 		this._messaging.sendBroadcast(MessageType.attackPosition, predictedBall.pos);
