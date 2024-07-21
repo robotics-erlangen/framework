@@ -116,7 +116,7 @@ export class MidfieldSampling {
 	private passDistance(ballPos: Position) {
 		let minRating = 0.7;
 		let dist = this._attackPosition.distanceTo(ballPos);
-		let rating = (1 - minRating) * Rating.valueToRating(dist, 6, 3) + minRating;
+		let rating = (1 - minRating) * Rating.valueToRating(dist, 9, 4) + minRating;
 
 		if (!amun.isPerformanceMode) {
 			visualizeRating("passDistance", ballPos, rating);
