@@ -1,4 +1,4 @@
-import { AttackRatio, AttackRatioKind } from "glados/trainer/attackratio";
+import { AttackRatio, AttackRatioKind, AttackRatioResult, ValidAttackRatio } from "glados/trainer/attackratio";
 import { Defense } from "glados/trainer/defense";
 import { Trainer } from "glados/trainer/trainer";
 
@@ -6,9 +6,9 @@ import { Trainer } from "glados/trainer/trainer";
 export class MainTrainer extends Trainer {
 	private _defense: Defense;
 	private _attackRatio: AttackRatio;
-	private _mode: "passive" | "aggressive" | undefined;
+	private _mode: "passive" | "aggressive" | AttackRatioResult | undefined;
 
-	public constructor(mode: "passive" | "aggressive" | undefined) {
+	public constructor(mode: "passive" | "aggressive" | AttackRatioResult | undefined) {
 		super();
 		this._mode = mode;
 
@@ -35,6 +35,10 @@ export class MainTrainer extends Trainer {
 					kind: AttackRatioKind.ConstantDefenders,
 					numberOfDefenders: 0,
 				};
+			};
+		} else if (this._mode != undefined && this._mode.kind != undefined) {
+			this._attackRatio.attackRatio = () => {
+				return <AttackRatioResult> this._mode;
 			};
 		}
 	}

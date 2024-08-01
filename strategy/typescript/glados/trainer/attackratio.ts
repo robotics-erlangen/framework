@@ -23,12 +23,13 @@ export enum AttackRatioKind {
 	Scalable = "scalable",
 	ConstantAttackers = "constant attackers",
 	ConstantDefenders = "constant defenders",
+	MinimumAttackers = "minimum attackers",
 }
 
 
 // attack ratio is currently defined as x out of 10 robots, because it is defined as the currently available number of robots in Division A
 // that can be attacker/defender, so 11 - 1, because the keeper can't fill those roles
-type ValidAttackRatio = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
+export type ValidAttackRatio = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export type AttackRatioResult = {
 	kind: AttackRatioKind.Scalable;
@@ -39,6 +40,10 @@ export type AttackRatioResult = {
 } | {
 	kind: AttackRatioKind.ConstantDefenders;
 	numberOfDefenders: ValidAttackRatio;
+} | {
+	kind: AttackRatioKind.MinimumAttackers;
+	minNumberOfAttackers: ValidAttackRatio;
+	rest: AttackRatioResult;
 };
 
 export class AttackRatio {
@@ -194,6 +199,12 @@ export class AttackRatio {
 
 		let attackRatio = this.attackRatio();
 
+		let minAttackers = 0;
+		if (attackRatio.kind === AttackRatioKind.MinimumAttackers) {
+			minAttackers = attackRatio.minNumberOfAttackers;
+			attackRatio = attackRatio.rest;
+		}
+
 		// We want to know the total number of robots that can be part of either the attacker or the defender pool
 		const usableRobotsWithoutKeeper = World.FriendlyRobots.filter((robot) => {
 			return robot !== World.FriendlyKeeper // keeper obviously can't be attacker or defender
@@ -204,7 +215,7 @@ export class AttackRatio {
 		let attackers: number;
 		switch (attackRatio.kind) {
 			case AttackRatioKind.ConstantAttackers: {
-				attackers = Math.min(usableRobotsWithoutKeeper, attackRatio.numberOfAttackers);
+				attackers = Math.max(minAttackers, Math.min(usableRobotsWithoutKeeper, attackRatio.numberOfAttackers));
 				// this is only necessary here, because if you're using ConstantDefenders to say 9 defenders you're doing something wrong
 				// and in the scalable case we allow additional attackers
 				if (attackRatio.numberOfAttackers <= 1) {
@@ -213,7 +224,7 @@ export class AttackRatio {
 				break;
 			};
 			case AttackRatioKind.ConstantDefenders: {
-				attackers = Math.max(0, usableRobotsWithoutKeeper - attackRatio.numberOfDefenders);
+				attackers = Math.max(minAttackers, usableRobotsWithoutKeeper - attackRatio.numberOfDefenders);
 				break;
 			};
 			case AttackRatioKind.Scalable: {
@@ -222,7 +233,7 @@ export class AttackRatio {
 				// the keeper is neither defender nor attacker so we need to subtract 1
 				// this makes the attack ratio also more intuitive in Div A with 11 robots, because then ratio = 9 means 9/10 robots should be attacker
 				const maxRobotsWithoutKeeper = Constants.maxTeamSize["A"] - 1;
-				attackers = Math.max(1, Math.floor((attackRatio.ratio / maxRobotsWithoutKeeper) * usableRobotsWithoutKeeper));
+				attackers = Math.max(1, minAttackers, Math.floor((attackRatio.ratio / maxRobotsWithoutKeeper) * usableRobotsWithoutKeeper));
 
 				// allow a defender to promote if a pass is ongoing.
 				// The increased attacker count will result in one defender promoting.
@@ -234,6 +245,10 @@ export class AttackRatio {
 				}
 				break;
 			};
+			case AttackRatioKind.MinimumAttackers: {
+				amun.log("This is wrong what are you doing");
+				attackers = 0;
+			}
 		}
 
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
@@ -299,9 +314,8 @@ export class AttackRatio {
 
 		debug.set("MainAttackerIsDefender", mainAttackerIsDefender);
 		debug.set("AttackRatio", attackRatio);
-
 		let moveInfo = this._messaging.receiveTrainer(MessageType.moveInfo);
-		if (moveInfo) {
+		if (moveInfo && moveInfo.attackers.length > 0) {
 			const num = moveInfo.attackers.length;
 			attackers = moveInfo.allowExtraAttackers ? Math.max(attackers, num) : num;
 		}

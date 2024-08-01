@@ -16,6 +16,7 @@ import { TIGERsTestGoalShot } from "glados/test/move/tigerstestgoalshot";
 import { Victory } from "glados/test/move/victory";
 import { Volley } from "glados/test/move/volley";
 import { RotTest } from "glados/test/task/rotation";
+import { AttackRatioKind, ValidAttackRatio } from "glados/trainer/attackratio";
 import { MainTrainer } from "glados/trainer/maintrainer";
 
 
@@ -39,7 +40,10 @@ export function createEntrypoint(move: typeof Move) {
 
 			let groupList: any[] = [new CenterBackGroup(), new SupportGroup(), moveGroup];
 
-			let trainer = new MainTrainer(undefined);
+			let trainer = new MainTrainer({
+				kind: AttackRatioKind.ConstantAttackers,
+				numberOfAttackers: <ValidAttackRatio> move.MIN_ROBOTS,
+			});
 			trainer.setGroups(groupList);
 
 			coord = new MainCoordinator(trainer);
