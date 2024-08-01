@@ -1,0 +1,28 @@
+FROM ubuntu:24.04
+
+ENV PATH="/usr/lib/ccache:$PATH"
+ENV CCACHE_DIR="/ccache/ubuntu-24.04-no-v8"
+ENV LANG=C.UTF-8
+
+ARG DEBIAN_FRONTEND=noninteractive
+# apt-key will warn to not parse its output if not set
+ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
+
+RUN set -xe; \
+	apt-get update; \
+	apt-get install --no-install-recommends -y \
+		libprotobuf-dev qtbase5-dev libqt5opengl5-dev libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev \
+		cmake g++ protobuf-compiler make ccache patch ninja-build bzip2 \
+		git git-lfs ssh \
+		ca-certificates curl gnupg \
+		nodejs npm \
+		luarocks; \
+	git lfs install; \
+	# setup linters \
+	luarocks install luacheck; \
+	# cleanup apt \
+	apt-get clean; \
+	rm -rf /var/lib/apt/lists/*; \
+	# ccache seems to not automatically cover cc/c++ and arm compilers
+	ln -s ../../bin/ccache /usr/lib/ccache/cc; \
+	ln -s ../../bin/ccache /usr/lib/ccache/c++;

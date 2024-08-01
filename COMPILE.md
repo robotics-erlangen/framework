@@ -1,8 +1,8 @@
 # Setting up a build environment
 
 All programs should work on GNU+Linux Mac OS X 10.10 and Windows >= 7.
-Building is tested automatically on recent Ubuntu versions (currently 18.04 and
-20.04)
+Building is tested automatically on recent Ubuntu versions (currently 20.04, 22.04 and
+24.04)
 
 Currently, the software is also manually tested and proven to run for openSuse Leap and Manjaro
 
@@ -26,7 +26,7 @@ Certain features require additional libraries:
 - [Note for Robocup 2021 participants](#note-for-robocup-2021-participants)
 - [Linux](#linux)
   * [Required packages](#required-packages)
-    * [Ubuntu 18.04/20.04](#ubuntu-18042004)
+    * [Ubuntu 20.04/22.04/24.04](#ubuntu-200422042404)
     * [Manjaro](#manjaro)
     * [Open Suse](#open-suse)
   * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
@@ -50,13 +50,20 @@ faster.
 
 ### Required packages
 
-#### Ubuntu 18.04/20.04/22.04
+#### Ubuntu 20.04/22.04/24.04
 The package names are
 ```
 cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev
 ```
 where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
 not already installed.
+For Ubuntu 20.04 the g++ version has to be manually bumped to version 10 by additionally installing g++-10 and doing:
+```
+update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100;
+update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100;
+update-alternatives --set gcc /usr/bin/gcc-10;
+update-alternatives --set g++ /usr/bin/g++-10;
+```
 
 These additional packages are needed to debug the firmware:
 ```
