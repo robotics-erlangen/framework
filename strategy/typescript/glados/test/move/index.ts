@@ -8,6 +8,7 @@ import { Support as SupportGroup } from "glados/group/support";
 // test moves
 import { TrajectoryTiming as TrajectoryTimingTask } from "glados/task/test/trajectorytiming";
 import { DribbleTest } from "glados/test/move/dribbletest";
+import { FeintKeeperTest } from "glados/test/move/feintkeepertest";
 import { InterceptPassMove } from "glados/test/move/interceptpass";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Race } from "glados/test/move/race";
@@ -29,7 +30,8 @@ let moves: (typeof Move)[] = [
 	Volley,
 	makeSingleTaskMove(RotTest),
 	InterceptPassMove,
-	makeSingleTaskMove(TIGERsTestGoalShot)
+	makeSingleTaskMove(TIGERsTestGoalShot),
+	FeintKeeperTest
 ];
 
 let coord: MainCoordinator | undefined = undefined;
