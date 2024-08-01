@@ -118,9 +118,17 @@ compile-ra-20.04:
   extends: .compile-ra-schedule
   image: ci:ubuntu-20.04
 
+compile-ra-20.04-no-v8:
+  extends: .compile-ra-schedule
+  image: ci:ubuntu-20.04-no-v8
+
 compile-ra-22.04:
   extends: .compile-ra-schedule
   image: ci:ubuntu-22.04
+
+compile-ra-22.04-no-v8:
+  extends: .compile-ra-schedule
+  image: ci:ubuntu-22.04-no-v8
 
 .test-schedule:
   extends: .test-template
@@ -134,12 +142,26 @@ tests-20.04:
     - compile-ra-20.04
   needs: [compile-ra-20.04]
 
+tests-20.04-no-v8:
+  extends: .test-schedule
+  image: ci:ubuntu-20.04-no-v8
+  dependencies:
+    - compile-ra-20.04-no-v8
+  needs: [compile-ra-20.04-no-v8]
+
 tests-22.04:
   extends: .test-schedule
   image: ci:ubuntu-22.04
   dependencies:
     - compile-ra-22.04
   needs: [compile-ra-22.04]
+
+tests-22.04-no-v8:
+  extends: .test-schedule
+  image: ci:ubuntu-22.04-no-v8
+  dependencies:
+    - compile-ra-22.04-no-v8
+  needs: [compile-ra-22.04-no-v8]
 
 
 .sanitize-schedule:
@@ -152,7 +174,17 @@ sanitize-20.04:
   image: ci:ubuntu-20.04
   needs: [tests-20.04]
 
+sanitize-20.04-no-v8:
+  extends: .sanitize-schedule
+  image: ci:ubuntu-20.04-no-v8
+  needs: [tests-20.04-no-v8]
+
 sanitize-22.04:
   extends: .sanitize-schedule
   image: ci:ubuntu-22.04
   needs: [tests-22.04]
+
+sanitize-22.04-no-v8:
+  extends: .sanitize-schedule
+  image: ci:ubuntu-22.04-no-v8
+  needs: [tests-22.04-no-v8]
