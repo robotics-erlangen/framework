@@ -130,6 +130,14 @@ compile-ra-22.04-no-v8:
   extends: .compile-ra-schedule
   image: ci:ubuntu-22.04-no-v8
 
+compile-ra-24.04:
+  extends: .compile-ra-schedule
+  image: ci:ubuntu-24.04
+
+compile-ra-24.04-no-v8:
+  extends: .compile-ra-schedule
+  image: ci:ubuntu-24.04-no-v8
+
 .test-schedule:
   extends: .test-template
   only:
@@ -163,6 +171,19 @@ tests-22.04-no-v8:
     - compile-ra-22.04-no-v8
   needs: [compile-ra-22.04-no-v8]
 
+tests-24.04:
+  extends: .test-schedule
+  image: ci:ubuntu-24.04
+  dependencies:
+    - compile-ra-24.04
+  needs: [compile-ra-24.04]
+
+tests-24.04-no-v8:
+  extends: .test-schedule
+  image: ci:ubuntu-24.04-no-v8
+  dependencies:
+    - compile-ra-24.04-no-v8
+  needs: [compile-ra-24.04-no-v8]
 
 .sanitize-schedule:
   extends: .sanitize-template
@@ -188,3 +209,13 @@ sanitize-22.04-no-v8:
   extends: .sanitize-schedule
   image: ci:ubuntu-22.04-no-v8
   needs: [tests-22.04-no-v8]
+
+sanitize-24.04:
+  extends: .sanitize-schedule
+  image: ci:ubuntu-24.04
+  needs: [tests-24.04]
+
+sanitize-24.04-no-v8:
+  extends: .sanitize-schedule
+  image: ci:ubuntu-24.04-no-v8
+  needs: [tests-24.04-no-v8]
