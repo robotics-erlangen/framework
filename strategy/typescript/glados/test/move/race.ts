@@ -5,12 +5,12 @@ import { Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
 
-MathUtil.randomseed(1337);
 
 export class Race extends Move {
 	/***********************************************************************
@@ -69,10 +69,10 @@ export class Race extends Move {
 	 * (c) have 4 robots drive back and forth in the opponent half         *
 	 * (d) have 4 robots drive back and forth on the full field            *
 	 ***********************************************************************/
-	/* (a) */ private static readonly _ORIGINAL_POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
-	/* (b) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FML, Race._CORNERS.FGR);
-	/* (c) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.OML, Race._CORNERS.OGR);
-	/* (d) */ // private static readonly _ORIGINAL_POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FGL, Race._CORNERS.OGR);
+	/* (a) */ private static readonly _POSITIONS: Vector[][] = [[new Vector(-2, -2), new Vector(2, -2)]];
+	/* (b) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FML, Race._CORNERS.FGR);
+	/* (c) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.OML, Race._CORNERS.OGR);
+	/* (d) */ // private static readonly _POSITIONS: Vector[][] = Race._nRobots(4, Race._CORNERS.FGL, Race._CORNERS.OGR);
 
 	/***********************************************************************
 	 * If you want the robots to wait for each other and only start        *
@@ -90,9 +90,7 @@ export class Race extends Move {
 	private static readonly _POS_TOLERANCE: number = 0.2;
 	private static readonly _SPEED_TOLERANCE: number = 0.05;
 
-	// random offset for carpet wear leveling
-	private static readonly _RANDOM_OFFSET = new Vector(MathUtil.random(), MathUtil.random()) * Race._PADDING * 0.4;
-	private static readonly _POSITIONS = Race._ORIGINAL_POSITIONS.map((ps) => ps.map((p) => p + Race._RANDOM_OFFSET));
+	private _positions: Vector[][];
 
 	private static readonly _N: number = Race._POSITIONS.length;
 	private static readonly _COLORS: vis.Color[] = [
@@ -113,6 +111,14 @@ export class Race extends Move {
 	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	private _posIndices: number[] = Race._POSITIONS.map((_) => 0);
+
+	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
+		super(robots, messaging);
+
+		// random offset for carpet wear leveling
+		const randomOffset = new Vector(MathUtil.random(), MathUtil.random()) * Race._PADDING * 0.4;
+		this._positions = Race._POSITIONS.map((ps) => ps.map((p) => p + randomOffset));
+	}
 
 	public static canStart() {
 		return true;
@@ -154,16 +160,16 @@ export class Race extends Move {
 		let taskAssignments: Map<FriendlyRobot, Assignment> = new Map<FriendlyRobot, Assignment>();
 
 		const posReached = this._robots.map((r, i) => {
-			const positions = Race._POSITIONS[i];
+			const positions = this._positions[i];
 			const pos = positions[this._posIndices[i]];
 			return r.pos.distanceToSq(pos) < Race._POS_TOLERANCE * Race._POS_TOLERANCE
 				&& r.speed.lengthSq() < Race._SPEED_TOLERANCE * Race._SPEED_TOLERANCE;
 		});
 
 		const synchronized = posReached.every((x) => x) || !Race._SYNC;
-		for (let i = 0; i < Math.min(this._robots.length, Race._POSITIONS.length); i++) {
+		for (let i = 0; i < Math.min(this._robots.length, this._positions.length); i++) {
 			const r = this._robots[i];
-			const positions = Race._POSITIONS[i];
+			const positions = this._positions[i];
 			const pos = positions[this._posIndices[i]];
 
 			vis.addPath("te/m/race: positions", [r.pos, pos], Race._COLORS[i]);
