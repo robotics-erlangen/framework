@@ -16,6 +16,9 @@ import * as Rating from "glados/util/rating";
 
 type Trajectory = { pos: Position; speed: Speed; time: number }[];
 
+// enables several visualizations for the state of the PID controller
+const VISUALIZE_PID_STATE = Option.addOption("Visualize PID controller state in strategy", false);
+
 class PID {
 	private _p: number;
 	private _i: number;
@@ -57,12 +60,15 @@ class PID {
 			output = output.withLength(this._maxLength);
 		}
 
-		vis.addPath(`Position Control/${this._name}/integral`, [this._robot.pos, this._robot.pos + this._integral], vis.colors.cyan);
-		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + pOut], vis.colors.brown);
-		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + iOut], vis.colors.pink);
-		vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + dOut], vis.colors.blue);
-		vis.addPath(`Position Control/${this._name}/output`, [this._robot.pos, this._robot.pos + output], vis.colors.white);
-		vis.addPath(`Position Control/${this._name}/error`, [this._robot.pos, this._robot.pos + error], vis.colors.red);
+		if (VISUALIZE_PID_STATE) {
+			vis.addPath(`Position Control/${this._name}/integral`, [this._robot.pos, this._robot.pos + this._integral], vis.colors.cyan);
+			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + pOut], vis.colors.brown);
+			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + iOut], vis.colors.pink);
+			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + dOut], vis.colors.blue);
+			vis.addPath(`Position Control/${this._name}/output`, [this._robot.pos, this._robot.pos + output], vis.colors.white);
+			vis.addPath(`Position Control/${this._name}/error`, [this._robot.pos, this._robot.pos + error], vis.colors.red);
+		}
+
 		this._previousError = error;
 		return output;
 	}
