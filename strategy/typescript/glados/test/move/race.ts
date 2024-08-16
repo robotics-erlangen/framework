@@ -14,20 +14,21 @@ const G = World.Geometry;
 
 export class Race extends Move {
 	/***********************************************************************
-	 * If you just want to quickly use this move, see search for           *
-	 * "Presets:" in this file for a list of common situations and turn on *
+	 * If you just want to quickly use this move, search for "Presets:"    *
+	 * in this file for a list of common situations and turn on            *
 	 * the "te/m/race: positions" visualization, else read the next        *
 	 * paragraph below for a more thorough explanation.                    *
 	 ***********************************************************************/
 
 	/***********************************************************************
 	 * This move works by having a list of positions for each robot        *
-	 * through which it cycles. That's the POSITIONS array. For each list  *
+	 * through which it cycles. That's the _POSITIONS array. For each list *
 	 * in there, this move will have one robot cycling between those       *
 	 * positions.                                                          *
 	 *                                                                     *
 	 * If you just want N robots driving up and down in a predefined       *
-	 * rectangle, you can use the nRobots function, see its documentation. *
+	 * rectangle, you can use the _nRobots function, see its               *
+	 * documentation.                                                      *
 	 ***********************************************************************/
 
 	/***********************************************************************
