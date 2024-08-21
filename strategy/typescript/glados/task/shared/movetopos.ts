@@ -19,11 +19,13 @@ export type Parameters = {
 	ignoreBallPlacement?: boolean;
 	ignoreBall?: boolean;
 	useCMA?: boolean;
+	maxSpeed?: number;
 };
 
 export class MoveToPos extends Task {
 	private _pos: Position;
 	private _dir: number;
+	private _maxSpeed: number | undefined;
 	private _endSpeedLength: number;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _customObstacles: Obstacle[]; // a list of obstacles to be added to the path, see base/path
@@ -62,6 +64,7 @@ export class MoveToPos extends Task {
 			this._suggestPass = new SuggestPass(this);
 		}
 		this._useCMA = params.useCMA === true;
+		this._maxSpeed = params.maxSpeed;
 	}
 
 	public run() {
@@ -74,9 +77,9 @@ export class MoveToPos extends Task {
 		let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
 		let time;
 		if (this._useCMA) {
-			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, undefined, endSpeed)[1];
+			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, this._maxSpeed, endSpeed)[1];
 		} else {
-			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, undefined, endSpeed)[1];
+			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, this._maxSpeed, endSpeed)[1];
 		}
 
 		if (this._suggestPass != undefined) {
