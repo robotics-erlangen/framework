@@ -38,8 +38,8 @@ const BEFORE_OPPONENT_TIME = 0.3;
 const CLOSE_TO_OPP_HYSTERESIS = 0.09;
 const CLOSE_TO_OPP_DISTANCE = 0.5;
 
-
 const OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1;
+
 
 export class Duel extends Task {
 	private _opposer: Robot | undefined;
@@ -86,7 +86,11 @@ export class Duel extends Task {
 		// decide if we should rotate cw or ccw
 		let toOpponentDir = (this._opposer as Robot).pos - this._robot.pos;
 		let intersection = geom.intersectLineLine(
-				this._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
+			this._robot.pos,
+			toOpponentDir,
+			World.Geometry.FriendlyGoal,
+			new Vector(1, 0)
+		)[0];
 		let ccw = intersection ? -MathUtil.sign(intersection.x) : -1; // negative = ccw, positive = cw
 		let toBall = World.Ball.speed + (Ball.getRealisticBallPos() - this._robot.pos).withLength(0.4);
 		this._robot.setDribblerSpeed(1);
@@ -108,7 +112,8 @@ export class Duel extends Task {
 	}
 
 	private _contest() {
-		this._rotating = this._rotating && Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 3
+		this._rotating =
+			this._rotating && Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 3
 			|| Ball.getRealisticBallPos().y > -World.Geometry.FieldHeightHalf / 6;
 
 		if (this._rotating) {
@@ -119,8 +124,12 @@ export class Duel extends Task {
 			this._contestPush();
 		}
 
-		if (this._robot.dir > 0 && this._robot.dir < Math.PI && Ball.getRealisticBallPos().y > 0.2
-				&& !ObserverRobot.hadBall(<Robot> this._opposer, 0)) {
+		if (
+			this._robot.dir > 0
+			&& this._robot.dir < Math.PI
+			&& Ball.getRealisticBallPos().y > 0.2
+			&& !ObserverRobot.hadBall(<Robot> this._opposer, 0)
+		) {
 			this._robot.shoot(7.5);
 		}
 
@@ -131,6 +140,11 @@ export class Duel extends Task {
 		this._checkBlockingBall();
 	}
 
+	/**
+	 * Calculates the near block position.
+	 * @param closestOpponentRobot The closest opponent robot.
+	 * @returns The near block position.
+	 */
 	private _moveToNearBlock(closestOpponentRobot: Robot): Position {
 		let futureBall = <Position> this._futureBall;
 		// all decisions are made to keep the own goal covered
@@ -151,7 +165,9 @@ export class Duel extends Task {
 			ballDist = this._robot.radius + Math.cos(oppDir) * 2 * closestOpponentRobot.radius + World.Ball.radius;
 		} else {
 			let sidewardsAngle = Math.min(
-				(Math.PI - Math.abs(oppDir)) * SIDEWARDS_ANGLE_SCALE, SIDEWARDS_ANGLE_MAX);
+				(Math.PI - Math.abs(oppDir)) * SIDEWARDS_ANGLE_SCALE,
+				SIDEWARDS_ANGLE_MAX
+			);
 			targetAngle = sidewardsAngle * (-MathUtil.sign(oppDir));
 			ballDist = this._robot.radius + World.Ball.radius;
 		}
@@ -159,6 +175,10 @@ export class Duel extends Task {
 		return futureBall - Vector.fromPolar(baseDir + targetAngle, ballDist);
 	}
 
+	/**
+	 * Checks if the robot is blocking the ball.
+	 * @returns A tuple containing move time, shortest time to ball, closest opponent robot, and intersection defense area.
+	 */
 	private _checkBlockingBall(): [number, number, Robot | undefined, Position | undefined] {
 		let [closestOpponentRobot, shortestTimeToBall] = Ball.firstRobotAtBall(World.OpponentRobots);
 
