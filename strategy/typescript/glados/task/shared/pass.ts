@@ -30,6 +30,12 @@ const CHIP_PASS_DISTANCE_FACTOR = 0.4;
 const MIN_PASS_SPEED = 1;
 const DEFAULT_PASS_SPEED = 3;
 
+/**
+ * Rates the feasibility of a pass based on the distance to the nearest opponent.
+ * @param attackPos - The position from where the pass is made.
+ * @param targetPos - The position where the pass is aimed.
+ * @returns A rating value between 0 and 1 indicating the pass quality.
+ */
 function ratePass(attackPos: Position, targetPos: Position): number {
 	let shortestDist = Infinity;
 	for (let bot of World.OpponentRobots) {
@@ -42,6 +48,10 @@ function ratePass(attackPos: Position, targetPos: Position): number {
 	return Rating.valueToRating(shortestDist, 0.5, 3);
 }
 
+/**
+ * Determines if any opponent is close to the ball.
+ * @returns True if an opponent is close to the ball, false otherwise.
+ */
 function isOpponentClose(): boolean {
 	const [, oppTimeToBall] = ObserverBall.firstRobotAtBall(World.OpponentRobots);
 	return oppTimeToBall < 2.5;
@@ -94,6 +104,14 @@ export class Pass extends Task {
 		this._shoot = new Shoot(this);
 	}
 
+	/**
+	 * Updates the target for the pass.
+	 * @param targetRobot - The friendly robot to which the pass is aimed.
+	 * @param targetPos - The position where the pass is aimed.
+	 * @param chip - Indicates if a chip pass should be performed.
+	 * @param targetTime - The time at which the pass should be completed.
+	 * @param targetSpeed - The speed at which the pass should be delivered.
+	 */
 	public updateTarget(targetRobot: FriendlyRobot, targetPos: Position, chip?: boolean,
 			targetTime?: number, targetSpeed?: number) {
 		this._targetRobot = targetRobot;
@@ -106,8 +124,6 @@ export class Pass extends Task {
 		this._chipOverride = chip != undefined;
 		this._chip = chip === true;
 	}
-
-
 
 	public run() {
 		let obstacleTable = {
