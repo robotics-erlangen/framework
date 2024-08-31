@@ -47,6 +47,6 @@ export class RotateAndShoot {
 
 		let move = toBall * vf + sidewards * vs;
 		this._robot.trajectory.update(Direct, move, undefined, rotate);
-		this._robot.setDribblerSpeed(0.7);
+		this._robot.setDribblerSpeed(1);
 	}
 }
