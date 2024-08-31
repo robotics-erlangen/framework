@@ -79,7 +79,7 @@ const MIN_PRECISION = geom.degreeToRadian(3.5);
 const MIN_PRECISION_CHASE = geom.degreeToRadian(6);
 
 // if the robot can rotate in place with the ball without loosing it
-const HAS_STRONG_DRIBBLER = false;
+const HAS_STRONG_DRIBBLER = true;
 
 enum ShootState {
 	StationaryBall = "StationaryBall", ChaseBall = "ChaseBall", PushBall = "PushBall", Volley = "Volley",
