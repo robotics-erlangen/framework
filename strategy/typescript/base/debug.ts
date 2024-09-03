@@ -128,6 +128,15 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 		visited.set(value, suffix);
 
 		// custom toString for Vector, Robot
+		//
+		// We sometimes want a custom string representation for objects. We can
+		// not just check for the existence of a toString method directly,
+		// because every Javascript object already has a toString method. We
+		// thus need a different kind of marker for objects that want a custom
+		// representation.
+		//
+		// It would probably more idiomatic to use a
+		// Symbol("USE_TOSTRING_REPR") for this, but for now, this works.
 		if (value._toString) {
 			let origValue = value;
 			result = value._toString() + suffix;
