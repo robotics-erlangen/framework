@@ -312,6 +312,7 @@ export class Duel extends Task {
 			}
 		}
 
+		this._robot.setDribblerSpeed(0.6);
 		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir);
 		vis.addCircle("t/duel: ClearRobot", this._robot.pos, 0.15, vis.colors.redHalf, true);
 
