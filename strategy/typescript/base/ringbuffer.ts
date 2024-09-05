@@ -280,6 +280,7 @@ export class RingBuffer<T> {
 	 * Returns a string representation of the ringbuffer, used for base/debug
 	 * @returns A string representation of the ringbuffer
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `RingBuffer(capacity=${this._capacity}, ${this.toArray()})`;
 	}
@@ -384,6 +385,7 @@ export class AccumNumberRingBuffer extends RingBuffer<number> {
 	 * Returns a string representation of the ringbuffer, used for base/debug
 	 * @returns A string representation of the ringbuffer
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `AccumNumberRingBuffer(capacity=${this._capacity}, total=${this._total}, ${this.toArray()})`;
 	}
@@ -479,6 +481,7 @@ export class AccumVectorRingBuffer extends RingBuffer<Vector> {
 	 * Returns a string representation of the ringbuffer, used for base/debug
 	 * @returns A string representation of the ringbuffer
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `AccumVectorRingBuffer(capacity=${this._capacity}, total=${this._total}, ${this.toArray()})`;
 	}

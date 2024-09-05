@@ -388,7 +388,7 @@ export function _updateWorld(state: pb.world.State) {
 	let radioResponses: pb.robot.RadioResponse[] = state.radio_response || [];
 
 	// update ball if available
-	Ball._update(state.ball, Time, Geometry, Robots);
+	Ball.update(state.ball, Time, Geometry, Robots);
 
 	let dataFriendly = TeamIsBlue ? state.blue : state.yellow;
 	if (dataFriendly) {
@@ -439,7 +439,7 @@ export function _updateWorld(state: pb.world.State) {
 			if (!robot) {
 				robot = new Robot(rdata.id);
 			}
-			robot._updateOpponent(rdata, Time);
+			robot.updateOpponent(rdata, Time);
 			newOpponentRobots.push(robot);
 			newOpponentRobotsById[rdata.id] = robot;
 		}
@@ -447,7 +447,7 @@ export function _updateWorld(state: pb.world.State) {
 		OpponentRobotsById = newOpponentRobotsById;
 		// mark dropped robots as invisible
 		for (let robotId in oldOpponentRobotsById) {
-			oldOpponentRobotsById[robotId]._updateOpponent(undefined, Time);
+			oldOpponentRobotsById[robotId].updateOpponent(undefined, Time);
 		}
 	}
 

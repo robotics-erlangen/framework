@@ -340,6 +340,7 @@ export class Vector {
 	}
 
 	// used for base debug
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `Vector(${this.x.toFixed(2)}, ${this.y.toFixed(2)})`;
 	}

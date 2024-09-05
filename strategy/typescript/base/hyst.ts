@@ -195,6 +195,7 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `LessThanHyst(threshold: ${this.threshold}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
@@ -295,6 +296,7 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `GreaterThanHyst(threshold: ${this.threshold}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
@@ -416,6 +418,7 @@ export class InIntervalHyst implements Hyst<number, boolean> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		const [lower, upper] = this.interval;
 		return `InIntervalHyst(interval: [${lower}, ${upper}], hyst: ${this.hyst}, state: ${this.state})`;
@@ -534,6 +537,7 @@ export class MultiValueHyst<T> implements Hyst<number, T> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `MultiValueHyst(thresholds: [${this.thresholds}], hyst: ${this.hyst}, values: ${this._values}, state: ${this.state}=values[${this._index}])`;
 	}
@@ -649,6 +653,7 @@ export class VectorHyst implements Hyst<Vector, boolean> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `VectorHyst(target: ${this.target}, thresh: ${this.threshold}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
@@ -804,6 +809,7 @@ export class AngleHyst implements Hyst<number, boolean> {
 	 * Returns a string representation of the hysteresis, used for base/debug
 	 * @returns A string representation of the hysteresis
 	 */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `AngleHyst(target: ${this.target}, diff: ${this.diff}, hyst: ${this.hyst}, state: ${this.state})`;
 	}
