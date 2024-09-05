@@ -144,12 +144,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this._lastTrajectory.length > 0
 			&& World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE;
 		if (usePositionControl) {
-			let [testPos, testSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0);
+			let [testPos, testSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
 			if (testPos.distanceTo(robotPos) < 0.1 && testSpeed.distanceTo(robotSpeed) < 0.3) {
 				startPos = testPos;
 				startSpeed = testSpeed;
-				[futureStartPos, futureStartSpeed] = TrajectoryPath.calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0.01);
+				[futureStartPos, futureStartSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0.01);
 			}
 		}
 
@@ -178,20 +178,20 @@ export class TrajectoryPath extends TrajectoryHandler {
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: 0, a2: 0, a3: 0 }
 			}];
-			return [{ spline: spline }, Coordinates.toLocal(targetPos), TrajectoryPath.trajectoryTime(trajectory)];
+			return [{ spline: spline }, Coordinates.toLocal(targetPos), TrajectoryPath._trajectoryTime(trajectory)];
 		}
 
 		if (TRAJECTORY_PATH_DEBUG) {
 			let pathColor = trajectory.length < 50 ? vis.colors.green : vis.colors.yellow;
-			if (TrajectoryPath.endPos(robotPos, trajectory).distanceTo(targetPos) > 0.005) {
+			if (TrajectoryPath._endPos(robotPos, trajectory).distanceTo(targetPos) > 0.005) {
 				// orange path if target can't be reached
 				pathColor = vis.colors.orange;
 			}
-			TrajectoryPath.visualizeTrajectory(trajectory, pathColor);
+			TrajectoryPath._visualizeTrajectory(trajectory, pathColor);
 		}
 		this._lastTrajectory = trajectory;
 
-		let timeToEnd =	TrajectoryPath.trajectoryTime(trajectory);
+		let timeToEnd =	TrajectoryPath._trajectoryTime(trajectory);
 
 		// generate trajectory to reach path finding result
 
@@ -220,7 +220,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			}
 		} else {
 			queryTime = 0.08;
-			let testSpeed = TrajectoryPath.speedAtTime(queryTime, trajectory);
+			let testSpeed = TrajectoryPath._speedAtTime(queryTime, trajectory);
 			if (robotSpeed.length() > testSpeed.length()) {
 				queryTime = 0.03;
 			}
@@ -228,7 +228,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 				queryTime = 0.1;
 			} else {
 				const QUERY_OFFSET = 0.3;
-				let nextSpeed = TrajectoryPath.speedAtTime(QUERY_OFFSET, trajectory);
+				let nextSpeed = TrajectoryPath._speedAtTime(QUERY_OFFSET, trajectory);
 
 				let slowSpeedLimit = this._slowSpeedHysteresis ? 0.4 : 0.2;
 				this._slowSpeedHysteresis = false;
@@ -239,8 +239,8 @@ export class TrajectoryPath extends TrajectoryHandler {
 				}
 			}
 		}
-		let speed = TrajectoryPath.speedAtTime(queryTime, trajectory);
-		let acc = TrajectoryPath.accAtTime(queryTime, trajectory);
+		let speed = TrajectoryPath._speedAtTime(queryTime, trajectory);
+		let acc = TrajectoryPath._accAtTime(queryTime, trajectory);
 
 		if (startDriving) {
 			speed = speed * 1.5;
@@ -268,21 +268,21 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return [{ spline: spline }, Coordinates.toLocal(targetPos), timeToEnd];
 	}
 
-	private static trajectoryTime(trajectory: Trajectory) {
+	private static _trajectoryTime(trajectory: Trajectory) {
 		if (trajectory.length === 0) {
 			return 0;
 		}
 		return trajectory[trajectory.length - 1].time;
 	}
 
-	private static endPos(robotPos: Position, trajectory: Trajectory) {
+	private static _endPos(robotPos: Position, trajectory: Trajectory) {
 		if (trajectory.length === 0) {
 			return robotPos;
 		}
 		return trajectory[trajectory.length - 1].pos;
 	}
 
-	private static plotSpeed(trajectory: Trajectory) {
+	private static _plotSpeed(trajectory: Trajectory) {
 		let points = [];
 		for (let i = 0; i < trajectory.length; i++) {
 			let pos = new Vector(trajectory[i].speed.length(), trajectory[i].time);
@@ -295,7 +295,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 	}
 
-	private static speedAtTime(time: number, trajectory: Trajectory): Speed {
+	private static _speedAtTime(time: number, trajectory: Trajectory): Speed {
 		for (let i = 0; i < trajectory.length - 1; i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
@@ -311,7 +311,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return new Vector(0, 0);
 	}
 
-	private static posAtTime(time: number, trajectory: Trajectory): Position {
+	private static _posAtTime(time: number, trajectory: Trajectory): Position {
 		if (trajectory.length === 0) {
 			return new Vector(0, 0);
 		}
@@ -331,7 +331,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return new Vector(0, 0);
 	}
 
-	private static accAtTime(time: number, trajectory: Trajectory): Vector {
+	private static _accAtTime(time: number, trajectory: Trajectory): Vector {
 		for (let i = 0; i < trajectory.length - 1; i++) {
 			let next = trajectory[i + 1];
 			if (next.time > time) {
@@ -343,7 +343,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 		return new Vector(0, 0);
 	}
 
-	private static visualizeTrajectory(trajectory: Trajectory, color: any) {
+	private static _visualizeTrajectory(trajectory: Trajectory, color: any) {
 		const MIN_POINT_DISTANCE = DETAILED_TRAJECTORY ? 0.005 : 0.1; // minimum distance between points to draw both
 
 		if (trajectory.length === 0) {
@@ -351,13 +351,13 @@ export class TrajectoryPath extends TrajectoryHandler {
 		}
 
 		let positions: Position[] = [];
-		let totalTime = TrajectoryPath.trajectoryTime(trajectory);
+		let totalTime = TrajectoryPath._trajectoryTime(trajectory);
 		let lastDrawn = trajectory[0].pos;
 
 		const SAMPLES = DETAILED_TRAJECTORY ? 40 : 20;
 		for (let i = 0; i < SAMPLES; i++) {
 			let time = i * totalTime / (SAMPLES - 1);
-			let pos = TrajectoryPath.posAtTime(time, trajectory);
+			let pos = TrajectoryPath._posAtTime(time, trajectory);
 			if (i === 0 || i === SAMPLES - 1 || pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
 				positions.push(Coordinates.toLocal(pos));
 				lastDrawn = pos;
@@ -366,14 +366,14 @@ export class TrajectoryPath extends TrajectoryHandler {
 		vis.addPath("trajectory-fromC++", positions, color);
 	}
 
-	private static calculateClosestPoint(position: Position, speed: Speed, trajectory: Trajectory, offset: number) {
+	private static _calculateClosestPoint(position: Position, speed: Speed, trajectory: Trajectory, offset: number) {
 		let bestPos = position, bestSpeed = speed;
 		let bestTime = Infinity;
 		let bestDistance = Infinity;
 		for (let i = 0; i < 50; i++) {
 			let time = i / 1000;
-			let pos = TrajectoryPath.posAtTime(time, trajectory);
-			let speed = TrajectoryPath.speedAtTime(time, trajectory);
+			let pos = TrajectoryPath._posAtTime(time, trajectory);
+			let speed = TrajectoryPath._speedAtTime(time, trajectory);
 
 			if (pos.distanceTo(position) < bestDistance) {
 				bestDistance = pos.distanceTo(position);
@@ -382,12 +382,12 @@ export class TrajectoryPath extends TrajectoryHandler {
 				bestTime = time;
 			}
 		}
-		bestPos = TrajectoryPath.posAtTime(bestTime + offset, trajectory);
-		bestSpeed = TrajectoryPath.speedAtTime(bestTime + offset, trajectory);
+		bestPos = TrajectoryPath._posAtTime(bestTime + offset, trajectory);
+		bestSpeed = TrajectoryPath._speedAtTime(bestTime + offset, trajectory);
 		return [bestPos, bestSpeed];
 	}
 
-	private static polynomialAtOffset(a0: number, a1: number, a2: number, offset: number): [number, number, number] {
+	private static _polynomialAtOffset(a0: number, a1: number, a2: number, offset: number): [number, number, number] {
 		// TODO: offset polynomial
 		return [a0, a1, a2];
 	}

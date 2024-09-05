@@ -128,7 +128,7 @@ export class ShootoutKeeper extends Task {
 			if (!Robot.hadBall(this._robot, 0)) {
 				this._forceShoot.forceShootTimer = undefined;
 			}
-			this._forceShoot._doForceShoot();
+			this._forceShoot.doForceShoot();
 			this._robot.chip(chipDist);
 		}
 	}

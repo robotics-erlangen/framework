@@ -29,7 +29,7 @@ export class Error extends Behavior {
 			&&  World.RefereeState === "Stop") {
 			if (this._robot === World.FriendlyKeeper) {
 				if (Referee.lastStateChangeTime() === World.Time) {
-					log("keeper " +  this.errorMsg());
+					log("keeper " +  this._errorMsg());
 				}
 				return undefined;
 			}
@@ -38,7 +38,7 @@ export class Error extends Behavior {
 			return undefined;
 		} else if (this._robot === World.FriendlyKeeper) {
 			if (Referee.lastStateChangeTime() === World.Time) {
-				log("keeper "  +  this.errorMsg());
+				log("keeper "  +  this._errorMsg());
 			}
 			return undefined;
 		}
@@ -57,7 +57,7 @@ export class Error extends Behavior {
 	}
 
 	public start() {
-		log(this.errorMsg());
+		log(this._errorMsg());
 		this._active = true;
 	}
 
@@ -65,7 +65,7 @@ export class Error extends Behavior {
 		this._active = false;
 	}
 
-	private errorMsg() {
+	private _errorMsg() {
 		let out = `${this._robot.id}: `;
 		let msgParts: string[] = [];
 		let errorData = ErrorObserver.getErrorTable(this._robot);
@@ -113,7 +113,7 @@ export class Error extends Behavior {
 	protected _updateTask(): TaskAssignment<typeof ErrorTask> {
 		// local errorFound = next(ErrorObserver.getErrorTable(this._robot)) ~= nil
 		// if errorFound and World.Time == ObserverReferee.getLastStateChange() then
-		// 	log(this.errorMsg())
+		// 	log(this._errorMsg())
 		// end
 		return [ErrorTask];
 	}

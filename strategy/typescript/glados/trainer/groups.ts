@@ -50,7 +50,7 @@ export class Groups {
 		this._groupList = groupList;
 	}
 
-	public _runGroups() {
+	public runGroups() {
 		// robot -> { groupname -> application }
 		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
 

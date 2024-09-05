@@ -44,7 +44,7 @@ export class Dribble extends Task {
 
 		let time;
 		if (World.Ball.pos.distanceTo(this._robot.pos) > this._robot.radius + World.Ball.radius + 0.05) {
-			let catchTime = this._catchBall._catchBall(this._pos, 0)[0];
+			let catchTime = this._catchBall.catchBall(this._pos, 0)[0];
 			time = catchTime + Physics.robotTimeToPos(this._robot, this._pos, new Vector(0, 0))[0];
 		} else {
 			let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
@@ -53,7 +53,7 @@ export class Dribble extends Task {
 
 
 		if (this._suggestPassFlag) {
-			this._suggestPass._suggestPass(this._pos, undefined, time);
+			this._suggestPass.suggestPass(this._pos, undefined, time);
 		}
 	}
 }

@@ -174,6 +174,7 @@ export class Robot implements RobotState {
 		this.isFriendly = false;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString(): string {
 		if (this._toStringCache !== "") {
 			return this._toStringCache;
@@ -207,7 +208,7 @@ export class Robot implements RobotState {
 	}
 
 	/** Reset robot commands and update data */
-	public _updateOpponent(state: pb.world.Robot | undefined, time: number) {
+	public updateOpponent(state: pb.world.Robot | undefined, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
 			if (this.isVisible !== false) {
@@ -405,6 +406,7 @@ export class FriendlyRobot extends Robot {
 		this.canDribble = specs.can_dribble !== undefined ? specs.can_dribble : true;
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _updatePathBoundaries(geometry: GeomType, aoi: pb.world.TrackingAOI | undefined) {
 		if (aoi != undefined) {
 			this.path.setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2);
@@ -417,6 +419,7 @@ export class FriendlyRobot extends Robot {
 		}
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _updateUserControl(command: pb.robot.Command | undefined) {
 		if (command == undefined) {
 			this.userControl = undefined;
@@ -440,6 +443,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** Construct the command for what the corresponding actual robot should do based on the current state of this FriendlyRobot */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _command(): pb.robot.Command {
 		const STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
@@ -467,6 +471,7 @@ export class FriendlyRobot extends Robot {
 	}
 
 	/** update state of the FriendlyRobot that is dependent on the external world and radio responses, is supposed to be called once per frame */
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _update(state: pb.world.Robot, time: number, radioResponses?: pb.robot.RadioResponse[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;
@@ -486,7 +491,7 @@ export class FriendlyRobot extends Robot {
 			this.radioResponse = undefined;
 		}
 
-		this._updateOpponent(state, time);
+		this.updateOpponent(state, time);
 	}
 
 	/**

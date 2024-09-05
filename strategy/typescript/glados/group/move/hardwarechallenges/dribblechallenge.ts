@@ -43,31 +43,31 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			};
 		});
 
-		DribbleChallenge._currentTargetPosition = DribbleChallenge._moveToMidwayPos ? this.getMidwayPosition() : this.getCurrentGatePosition();
+		DribbleChallenge._currentTargetPosition = DribbleChallenge._moveToMidwayPos ? this._getMidwayPosition() : this._getCurrentGatePosition();
 	}
 
-	private getCurrentGatePosition(): Position {
+	private _getCurrentGatePosition(): Position {
 		const currentGate = DribbleChallenge._gates[DribbleChallenge._currentGateIndex];
 		return currentGate[0] + 0.5 * currentGate[1];
 	}
 
-	private getNextGateIndex(): number {
+	private _getNextGateIndex(): number {
 		// if currentGate is the last gate return currentGate as the nextGate
 		return Math.min(DribbleChallenge._gates.length - 1, DribbleChallenge._currentGateIndex + 1);
 	}
 
-	private getNextGatePosition(): Position {
-		const nextGate = DribbleChallenge._gates[this.getNextGateIndex()];
+	private _getNextGatePosition(): Position {
+		const nextGate = DribbleChallenge._gates[this._getNextGateIndex()];
 		return nextGate[0] + 0.5 * nextGate[1];
 	}
 
-	private getMidwayPosition(): Position {
+	private _getMidwayPosition(): Position {
 		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 			const yOffset = 0.1 + this._robots[0].radius * 2;
 			if (this._left) {
-				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
+				return this._getCurrentGatePosition() + new Vector(0, -yOffset);
 			} else {
-				return this.getCurrentGatePosition() + new Vector(0, yOffset);
+				return this._getCurrentGatePosition() + new Vector(0, yOffset);
 			}
 		}
 
@@ -80,16 +80,16 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		}
 	}
 
-	private getNextMidwayPosition(): Position {
+	private _getNextMidwayPosition(): Position {
 		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 			const yOffset = 0.1 + this._robots[0].radius * 2;
 			if (this._left) {
-				return this.getCurrentGatePosition() + new Vector(0, -yOffset);
+				return this._getCurrentGatePosition() + new Vector(0, -yOffset);
 			} else {
-				return this.getCurrentGatePosition() + new Vector(0, yOffset);
+				return this._getCurrentGatePosition() + new Vector(0, yOffset);
 			}
 		} else {
-			const currentGate = DribbleChallenge._gates[this.getNextGateIndex()];
+			const currentGate = DribbleChallenge._gates[this._getNextGateIndex()];
 			const yOffset = 0.5;
 			if (this._left) {
 				return currentGate[0] + new Vector(0, -yOffset);
@@ -99,7 +99,7 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		}
 	}
 
-	private getBallPosition(): Position {
+	private _getBallPosition(): Position {
 		if (World.Ball.isPositionValid() && World.Ball.detectionQuality > 0.5) {
 			return BallObserver.getRealisticBallPos();
 		} else {
@@ -107,9 +107,9 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		}
 	}
 
-	private checkIfGatePassed(): boolean {
-		const gatePosition = this.getCurrentGatePosition();
-		let ballPosition: Position = this.getBallPosition();
+	private _checkIfGatePassed(): boolean {
+		const gatePosition = this._getCurrentGatePosition();
+		let ballPosition: Position = this._getBallPosition();
 		const currentGate = DribbleChallenge._gates[DribbleChallenge._currentGateIndex];
 		const betweenObstacles = ballPosition.x > currentGate[0].x + this._robots[0].radius && ballPosition.x < (currentGate[0] + currentGate[1]).x + this._robots[0].radius;
 		const crossingThreshold = World.Ball.radius + 0.05;
@@ -123,11 +123,11 @@ export class DribbleChallenge extends HardwareChallengeBase {
 	}
 
 	// returns true if position changed
-	private updateTargetPosition(): boolean {
+	private _updateTargetPosition(): boolean {
 		if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 			if ((DribbleChallenge._currentTargetPosition - this._robots[0].pos).length() < 0.1) {
 				DribbleChallenge._moveToMidwayPos = true;
-				DribbleChallenge._currentTargetPosition = this.getNextMidwayPosition();
+				DribbleChallenge._currentTargetPosition = this._getNextMidwayPosition();
 
 				return true;
 			} else {
@@ -138,14 +138,14 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		if (DribbleChallenge._moveToMidwayPos) {
 			if ((this._robots[0].pos - DribbleChallenge._currentTargetPosition).length() < this._robots[0].radius * 2) {
 				DribbleChallenge._moveToMidwayPos = false;
-				DribbleChallenge._currentTargetPosition = this.getCurrentGatePosition();
+				DribbleChallenge._currentTargetPosition = this._getCurrentGatePosition();
 
 				return true;
 			}
 		} else {
 			if ((DribbleChallenge._currentTargetPosition - this._robots[0].pos).length() < 0.1) {
 				DribbleChallenge._moveToMidwayPos = true;
-				DribbleChallenge._currentTargetPosition = this.getNextMidwayPosition();
+				DribbleChallenge._currentTargetPosition = this._getNextMidwayPosition();
 
 				return true;
 			}
@@ -153,14 +153,14 @@ export class DribbleChallenge extends HardwareChallengeBase {
 		return false;
 	}
 
-	public challengeSpecificUpdateTask(): MoveParameters {
+	protected _challengeSpecificUpdateTask(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 		let restart = false;
 
-		if (this.checkIfGatePassed()) {
+		if (this._checkIfGatePassed()) {
 			DribbleChallenge._previouslyLeft = this._left;
-			DribbleChallenge._currentGateIndex = this.getNextGateIndex();
+			DribbleChallenge._currentGateIndex = this._getNextGateIndex();
 			if (DribbleChallenge._currentGateIndex === DribbleChallenge._gates.length - 1) {
 				DribbleChallenge._lastGate += 1;
 				amun.log("last gate", DribbleChallenge._lastGate);
@@ -178,15 +178,15 @@ export class DribbleChallenge extends HardwareChallengeBase {
 			return { assignments: taskAssignments };
 		}
 
-		if (this._left && this.getBallPosition().y - this.getCurrentGatePosition().y < -0.1) {
+		if (this._left && this._getBallPosition().y - this._getCurrentGatePosition().y < -0.1) {
 			this._left = false;
 			DribbleChallenge._previouslyLeft = true;
-		} else if (!this._left && this.getBallPosition().y - this.getCurrentGatePosition().y > 0.1) {
+		} else if (!this._left && this._getBallPosition().y - this._getCurrentGatePosition().y > 0.1) {
 			this._left = true;
 			DribbleChallenge._previouslyLeft = false;
 		}
 
-		restart = restart || this.updateTargetPosition();
+		restart = restart || this._updateTargetPosition();
 
 		taskAssignments[this._robots[0]] = Assignment.create({
 			class: DribbleToPos,

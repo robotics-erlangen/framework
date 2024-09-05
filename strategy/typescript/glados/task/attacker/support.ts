@@ -238,7 +238,7 @@ export class Support extends Task {
 
 		// send a suggestion for a pass in the run
 		if (this._passDestSuggestion && attackPosition) {
-			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition, moveTime);
+			this._suggestPass.suggestPass(this._passDestSuggestion, attackPosition, moveTime);
 		}
 
 		this._robot.trajectory.update(ToTarget, this._moveDest, (World.Ball.pos - this._robot.pos).angle());

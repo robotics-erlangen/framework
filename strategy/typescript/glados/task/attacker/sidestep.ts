@@ -128,7 +128,7 @@ export class SideStep extends Task {
 				}
 				offeredTime = offeredTime - delay;
 			}
-			this._suggestPass._suggestPass(this._passInfo.ballPos, attackPosition, offeredTime);
+			this._suggestPass.suggestPass(this._passInfo.ballPos, attackPosition, offeredTime);
 		}
 
 		let obstacleTable: PathHelper.PathHelperParameters = {

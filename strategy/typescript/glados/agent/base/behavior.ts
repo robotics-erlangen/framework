@@ -161,7 +161,7 @@ export abstract class Behavior implements Checkable {
 
 	public abstract check(): Behavior | undefined;
 
-	protected forceDeferredKeepingInPool() {
+	protected _forceDeferredKeepingInPool() {
 		if (this._deferredBehavior) {
 			this._deferredBehavior._forceKeepingInPool = true;
 		}

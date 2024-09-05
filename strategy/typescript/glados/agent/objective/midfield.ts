@@ -101,7 +101,7 @@ export class Midfield extends Objective {
 				]
 				: [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: TOTAL_TOP, bottom: TOTAL_BOTTOM }, timesDivisible: 1 }];
 
-			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - startBoundaries.length + 1, startBoundaries);
+			const newZones = this._splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - startBoundaries.length + 1, startBoundaries);
 
 			zones = zones.concat(newZones);
 		}

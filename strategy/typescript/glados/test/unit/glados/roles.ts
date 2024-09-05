@@ -22,10 +22,10 @@ function agentStub(robotStub: FriendlyRobot) {
 export class GladosRoles extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("hysteresis", this.testHysteresis);
+		this._addTest("hysteresis", this._testHysteresis);
 	}
 
-	private testHysteresis() {
+	private _testHysteresis() {
 		// so that the Coordinates module works
 		_setIsBlue(true);
 
@@ -53,11 +53,11 @@ export class GladosRoles extends UnitTest {
 			rating2.setRating(0, agent2Value);
 			agent2Box.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.mainAttacker, rating2]);
 
-			roles._chooseExclusiveRoles();
+			roles.chooseExclusiveRoles();
 
 			messaging.deliverMessages();
 
-			this.assert_eq(agent1Box.receiveTrainer(MessageType.mainAttacker), agent1.robot());
+			this._assert_eq(agent1Box.receiveTrainer(MessageType.mainAttacker), agent1.robot());
 		}
 	}
 }

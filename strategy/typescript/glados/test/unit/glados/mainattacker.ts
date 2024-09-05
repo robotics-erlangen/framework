@@ -78,10 +78,10 @@ export class GladosMainattacker extends UnitTest {
 			robotsToTest: [8, 11],
 			maxSpeed: 5.7
 		};
-		this.addSituationTest("breakpass active", this.testDesiredMainattacker, [[s1.file, s1]]);
+		this._addSituationTest("breakpass active", this._testDesiredMainattacker, [[s1.file, s1]]);
 	}
 
-	private testDesiredMainattacker(info: MainattackerInfo) {
+	private _testDesiredMainattacker(info: MainattackerInfo) {
 		World.Ball.maxSpeed = info.maxSpeed;
 
 		let messaging = new Messaging();
@@ -101,10 +101,10 @@ export class GladosMainattacker extends UnitTest {
 
 		let roles = new Roles(trainerBox);
 		(roles as any)._exclusiveRoles[MessageType.mainAttacker] = World.FriendlyRobotsById[info.previousMAId];
-		roles._chooseExclusiveRoles();
+		roles.chooseExclusiveRoles();
 
 		let ma = trainerBox.receiveTrainer(MessageType.mainAttacker);
-		this.assert_eq(ma, World.FriendlyRobotsById[info.desiredMAId]);
+		this._assert_eq(ma, World.FriendlyRobotsById[info.desiredMAId]);
 	}
 }
 export let testClass = GladosMainattacker;

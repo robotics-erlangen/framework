@@ -67,6 +67,7 @@ export class Ball {
 		//
 	}
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		const x = this.pos.x.toFixed(3).padStart(6);
 		const y = this.pos.x.toFixed(3).padStart(6);
@@ -90,7 +91,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	public _update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: readonly Robot[]) {
+	public update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: readonly Robot[]) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);

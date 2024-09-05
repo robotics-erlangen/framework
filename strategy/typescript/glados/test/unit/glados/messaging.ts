@@ -21,10 +21,10 @@ function agentStub(robotStub: FriendlyRobot) {
 export class GladosMessaging extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("all", this.testAll);
+		this._addTest("all", this._testAll);
 	}
 
-	private testAll() {
+	private _testAll() {
 		let messaging = new Messaging();
 		let dummyMsg = 2;
 		let agent1 = agentStub(robotStub(1));
@@ -34,11 +34,11 @@ export class GladosMessaging extends UnitTest {
 		let agent3 = agentStub(robotStub(3));
 		let agent3Box = messaging.registerAgent(agent3);
 		let trainerBox = messaging.registerTrainer();
-		this.assert_error(function() { messaging.registerTrainer(); });
+		this._assert_error(function() { messaging.registerTrainer(); });
 
 		agent1Box.sendBroadcast(MessageType.moveDest, new Vector(0, 0));
 		messaging.deliverMessages();
-		this.assert_undefined(agent1Box.receive(MessageType.moveDest).get(agent1.robot()));
+		this._assert_undefined(agent1Box.receive(MessageType.moveDest).get(agent1.robot()));
 
 		// agent1send(agent2.robot(), "moveDest", new Vector(0,0))
 		agent3Box.sendBroadcast(MessageType.moveDest, new Vector(0, 0));
@@ -46,8 +46,8 @@ export class GladosMessaging extends UnitTest {
 		agent2 = agentStub(agent2.robot());
 		let agent2inbox;
 		agent2Box = messaging.registerAgent(agent2);
-		this.assert_undefined(agent2Box.receive(MessageType.moveDest).get(agent1.robot()));
-		this.assert_not_undefined(agent2Box.receive(MessageType.moveDest).get(agent3.robot()));
+		this._assert_undefined(agent2Box.receive(MessageType.moveDest).get(agent1.robot()));
+		this._assert_not_undefined(agent2Box.receive(MessageType.moveDest).get(agent3.robot()));
 
 		let rating2 = new LeveledRating(MessageType.mainAttacker);
 		rating2.setRating(0, 1);
@@ -58,20 +58,20 @@ export class GladosMessaging extends UnitTest {
 
 		// note that trainer can receive without calling deliverMessages() before
 		let applications = trainerBox.receiveRepeated(MessageType.exclusiveRole);
-		this.assert_eq(applications.get(agent1.robot())![0][1].ratingArray[0], 0.5);
+		this._assert_eq(applications.get(agent1.robot())![0][1].ratingArray[0], 0.5);
 
 		trainerBox.sendBroadcast(MessageType.mainAttacker, agent2.robot());
-		this.assert_eq(trainerBox.receiveTrainer(MessageType.mainAttacker), agent2.robot());
+		this._assert_eq(trainerBox.receiveTrainer(MessageType.mainAttacker), agent2.robot());
 		messaging.deliverMessages();
-		this.assert_eq(agent1Box.receiveTrainer(MessageType.mainAttacker), agent2.robot());
+		this._assert_eq(agent1Box.receiveTrainer(MessageType.mainAttacker), agent2.robot());
 
 		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: ["payload_A"] as any });
 		agent1Box.sendToTrainerRepeated(MessageType.groupApplication, { name: "moves", payload: ["payload_B"] as any });
 		// let groupApplications = trainerInbox.groupApplication();
 		let groupApplications = trainerBox.receiveRepeated(MessageType.groupApplication);
-		this.assert_eq(groupApplications.get(agent1.robot())!.length, 2);
-		this.assert_deep_eq(groupApplications.get(agent1.robot())![0].payload, ["payload_A"]);
-		this.assert_deep_eq(groupApplications.get(agent1.robot())![1].payload, ["payload_B"]);
+		this._assert_eq(groupApplications.get(agent1.robot())!.length, 2);
+		this._assert_deep_eq(groupApplications.get(agent1.robot())![0].payload, ["payload_A"]);
+		this._assert_deep_eq(groupApplications.get(agent1.robot())![1].payload, ["payload_B"]);
 	}
 }
 export let testClass = GladosMessaging;

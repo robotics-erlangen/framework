@@ -97,9 +97,9 @@ export abstract class HardwareChallengeBase extends Move {
 
 	// override this method
 	// is called in updateTasks after everything is initialized
-	protected abstract challengeSpecificUpdateTask(): MoveParameters;
+	protected abstract _challengeSpecificUpdateTask(): MoveParameters;
 
-	private static compareRobotToState(robot: Robot, transform: RobotState, previouslyCorrect: boolean) {
+	private static _compareRobotToState(robot: Robot, transform: RobotState, previouslyCorrect: boolean) {
 		const angleDiff = Math.abs(robot.dir - transform.dir);
 
 		// hysteresis
@@ -111,7 +111,7 @@ export abstract class HardwareChallengeBase extends Move {
 		return (robot.pos - transform.pos).length() < maxDistance && (angleDiff < LOW || angleDiff > HIGH);
 	}
 
-	private placeOpponents(): MoveParameters | undefined {
+	private _placeOpponents(): MoveParameters | undefined {
 		if (this._currentObstacleToSet >= this._opponentTransforms.length) {
 			return undefined;
 		}
@@ -126,7 +126,7 @@ export abstract class HardwareChallengeBase extends Move {
 			let previouslyCorrect = this._opponentInitialized[i];
 			let obstacleInPosition = false;
 			for (let robot of World.OpponentRobots) {
-				if (HardwareChallengeBase.compareRobotToState(robot, transform, previouslyCorrect)) {
+				if (HardwareChallengeBase._compareRobotToState(robot, transform, previouslyCorrect)) {
 					obstacleInPosition = true;
 					break;
 				}
@@ -198,11 +198,11 @@ export abstract class HardwareChallengeBase extends Move {
 			restart: resetMoveToPos
 		});
 
-		this.assignFriendlyMoves(1, taskAssignments);
+		this._assignFriendlyMoves(1, taskAssignments);
 		return { assignments: taskAssignments };
 	}
 
-	private placeBall(): MoveParameters | undefined {
+	private _placeBall(): MoveParameters | undefined {
 		let maxDistance = END_DISTANCE;
 
 		// hysteresis
@@ -223,11 +223,11 @@ export abstract class HardwareChallengeBase extends Move {
 			restart: false
 		});
 
-		this.assignFriendlyMoves(1, taskAssignments);
+		this._assignFriendlyMoves(1, taskAssignments);
 		return { assignments: taskAssignments };
 	}
 
-	private assignFriendlyMoves(startIndex: number, taskAssignments: Map<FriendlyRobot, Assignment>): boolean {
+	private _assignFriendlyMoves(startIndex: number, taskAssignments: Map<FriendlyRobot, Assignment>): boolean {
 		let everyoneInPosition = true;
 
 		let customObstacles: Obstacle[] = [];
@@ -250,7 +250,7 @@ export abstract class HardwareChallengeBase extends Move {
 		});
 		for (let i = startIndex; i < this._friendlyTransforms.length; ++i) {
 			let transform = this._friendlyTransforms[i];
-			this._friendlyInitialized[i] = HardwareChallengeBase.compareRobotToState(this._robots[i], transform, this._friendlyInitialized[i]);
+			this._friendlyInitialized[i] = HardwareChallengeBase._compareRobotToState(this._robots[i], transform, this._friendlyInitialized[i]);
 			everyoneInPosition = everyoneInPosition && this._friendlyInitialized[i];
 
 			taskAssignments[this._robots[i]] = Assignment.create({
@@ -270,7 +270,7 @@ export abstract class HardwareChallengeBase extends Move {
 		return everyoneInPosition;
 	}
 
-	private haltAllRobots(): MoveParameters {
+	private _haltAllRobots(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		for (let robot of this._robots) {
 			taskAssignments[robot] = Assignment.create({
@@ -281,7 +281,7 @@ export abstract class HardwareChallengeBase extends Move {
 		return { assignments: taskAssignments };
 	}
 
-	private showVis() {
+	private _showVis() {
 		for (let transform of this._opponentTransforms) {
 			vis.addPizza("HWChallenge/ObstaclePosition", transform.pos, this._robots[0].radius, 2 * Math.PI + transform.dir - geom.degreeToRadian(20), transform.dir + geom.degreeToRadian(20), vis.colors.yellow, false);
 		}
@@ -291,7 +291,7 @@ export abstract class HardwareChallengeBase extends Move {
 		vis.addCircle("HWChallenge/BallPosition", this._ballPos.pos, World.Ball.radius, vis.colors.mediumPurple, false);
 	}
 
-	public readonly _updateTasks: (() => MoveParameters) = () => {
+	protected readonly _updateTasks: (() => MoveParameters) = () => {
 		if (HardwareChallengeBase._initialized) {
 			if (!HardwareChallengeBase._refHalt && World.RefereeState === "Halt") {
 				HardwareChallengeBase._refHalt = true;
@@ -303,14 +303,14 @@ export abstract class HardwareChallengeBase extends Move {
 				HardwareChallengeBase._refStart = true;
 			}
 			if (HardwareChallengeBase._refStart) {
-				return this.challengeSpecificUpdateTask();
+				return this._challengeSpecificUpdateTask();
 			} else {
-				this.showVis();
-				return this.haltAllRobots();
+				this._showVis();
+				return this._haltAllRobots();
 			}
 		}
 
-		this.showVis();
+		this._showVis();
 
 		if (World.WorldStateSource() === pb.world.WorldSource.INTERNAL_SIMULATION && amun.isDebug) {
 			// use existing ids for each team (e.g. team yellow might not have a robot with id 0 as in the JSON)
@@ -344,22 +344,22 @@ export abstract class HardwareChallengeBase extends Move {
 				}
 			}
 
-			return this.haltAllRobots();
+			return this._haltAllRobots();
 		}
 
-		let moveParameters: MoveParameters | undefined = this.placeOpponents();
+		let moveParameters: MoveParameters | undefined = this._placeOpponents();
 		if (moveParameters != undefined) {
 			return moveParameters;
 		}
 
-		moveParameters = this.placeBall();
+		moveParameters = this._placeBall();
 		if (moveParameters != undefined) {
 			return moveParameters;
 		}
 
 
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		HardwareChallengeBase._initialized = this.assignFriendlyMoves(0, taskAssignments);
+		HardwareChallengeBase._initialized = this._assignFriendlyMoves(0, taskAssignments);
 
 		if (HardwareChallengeBase._initialized) {
 			if (amun.isDebug) {
@@ -371,7 +371,7 @@ export abstract class HardwareChallengeBase extends Move {
 		return { assignments: taskAssignments };
 	};
 
-	protected reset() {
+	protected _reset() {
 		HardwareChallengeBase._initialized = false;
 		HardwareChallengeBase._refHalt = false;
 		HardwareChallengeBase._refStart = false;

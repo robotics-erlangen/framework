@@ -79,7 +79,7 @@ export class MidfieldSampling implements Sampling {
 		this._findStrikerPassSuggestions();
 	}
 
-	private closeOpponents(ballPos: Position) {
+	private _closeOpponents(ballPos: Position) {
 		let minRating = 0.3;
 		let closestDistance = Infinity;
 
@@ -101,7 +101,7 @@ export class MidfieldSampling implements Sampling {
 		return rating;
 	}
 
-	private movingAhead(ballPos: Position) {
+	private _movingAhead(ballPos: Position) {
 		let minRating = 0.3;
 		let currentY = this._attackPosition.y;
 		let plannedY = ballPos.y;
@@ -114,7 +114,7 @@ export class MidfieldSampling implements Sampling {
 		return rating;
 	}
 
-	private passDistance(ballPos: Position) {
+	private _passDistance(ballPos: Position) {
 		let minRating = 0.7;
 		let dist = this._attackPosition.distanceTo(ballPos);
 		let rating = (1 - minRating) * Rating.valueToRating(dist, 9, 4) + minRating;
@@ -126,7 +126,7 @@ export class MidfieldSampling implements Sampling {
 		return rating;
 	}
 
-	private volleyToStriker(ballPos: Position) {
+	private _volleyToStriker(ballPos: Position) {
 		let minRating = 0.7;
 
 		let passSuggestions = this._strikerSuggestions;
@@ -151,7 +151,7 @@ export class MidfieldSampling implements Sampling {
 		return rating;
 	}
 
-	private volleyPass(ballPos: Position) {
+	private _volleyPass(ballPos: Position) {
 		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
 			return 1;
 		}
@@ -168,7 +168,7 @@ export class MidfieldSampling implements Sampling {
 		return rating;
 	}
 
-	private canReachInTime(ballPos: Position) {
+	private _canReachInTime(ballPos: Position) {
 		if (!this._mainAttacker) {
 			return 1;
 		}
@@ -190,32 +190,32 @@ export class MidfieldSampling implements Sampling {
 	public evalLocation(ballPos: Position, bestScore: number) {
 		let score = 1;
 
-		score *= this.movingAhead(ballPos);
+		score *= this._movingAhead(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.passDistance(ballPos);
+		score *= this._passDistance(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.closeOpponents(ballPos);
+		score *= this._closeOpponents(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.volleyPass(ballPos);
+		score *= this._volleyPass(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.volleyToStriker(ballPos);
+		score *= this._volleyToStriker(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.canReachInTime(ballPos);
+		score *= this._canReachInTime(ballPos);
 		if (score < bestScore) {
 			return score;
 		}

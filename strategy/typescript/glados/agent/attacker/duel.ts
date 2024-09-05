@@ -29,7 +29,7 @@ export class Duel extends Behavior {
 		this._active = false;
 	}
 
-	private genericCheck(): boolean {
+	private _genericCheck(): boolean {
 		if (Referee.isFriendlyFreeKickState()) {
 			debug.set("duel check", "freekick");
 			return false;
@@ -193,7 +193,7 @@ export class Duel extends Behavior {
 			debug.set("duel check", "not mainAttacker");
 			this._active = false;
 		} else {
-			this._active = this.genericCheck();
+			this._active = this._genericCheck();
 		}
 		return this._active
 			? this

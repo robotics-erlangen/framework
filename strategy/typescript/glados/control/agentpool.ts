@@ -27,7 +27,7 @@ export class AgentPool {
 	}
 
 	// can be overridden to make sure robots are not beeing dropped.
-	protected isImmune(x: Agent) {
+	protected _isImmune(x: Agent) {
 		return false;
 	}
 
@@ -43,7 +43,7 @@ export class AgentPool {
 		// only sort if we have too many robots
 		if (this._robotLimit < agents.length) {
 			// first: get immuneRobots.
-			let [taken, remaining] = ListUtil.partition(agents, (x: Agent) => this.isImmune(x));
+			let [taken, remaining] = ListUtil.partition(agents, (x: Agent) => this._isImmune(x));
 			if (taken.length > this._robotLimit) {
 				throw new Error(`More immunes than allowed Robots: ${this._robotLimit}`);
 			}
@@ -91,7 +91,7 @@ export class AgentPool {
 		}
 		let possibleRobots = 0;
 		for (let agent of this._agents) {
-			if (this.isImmune(agent)) {
+			if (this._isImmune(agent)) {
 				continue;
 			}
 			if (agent.activeBehavior && !agent.activeBehavior.forceKeepingInPool()) {
@@ -114,7 +114,7 @@ export class AttackerPool extends AgentPool {
 		super(agentType, robotLimit);
 	}
 
-	protected isImmune(x: Agent) {
+	protected _isImmune(x: Agent) {
 		let moveInfo = x.messaging().receiveTrainer(MessageType.moveInfo);
 		if (moveInfo == undefined) {
 			return false;

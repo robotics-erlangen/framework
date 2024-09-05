@@ -25,32 +25,32 @@ export class GladosObserverBall extends UnitTest {
 	public constructor() {
 		super();
 
-		this.registerReceivesPassSituations();
-		this.registerFirstRobotAtBallSituations();
+		this._registerReceivesPassSituations();
+		this._registerFirstRobotAtBallSituations();
 	}
 
-	private registerFirstRobotAtBallSituations() {
+	private _registerFirstRobotAtBallSituations() {
 		let s123 = {
 			robotId: 4,
 			maxBallSpeed: 3.4
 		};
-		this.addSituationTest("firstrobotatball", this.testFirstRobotAtBall, [
+		this._addSituationTest("firstrobotatball", this._testFirstRobotAtBall, [
 			["glados/test/unit/glados/ball-situations/firstrobotatball-1", s123],
 			["glados/test/unit/glados/ball-situations/firstrobotatball-2", s123],
 			["glados/test/unit/glados/ball-situations/firstrobotatball-3", s123]
 		]);
 	}
 
-	private testFirstRobotAtBall(testInfo: FirstRobotAtBallInfo) {
+	private _testFirstRobotAtBall(testInfo: FirstRobotAtBallInfo) {
 		World.Ball.maxSpeed = testInfo.maxBallSpeed;
 		ObserverRobot._update();
 
 		let firstRobot = Ball.firstRobotAtBall(World.OpponentRobots)[0];
-		this.assert_not_undefined(firstRobot);
-		this.assert_eq(firstRobot!.id, testInfo.robotId);
+		this._assert_not_undefined(firstRobot);
+		this._assert_eq(firstRobot!.id, testInfo.robotId);
 	}
 
-	private registerReceivesPassSituations() {
+	private _registerReceivesPassSituations() {
 		let s1: [string, ReceivesPassInfo] = ["glados/test/unit/glados/ball-situations/receivespass-1", {
 			robotId: 8,
 			isFriendly: true,
@@ -69,10 +69,10 @@ export class GladosObserverBall extends UnitTest {
 			maxBallSpeed: 5.45
 		}];
 		// TODO: test 4 currently failes. Once if passes, re-enable it again -> [s1, s2, s3, s4]
-		this.addSituationTest("receivespass", this.testReceivesPass, [s1, s2, s3]);
+		this._addSituationTest("receivespass", this._testReceivesPass, [s1, s2, s3]);
 	}
 
-	private testReceivesPass(testInfo: ReceivesPassInfo) {
+	private _testReceivesPass(testInfo: ReceivesPassInfo) {
 
 		World.Ball.maxSpeed = testInfo.maxBallSpeed;
 
@@ -81,7 +81,7 @@ export class GladosObserverBall extends UnitTest {
 			Ball.setReceivesPass(robot, true);
 		}
 		Ball._update();
-		this.assert_eq(testInfo.shouldReceivePass, Ball.receivesPass(robot));
+		this._assert_eq(testInfo.shouldReceivePass, Ball.receivesPass(robot));
 	}
 }
 export let testClass = GladosObserverBall;

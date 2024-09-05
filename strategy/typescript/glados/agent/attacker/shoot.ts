@@ -135,7 +135,7 @@ export class Shoot extends Behavior {
 		if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 1
 				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 1)) {
 
-			const obscured = this.isChipObscured();
+			const obscured = this._isChipObscured();
 
 			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
 			if (isGame
@@ -299,7 +299,7 @@ export class Shoot extends Behavior {
 		};
 	}
 
-	private isChipObscured(): boolean {
+	private _isChipObscured(): boolean {
 		return undefined !== World.OpponentRobots.find((opponent) => {
 			const intersection = geom.intersectLineCircle(this._robot.pos, Vector.fromAngle(this._robot.dir), opponent.pos, opponent.radius + this._robot.radius);
 
@@ -391,7 +391,7 @@ export class Shoot extends Behavior {
 				return true;
 			}
 
-			const obscured = this.isChipObscured();
+			const obscured = this._isChipObscured();
 
 			const isGame = World.RefereeState === "Game" || World.RefereeState === "GameForce";
 			if (!isGame
@@ -403,7 +403,7 @@ export class Shoot extends Behavior {
 			}
 		} else if (Math.abs(this._robot.pos.x) < G.DefenseWidth + 0.9
 				&& this._robot.pos.y < -(G.FieldHeightHalf - G.DefenseHeight - 0.9)
-				&& !this.isChipObscured()
+				&& !this._isChipObscured()
 				&& Vector.fromAngle(this._robot.dir).absoluteAngleDiff(this._robot.pos - G.FriendlyGoal) < geom.degreeToRadian(80)
 				&& Robot.controlsBall(this._robot, 0.1)) {
 

@@ -96,7 +96,7 @@ export class DribbleTest extends Move {
 		return true;
 	}
 
-	private resetInitialisation() {
+	private _resetInitialisation() {
 		GetBallContact.resetInitialisation();
 		RotateWithBall.resetInitialisation();
 		DribbleCircle.resetInitialisation();
@@ -105,7 +105,7 @@ export class DribbleTest extends Move {
 	}
 
 
-	public _updateTasks(): MoveParameters {
+	protected _updateTasks(): MoveParameters {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 
 
@@ -235,7 +235,7 @@ export class DribbleTest extends Move {
 				}
 			}
 
-			this.resetInitialisation();
+			this._resetInitialisation();
 			return State.GET_BALL_CONTACT;
 		}
 
@@ -248,7 +248,7 @@ export class DribbleTest extends Move {
 			case State.GET_BALL_CONTACT:
 				newState = State.GET_BALL_CONTACT;
 
-				if (GetBallContact._isDone()) {
+				if (GetBallContact.isDone()) {
 					newState = this._testToRun;
 					// log("Starting: " + newState);
 				}

@@ -28,6 +28,6 @@ export class ChipToPos extends Task {
 			task: this,
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		this._shoot._chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision);
+		this._shoot.chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision);
 	}
 }

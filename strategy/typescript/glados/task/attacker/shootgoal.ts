@@ -114,7 +114,7 @@ export class ShootGoal extends Task {
 	// although DoubleTouchGuard will prevent a double touch in many cases,
 	// it can not prevent the case that we try to shoot, redecide after already touching the ball
 	// and then try to shoot again while crossing the 5cm radius while touching the ball
-	private canRedecide(): boolean {
+	private _canRedecide(): boolean {
 		let firstFrame = this._isFirstFramee;
 		this._isFirstFramee = false;
 		if (firstFrame) {
@@ -137,9 +137,9 @@ export class ShootGoal extends Task {
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
-		if (!this.canRedecide()) {
+		if (!this._canRedecide()) {
 			// use decision from last frame
-			this.executeDecision(true);
+			this._executeDecision(true);
 			return;
 		}
 
@@ -293,15 +293,15 @@ export class ShootGoal extends Task {
 				this._lastShootInfo = [this._localTarget, Infinity, undefined, ballReceiptPos, maxAngleError];
 			}
 		}
-		this.executeDecision(false);
+		this._executeDecision(false);
 	}
 
-	private executeDecision(locked: boolean) {
+	private _executeDecision(locked: boolean) {
 		this._drawDebugInfo(this._localTarget!, locked);
 		if (this._lastWasChip) {
-			this._shoot._chipPass(...this._lastChipInfo!);
+			this._shoot.chipPass(...this._lastChipInfo!);
 		} else {
-			this._shoot._shoot(...this._lastShootInfo!);
+			this._shoot.shoot(...this._lastShootInfo!);
 		}
 	}
 }

@@ -25,11 +25,11 @@ class LowFPS {
 			if (this._prognosis === 0) {
 				this._prognosis = frameTimeDiff;
 			}
-			this.calculateExponentialSmoothing(frameTimeDiff);
+			this._calculateExponentialSmoothing(frameTimeDiff);
 			this._frameTimeOne = frameTimeTwo;
 		}
 	}
-	private calculateExponentialSmoothing(frameTimeDiff: number) {
+	private _calculateExponentialSmoothing(frameTimeDiff: number) {
 		this._prognosis = ALPHA * frameTimeDiff + (1 - ALPHA) * this._prognosis;
 		if (this._prognosis > MAX_FRAME_TIME_DIFF && this._frameCounter > START_FRAME_NUMBER
 			&& World.Time - this._lastTime > 5) {

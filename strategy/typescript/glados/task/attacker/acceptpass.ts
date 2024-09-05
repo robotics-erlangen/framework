@@ -86,7 +86,7 @@ export class AcceptPass extends Task {
 		}
 		this._lastTime = moveTime + World.Time;
 		if (attackPosition) {
-			this._suggestPass._suggestPass(ballPos, attackPosition, moveTime);
+			this._suggestPass.suggestPass(ballPos, attackPosition, moveTime);
 		}
 
 

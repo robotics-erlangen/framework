@@ -171,7 +171,7 @@ export class GetBallContact extends Task {
 		return nextState;
 	}
 
-	public static _isDone(): boolean {
+	public static isDone(): boolean {
 		return GetBallContact._ready;
 	}
 	public static isInitialised(): boolean {

@@ -31,11 +31,11 @@ function getAgentForRobot(pool: any, robot: FriendlyRobot, poolName: string): an
 export class GladosPools extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("all", this.testAll);
+		this._addTest("all", this._testAll);
 	}
 
 
-	private testAll() {
+	private _testAll() {
 		// so that the Coordinates module works
 		_setIsBlue(true);
 		let allFriendlyRobotsOrig = World.FriendlyRobotsAll;
@@ -63,8 +63,8 @@ export class GladosPools extends UnitTest {
 
 		attackerRobot = mainTrainer.messaging.receive(MessageType.attackerFlag).keys().next().value;
 		defenderRobot = mainTrainer.messaging.receive(MessageType.defenderFlag).keys().next().value;
-		this.assert_eq(attackerRobot, defenderBefore);
-		this.assert_eq(defenderRobot, attackerBefore);
+		this._assert_eq(attackerRobot, defenderBefore);
+		this._assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
 		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
@@ -74,8 +74,8 @@ export class GladosPools extends UnitTest {
 
 		attackerRobot = mainTrainer.messaging.receive(MessageType.attackerFlag).keys().next().value;
 		defenderRobot = mainTrainer.messaging.receive(MessageType.defenderFlag).keys().next().value;
-		this.assert_eq(attackerRobot, defenderBefore);
-		this.assert_eq(defenderRobot, attackerBefore);
+		this._assert_eq(attackerRobot, defenderBefore);
+		this._assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
 		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 
@@ -86,8 +86,8 @@ export class GladosPools extends UnitTest {
 
 		attackerRobot = mainTrainer.messaging.receive(MessageType.attackerFlag).keys().next().value;
 		defenderRobot = mainTrainer.messaging.receive(MessageType.defenderFlag).keys().next().value;
-		this.assert_eq(attackerRobot, defenderBefore);
-		this.assert_eq(defenderRobot, attackerBefore);
+		this._assert_eq(attackerRobot, defenderBefore);
+		this._assert_eq(defenderRobot, attackerBefore);
 		attackerAgent = getAgentForRobot(pools.attack, attackerRobot, "Attack");
 		defenderAgent = getAgentForRobot(pools.defense, defenderRobot, "Defense");
 

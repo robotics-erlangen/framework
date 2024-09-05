@@ -63,7 +63,7 @@ export class WindshieldWiper extends Move {
 		}
 	}
 
-	private calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
+	private _calcAcceptPos(pos: Vector, robotRadius: number): Vector | undefined {
 		let [center1, center2, radius] = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, geom.degreeToRadian(55));
 		let circle = center1.y < center2.y ? center1 : center2;
 		let posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2;
@@ -96,7 +96,7 @@ export class WindshieldWiper extends Move {
 			}
 
 			const defaultPos = new Vector(-pos[i].x, pos[i].y);
-			let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
+			let acceptPos = this._calcAcceptPos(pos[i], this._robots[i].radius);
 			if (!acceptPos) {
 				acceptPos = defaultPos;
 			}
@@ -119,7 +119,7 @@ export class WindshieldWiper extends Move {
 					taskAssignments[distances[i].robot] = Assignment.create({ class: AcceptPass });
 				} else {
 					const defaultPos = pos[i];
-					let acceptPos = this.calcAcceptPos(pos[i], this._robots[i].radius);
+					let acceptPos = this._calcAcceptPos(pos[i], this._robots[i].radius);
 					if (!acceptPos) {
 						acceptPos = defaultPos;
 					}

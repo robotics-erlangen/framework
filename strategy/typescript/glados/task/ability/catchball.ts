@@ -90,7 +90,7 @@ export class CatchBall {
 	 * @param maxSpeed - Maximum speed of the robot
 	 * @returns [catchTime, catchPosition] - When we will catch the ball (relative Time) and the ball position then
 	 */
-	public _catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
+	public catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
 		let ball = World.Ball;
 		// update catch time
 		if (this._catchTime != undefined && !Ball.isAccelerating() && this._recalculateCatchTimeCounter < 20) {

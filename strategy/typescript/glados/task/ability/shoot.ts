@@ -359,7 +359,7 @@ export class Shoot {
 	}
 
 	// returns if we should wait for the pass target and the attack time
-	private computePassTiming(targetPos: Position, targetTime: AbsTime | undefined, kickSpeed: number, futureBallPos: Position): [boolean, number] {
+	private _computePassTiming(targetPos: Position, targetTime: AbsTime | undefined, kickSpeed: number, futureBallPos: Position): [boolean, number] {
 		let ballTravelTime = undefined;
 		let waitWithShot = false;
 		if (targetTime != undefined) {
@@ -432,7 +432,7 @@ export class Shoot {
 		debug.set("Shoot/AngleError", geom.radianToDegree(geom.normalizeAngle(Math.abs(this._robot.dir - shootDir))));
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with stopped ball is questionable
-		let [wait, attackTime] = this.computePassTiming(targetPos, targetTime, kickSpeed, futureBall.pos);
+		let [wait, attackTime] = this._computePassTiming(targetPos, targetTime, kickSpeed, futureBall.pos);
 		if (wait) {
 			this._directMovement = false;
 		}
@@ -459,7 +459,7 @@ export class Shoot {
 			let projectedPos = Field.limitToAllowedField(World.Ball.pos, -EXTRA_DISTANCE);
 			this._robot.trajectory.update(CurvedMaxAccel, projectedPos, (World.Ball.pos - projectedPos).angle());
 		} else {
-			let cBTime = this.catchBall._catchBall(targetPos, minCatchBallDistance, targetSpeed)[0];
+			let cBTime = this.catchBall.catchBall(targetPos, minCatchBallDistance, targetSpeed)[0];
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, World.Time + cBTime);
 			if (attackTime < World.Time + cBTime) {
 				attackTime = World.Time + cBTime;
@@ -471,7 +471,7 @@ export class Shoot {
 		debug.set("Shoot/DirectMovement", this._directMovement);
 	}
 
-	private rotateAndShoot(targetPos: Position, targetSpeed: number, targetTime: number | undefined): Position {
+	private _rotateAndShoot(targetPos: Position, targetSpeed: number, targetTime: number | undefined): Position {
 
 		const targetAngle = (targetPos - this._robot.pos).angle();
 		this._setObstacles(undefined);
@@ -481,7 +481,7 @@ export class Shoot {
 		const shootBallPos = this._robot.pos + (targetPos - this._robot.pos).withLength(this._robot.shootRadius);
 
 		let kickSpeed = Volley.calcPhi(this._robot, new Vector(0, 0), shootBallPos, targetPos, targetSpeed)[1];
-		let [wait, attackTime] = this.computePassTiming(targetPos, targetTime, kickSpeed, shootBallPos);
+		let [wait, attackTime] = this._computePassTiming(targetPos, targetTime, kickSpeed, shootBallPos);
 
 		const angularSpeedHysteresis = this._stoppedRotation ? 0.15 : 0;
 		if (Math.abs(this._robot.angularSpeed) < 0.2 + angularSpeedHysteresis) {
@@ -647,7 +647,7 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let [catchTime, catchPos] = this.catchBall._catchBall(targetPos, 0, targetSpeed);
+			let [catchTime, catchPos] = this.catchBall.catchBall(targetPos, 0, targetSpeed);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, catchTime + World.Time);
 			this._messaging.sendBroadcast(MessageType.plannedAttackTime, catchTime + World.Time);
 			this._catchBallActive = true;
@@ -678,7 +678,7 @@ export class Shoot {
 			this._catchBallActive = false;
 			visBallStartPos = futureBall.pos;
 		} else {
-			let [attackTime, catchPos] = this.catchBall._catchBall(ballOrigin, 0, undefined);
+			let [attackTime, catchPos] = this.catchBall.catchBall(ballOrigin, 0, undefined);
 			this._messaging.sendBroadcast(MessageType.earliestAttackTime, attackTime + World.Time);
 			this._catchBallActive = true;
 			visBallStartPos = catchPos;
@@ -746,7 +746,7 @@ export class Shoot {
 				break;
 			}
 			case ShootState.RotateWithBall: {
-				visBallStartPos = this.rotateAndShoot(targetPos, targetSpeed, targetTime);
+				visBallStartPos = this._rotateAndShoot(targetPos, targetSpeed, targetTime);
 				color = vis.colors.orangeHalf;
 				break;
 			}
@@ -784,7 +784,7 @@ export class Shoot {
 	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
 	 * @param precision
 	 */
-	public _shoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
+	public shoot(targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision);
 	}
 
@@ -797,7 +797,7 @@ export class Shoot {
 	 * @param ballReceiptPos - In case of incoming passes, where to shoot from
 	 * @param precision
 	 */
-	public _chipToPos(firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
+	public chipToPos(firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision);
 	}
 
@@ -811,7 +811,7 @@ export class Shoot {
 	 * @param precision
 	 * @param manualChipDistFactor
 	 */
-	public _chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
+	public chipPass(rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: undefined,
 			precision?: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
 		let origin: Position;
 		if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0
@@ -821,10 +821,10 @@ export class Shoot {
 			origin = World.Ball.pos;
 		}
 		let firstContactPos = origin + (rollingBallPos - origin) * manualChipDistFactor;
-		this._chipToPos(firstContactPos, undefined, ballReceiptPos, precision); // as we cannot time the chip anyways, we ignore the targetTime
+		this.chipToPos(firstContactPos, undefined, ballReceiptPos, precision); // as we cannot time the chip anyways, we ignore the targetTime
 	}
 
-	public _shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
+	public shootFreeKick(targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
 		this._linearShoot = true;
 		this._precision = precision;
 		this._shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball);

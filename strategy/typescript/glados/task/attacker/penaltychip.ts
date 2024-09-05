@@ -77,7 +77,7 @@ export class PenaltyChip extends Task {
 
 	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		let shootlength = PenaltyChip.distanceMode(this._mode, this._ball);
+		let shootlength = PenaltyChip._distanceMode(this._mode, this._ball);
 		debug.set("chip distance", shootlength);
 		this._robot.setDribblerSpeed(0.5 + this._robot.speed.length() / (5 * 2));
 		this._robot.chip(shootlength * wrongCalib);
@@ -89,7 +89,7 @@ export class PenaltyChip extends Task {
 		this._robot.trajectory.update(ToTarget, pos, dir);
 	}
 
-	private static distanceMode(n: number, ball: { pos: Position }) {
+	private static _distanceMode(n: number, ball: { pos: Position }) {
 		let distance = ball.pos.distanceTo(G.OpponentGoal);
 		if (n === 1) {
 			return Math.min(distance - 0.05, maxReliableDistance);
@@ -115,7 +115,7 @@ export class PenaltyChip extends Task {
 			debug.set("PenaltyChip", failed);
 			return false;
 		}
-		let distance = this.distanceMode(1, ball);
+		let distance = this._distanceMode(1, ball);
 		failed = checkShot(distance, robot, ball, keeper);
 		if (failed) {
 			debug.set("PenaltyChip1", failed);
@@ -123,7 +123,7 @@ export class PenaltyChip extends Task {
 		}
 		failed = checkBounces(distance, ball);
 		if (failed || blockmodes[1]) {
-			distance = this.distanceMode(2, ball);
+			distance = this._distanceMode(2, ball);
 			failed = checkShot(distance, robot, ball, keeper);
 			if (failed) {
 				debug.set("PenaltyChip2", failed);
@@ -131,7 +131,7 @@ export class PenaltyChip extends Task {
 			}
 			failed = checkBounces(distance, ball);
 			if (failed || blockmodes[2]) {
-				distance = this.distanceMode(3, ball);
+				distance = this._distanceMode(3, ball);
 				failed = checkShot(distance, robot, ball, keeper);
 				if (failed) {
 					debug.set("PenaltyChip3", failed);

@@ -40,7 +40,7 @@ export class Piggy extends Task {
 
 		if (requestedPassPos.y >= -World.Geometry.FieldHeightQuarter) {
 			let passTime = Physics.robotTimeToPos(this._robot, piggyPos, new Vector(0, 0));
-			this._suggestPass._suggestPass(requestedPassPos, World.Ball.pos, passTime[0]);
+			this._suggestPass.suggestPass(requestedPassPos, World.Ball.pos, passTime[0]);
 		}
 
 		let dir = (World.Ball.pos - this._targetRobot.pos).angle();

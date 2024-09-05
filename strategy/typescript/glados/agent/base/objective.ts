@@ -101,6 +101,7 @@ export abstract class Objective {
 	 */
 	public abstract canContinue(ball: BallLike): boolean;
 
+	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _toString() {
 		return `${this.constructor.name} (${this._freekick ? "Freekick" : "Normal"})`;
 	}
@@ -109,7 +110,7 @@ export abstract class Objective {
 		return this._toString();
 	}
 
-	protected splitZonesClosestToMainAttacker(weightedAttackerPos: Position, participants: FriendlyRobot[], remainingZones: number, startBoundaries: SplitZone[]): Zone[] {
+	protected _splitZonesClosestToMainAttacker(weightedAttackerPos: Position, participants: FriendlyRobot[], remainingZones: number, startBoundaries: SplitZone[]): Zone[] {
 		const meanPos = participants.map((robot) => robot.pos)
 			.reduce((accumulator, pos) => accumulator + pos, new Vector(0, 0))
 			 / participants.length;
@@ -133,7 +134,7 @@ export abstract class Objective {
 			 * one zone lies completely inside the defense area and the other one completely outside the defense area do this
 			 * and only keep the zone outside the defense area. */
 			for (let i = 1; i < remainingZones; ++i) {
-				const boundaryIndex = this.findClosestZoneToMainAttacker(weightedAttackerPos, boundaryList);
+				const boundaryIndex = this._findClosestZoneToMainAttacker(weightedAttackerPos, boundaryList);
 
 				const currentSplitZone = boundaryList[boundaryIndex];
 				const currentBoundary = currentSplitZone.boundaries;
@@ -225,7 +226,7 @@ export abstract class Objective {
 		return newZones;
 	}
 
-	protected findClosestZoneToMainAttacker(mainAttackerPos: Position, boundaryList: SplitZone[]): number {
+	protected _findClosestZoneToMainAttacker(mainAttackerPos: Position, boundaryList: SplitZone[]): number {
 		let minDist = Infinity;
 		let boundaryIndex: number = 0;
 		for (let j = 0; j < boundaryList.length; ++j) {

@@ -82,7 +82,7 @@ export class ShootPenalty extends Task {
 			let keeperInsideDefArea = keeper != undefined && Field.isInOpponentDefenseArea(keeper.pos, keeper.radius);
 			debug.set("keeperInsideDefArea", keeperInsideDefArea);
 			if (World.Time - this._startTime < this._waitTime) {
-				this._shoot.catchBall._catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
+				this._shoot.catchBall.catchBall(cornerPoint(this._lookDir), Constants.positionError + DIST_TO_BALL);
 				// detect random keeper movement
 				if (keeperInsideDefArea
 						&& ((keeper.speed.x > keeperMoveSpeedThreshold && this._lookDir === "Left")
@@ -113,9 +113,9 @@ export class ShootPenalty extends Task {
 		} else {
 			vis.addCircle("t/shootpenalty: PenaltyTargetPos", this._targetPos, 0.02, vis.colors.blue, true);
 			if (this._cornerChange) {
-				this._rotateAndShoot._rotateAndShoot((this._targetPos - assumedBallPos).angle(), assumedBallPos);
+				this._rotateAndShoot.rotateAndShoot((this._targetPos - assumedBallPos).angle(), assumedBallPos);
 			} else {
-				this._shoot._shoot(this._targetPos, Infinity, undefined, undefined, shootErrorThreshold);
+				this._shoot.shoot(this._targetPos, Infinity, undefined, undefined, shootErrorThreshold);
 			}
 		}
 	}

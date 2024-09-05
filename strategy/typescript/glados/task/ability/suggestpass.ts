@@ -20,7 +20,7 @@ export class SuggestPass {
 		this._task = task;
 	}
 
-	public _suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,
+	public suggestPass(destBallPos: Position, attackPos: Position = World.Ball.pos,
 			relativeTime?: number, anonymous: boolean = false, chip: boolean = false) {
 		// check for mainAttacker
 		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
@@ -44,9 +44,9 @@ export class SuggestPass {
 			{ ballPos: destBallPos, time: receiveTime, anonymous: anonymous, chip: chip, manual: false });
 	}
 
-	public _suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
+	public suggestPassRobotPosition(destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
 			anonymous?: boolean) {
 		let destBallPos = destRobotPos + (attackPos - destRobotPos).withLength(this._robot.shootRadius + World.Ball.radius);
-		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);
+		this.suggestPass(destBallPos, attackPos, relativeTime, anonymous);
 	}
 }

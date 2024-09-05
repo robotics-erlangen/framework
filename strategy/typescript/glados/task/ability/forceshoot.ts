@@ -19,7 +19,7 @@ export class ForceShoot {
 		this._robot = task.behavior().agent().robot();
 	}
 
-	public _doForceShoot() {
+	public doForceShoot() {
 		if (this._robot.radioResponse) {
 			debug.set("light barrier", this._robot.radioResponse.ball_detected);
 		}

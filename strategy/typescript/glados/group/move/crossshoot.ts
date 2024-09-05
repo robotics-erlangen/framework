@@ -64,10 +64,10 @@ export class CrossShoot extends Move {
 		}
 	}
 
-	private calculateFirstContactPosY(start: Vector, end: Vector, alpha: number): Vector {
+	private _calculateFirstContactPosY(start: Vector, end: Vector, alpha: number): Vector {
 		return new Vector(start.x, start.y - alpha * (start.y - end.y));
 	}
-	private calculateFirstContactPosX(start: Vector, end: Vector, beta: number): Vector {
+	private _calculateFirstContactPosX(start: Vector, end: Vector, beta: number): Vector {
 		return new Vector(start.x - beta * (start.x - end.x), start.y);
 	}
 
@@ -83,8 +83,8 @@ export class CrossShoot extends Move {
 			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X - Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf / 3, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
 		let beta = valueToRating(Math.abs(World.Ball.pos.x), G.FieldWidthHalf, G.FieldWidthHalf - (G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf));
 
-		let firstContactPosY = this.calculateFirstContactPosY(startContactPosY, endContactPosY, alpha);
-		let firstContactPosX = this.calculateFirstContactPosX(startContactPosX, endContactPosX, beta);
+		let firstContactPosY = this._calculateFirstContactPosY(startContactPosY, endContactPosY, alpha);
+		let firstContactPosX = this._calculateFirstContactPosX(startContactPosX, endContactPosX, beta);
 		let firstContactPos = firstContactPosY + 0.5 * (firstContactPosX - firstContactPosY);
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		let receiverPos = geom.intersectLineLine(World.Ball.pos, firstContactPos - World.Ball.pos,

@@ -98,7 +98,7 @@ export class CenterBack extends Task {
 				&& World.Ball.pos.distanceTo(this._robot.pos) < 1
 				&& this._robot.pos.distanceTo(destinationPos) < 1) {
 			debug.set("chip", true);
-			this._forceShoot._doForceShoot();
+			this._forceShoot.doForceShoot();
 
 			if (ballShotFastAtRobot(this._robot)) {
 				this._robot.chip(1.5);

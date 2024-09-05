@@ -77,162 +77,162 @@ function integerDistribution(from: number, to: number): (x: number) => number {
 export class BaseMathUtil extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("bound", this.testBound);
-		this.addTest("roundTowards", this.testRoundTowards);
-		this.addTest("roundUpwards", this.testRoundUpwards);
-		this.addTest("round", this.testRound);
-		this.addTest("solveLine", this.testSolveLin);
-		this.addTest("solveSq", this.testSolveSq);
-		this.addTest("sign", this.testSign);
-		this.addTest("average", this.testAverage);
-		this.addTest("variance", this.testVariance);
-		this.addTest("RNGBounds", this.testUniformBounds);
-		this.addTest("RNGSeed", this.testSeeding);
-		this.addTest("RNGUniformDistribution", this.testUniformDistribution);
-		this.addTest("RNGIndependendUniform", this.testIndependendUniform);
-		this.addTest("RNGMultiUniform", this.testMultipleUniform);
-		this.addTest("RNGMultiSeed", this.testDifferentSeed);
-		this.addTest("RNGIntegerDistribution", this.testIntegerDistribution);
-		this.addTest("RNGtwoDice", this.testTwoDice);
-		this.addTest("RNGmultiSeedTwoDice", this.testDifferentSeedTwoDice);
+		this._addTest("bound", this._testBound);
+		this._addTest("roundTowards", this._testRoundTowards);
+		this._addTest("roundUpwards", this._testRoundUpwards);
+		this._addTest("round", this._testRound);
+		this._addTest("solveLine", this._testSolveLin);
+		this._addTest("solveSq", this._testSolveSq);
+		this._addTest("sign", this._testSign);
+		this._addTest("average", this._testAverage);
+		this._addTest("variance", this._testVariance);
+		this._addTest("RNGBounds", this._testUniformBounds);
+		this._addTest("RNGSeed", this._testSeeding);
+		this._addTest("RNGUniformDistribution", this._testUniformDistribution);
+		this._addTest("RNGIndependendUniform", this._testIndependendUniform);
+		this._addTest("RNGMultiUniform", this._testMultipleUniform);
+		this._addTest("RNGMultiSeed", this._testDifferentSeed);
+		this._addTest("RNGIntegerDistribution", this._testIntegerDistribution);
+		this._addTest("RNGtwoDice", this._testTwoDice);
+		this._addTest("RNGmultiSeedTwoDice", this._testDifferentSeedTwoDice);
 	}
 
-	private testBound() {
-		this.assert_eq(MathUtil.bound(1, 2, 3), 2);
-		this.assert_eq(MathUtil.bound(1, 4, 3), 3);
-		this.assert_eq(MathUtil.bound(1, 0, 3), 1);
-		this.assert_eq(MathUtil.bound(1, -Infinity, 3), 1);
-		this.assert_eq(MathUtil.bound(1, Infinity, 3), 3);
+	private _testBound() {
+		this._assert_eq(MathUtil.bound(1, 2, 3), 2);
+		this._assert_eq(MathUtil.bound(1, 4, 3), 3);
+		this._assert_eq(MathUtil.bound(1, 0, 3), 1);
+		this._assert_eq(MathUtil.bound(1, -Infinity, 3), 1);
+		this._assert_eq(MathUtil.bound(1, Infinity, 3), 3);
 	}
 
-	private testRoundTowards() {
-		this.assert_eq(MathUtil.roundTowards(2.5, 3, 0), 3);
-		this.assert_eq(MathUtil.roundTowards(2.4, 3, 0.2), 3);
-		this.assert_eq(MathUtil.roundTowards(2.399, 3, 0.2), 2);
-		this.assert_eq(MathUtil.roundTowards(2.399, 3, 0.2), 2);
-		this.assert_eq(MathUtil.roundTowards(2.449, 3, 0.1), 2);
-		this.assert_eq(MathUtil.roundTowards(2.551, 2, 0.1), 3);
-		this.assert_eq(MathUtil.roundTowards(1.49, 3, 0.1), 1);
-		this.assert_eq(MathUtil.roundTowards(4.51, 3, 0.1), 5);
+	private _testRoundTowards() {
+		this._assert_eq(MathUtil.roundTowards(2.5, 3, 0), 3);
+		this._assert_eq(MathUtil.roundTowards(2.4, 3, 0.2), 3);
+		this._assert_eq(MathUtil.roundTowards(2.399, 3, 0.2), 2);
+		this._assert_eq(MathUtil.roundTowards(2.399, 3, 0.2), 2);
+		this._assert_eq(MathUtil.roundTowards(2.449, 3, 0.1), 2);
+		this._assert_eq(MathUtil.roundTowards(2.551, 2, 0.1), 3);
+		this._assert_eq(MathUtil.roundTowards(1.49, 3, 0.1), 1);
+		this._assert_eq(MathUtil.roundTowards(4.51, 3, 0.1), 5);
 	}
 
-	private testRoundUpwards() {
-		this.assert_eq(MathUtil.roundUpwards(2, 0.1), 2);
-		this.assert_eq(MathUtil.roundUpwards(1.5, 0), 2);
-		this.assert_eq(MathUtil.roundUpwards(1.4, 0.1), 2);
-		this.assert_eq(MathUtil.roundUpwards(1.39, 0.1), 1);
-		this.assert_eq(MathUtil.roundUpwards(2.39, 0.1), 2);
-		this.assert_eq(MathUtil.roundUpwards(-2.55, 0.1), -2);
-		this.assert_eq(MathUtil.roundUpwards(-2.45, 0), -2);
-		this.assert_eq(MathUtil.roundUpwards(-2.61, 0.1), -3);
+	private _testRoundUpwards() {
+		this._assert_eq(MathUtil.roundUpwards(2, 0.1), 2);
+		this._assert_eq(MathUtil.roundUpwards(1.5, 0), 2);
+		this._assert_eq(MathUtil.roundUpwards(1.4, 0.1), 2);
+		this._assert_eq(MathUtil.roundUpwards(1.39, 0.1), 1);
+		this._assert_eq(MathUtil.roundUpwards(2.39, 0.1), 2);
+		this._assert_eq(MathUtil.roundUpwards(-2.55, 0.1), -2);
+		this._assert_eq(MathUtil.roundUpwards(-2.45, 0), -2);
+		this._assert_eq(MathUtil.roundUpwards(-2.61, 0.1), -3);
 	}
 
-	private testRound() {
-		this.assert_eq(MathUtil.round(2.45), 2);
-		this.assert_eq(MathUtil.round(2.45, 0), 2);
-		this.assert_eq(MathUtil.round(2.45, 1), 2.5);
-		this.assert_eq(MathUtil.round(2.45, 2), 2.45);
-		this.assert_eq(MathUtil.round(0.0001), 0);
-		this.assert_eq(MathUtil.round(0.0001, 0), 0);
-		this.assert_eq(MathUtil.round(0.0001, 1), 0);
-		this.assert_eq(MathUtil.round(0.0001, 2), 0);
-		this.assert_eq(MathUtil.round(0.0001, 3), 0);
-		this.assert_eq(MathUtil.round(123, 0), 123);
-		this.assert_eq(MathUtil.round(123, -1), 120);
-		this.assert_eq_eps(MathUtil.round(123, -2), 100, EPS);
-		this.assert_eq(MathUtil.round(2.5, 0), 3);
+	private _testRound() {
+		this._assert_eq(MathUtil.round(2.45), 2);
+		this._assert_eq(MathUtil.round(2.45, 0), 2);
+		this._assert_eq(MathUtil.round(2.45, 1), 2.5);
+		this._assert_eq(MathUtil.round(2.45, 2), 2.45);
+		this._assert_eq(MathUtil.round(0.0001), 0);
+		this._assert_eq(MathUtil.round(0.0001, 0), 0);
+		this._assert_eq(MathUtil.round(0.0001, 1), 0);
+		this._assert_eq(MathUtil.round(0.0001, 2), 0);
+		this._assert_eq(MathUtil.round(0.0001, 3), 0);
+		this._assert_eq(MathUtil.round(123, 0), 123);
+		this._assert_eq(MathUtil.round(123, -1), 120);
+		this._assert_eq_eps(MathUtil.round(123, -2), 100, EPS);
+		this._assert_eq(MathUtil.round(2.5, 0), 3);
 	}
 
-	private testSolveLin() {
-		this.assert_eq(MathUtil.solveLin(1, 2), -2);
-		this.assert_eq(MathUtil.solveLin(0, 2), undefined);
-		this.assert_eq(MathUtil.solveLin(2, -1), 0.5);
-		this.assert_eq(MathUtil.solveLin(-2, -1), -0.5);
-		this.assert_eq(MathUtil.solveLin(4, 2), -0.5);
-		this.assert_eq(MathUtil.solveLin(-4, -2), -0.5);
+	private _testSolveLin() {
+		this._assert_eq(MathUtil.solveLin(1, 2), -2);
+		this._assert_eq(MathUtil.solveLin(0, 2), undefined);
+		this._assert_eq(MathUtil.solveLin(2, -1), 0.5);
+		this._assert_eq(MathUtil.solveLin(-2, -1), -0.5);
+		this._assert_eq(MathUtil.solveLin(4, 2), -0.5);
+		this._assert_eq(MathUtil.solveLin(-4, -2), -0.5);
 	}
 
-	private testSolveSq() {
+	private _testSolveSq() {
 		let [x1, x2] = MathUtil.solveSq(1, 0, -1);
-		this.assert_eq(x1, 1);
-		this.assert_eq(x2, -1);
+		this._assert_eq(x1, 1);
+		this._assert_eq(x2, -1);
 
 		[x1, x2] = MathUtil.solveSq(3, -15, 18);
-		this.assert_eq(x1, 2);
-		this.assert_eq(x2, 3);
+		this._assert_eq(x1, 2);
+		this._assert_eq(x2, 3);
 
 		// verify numeric stability
 		// (x-a)(x-b) = x*x-(a+b)*x+a*b = 0
 		[x1, x2] = MathUtil.solveSq(1, -1e9 - 1e-9, 1e9 * 1e-9);
-		this.assert_eq(x1, 1e-9);
-		this.assert_eq(x2, 1e9);
+		this._assert_eq(x1, 1e-9);
+		this._assert_eq(x2, 1e9);
 
 		[x1, x2] = MathUtil.solveSq(1, 0, 0);
-		this.assert_eq(x1, 0);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, 0);
+		this._assert_eq(x2, undefined);
 
 		[x1, x2] = MathUtil.solveSq(1, -2, 1);
-		this.assert_eq(x1, 1);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, 1);
+		this._assert_eq(x2, undefined);
 
 		[x1, x2] = MathUtil.solveSq(1, -2, 1);
-		this.assert_eq(x1, 1);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, 1);
+		this._assert_eq(x2, undefined);
 
 		[x1, x2] = MathUtil.solveSq(1, 0, 1);
-		this.assert_eq(x1, undefined);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, undefined);
+		this._assert_eq(x2, undefined);
 
 		[x1, x2] = MathUtil.solveSq(0, 1, 2);
-		this.assert_eq(x1, -2);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, -2);
+		this._assert_eq(x2, undefined);
 
 		[x1, x2] = MathUtil.solveSq(0, 0, 2);
-		this.assert_eq(x1, undefined);
-		this.assert_eq(x2, undefined);
+		this._assert_eq(x1, undefined);
+		this._assert_eq(x2, undefined);
 	}
 
-	private testSign() {
-		this.assert_eq(MathUtil.sign(0), 0);
-		this.assert_eq(MathUtil.sign(-0), 0);
-		this.assert_eq(MathUtil.sign(-0.01), -1);
-		this.assert_eq(MathUtil.sign(0.01), 1);
-		this.assert_eq(MathUtil.sign(-100), -1);
-		this.assert_eq(MathUtil.sign(100), 1);
+	private _testSign() {
+		this._assert_eq(MathUtil.sign(0), 0);
+		this._assert_eq(MathUtil.sign(-0), 0);
+		this._assert_eq(MathUtil.sign(-0.01), -1);
+		this._assert_eq(MathUtil.sign(0.01), 1);
+		this._assert_eq(MathUtil.sign(-100), -1);
+		this._assert_eq(MathUtil.sign(100), 1);
 	}
 
-	private testAverage() {
+	private _testAverage() {
 		let array = [1, 2, 3, 4, 0];
-		this.assert_eq(MathUtil.average(array), 2);
-		this.assert_eq(MathUtil.average(array, 0, 5), 2);
-		this.assert_eq(MathUtil.average(array, 1, 4), 3);
-		this.assert_eq(MathUtil.average(array, 3, 4), 4);
+		this._assert_eq(MathUtil.average(array), 2);
+		this._assert_eq(MathUtil.average(array, 0, 5), 2);
+		this._assert_eq(MathUtil.average(array, 1, 4), 3);
+		this._assert_eq(MathUtil.average(array, 3, 4), 4);
 	}
 
-	private testVariance() {
+	private _testVariance() {
 		let array = [1, 2, 3, 4, 0];
-		this.assert_eq(MathUtil.variance(array), 2);
-		this.assert_eq(MathUtil.variance(array, 2), 2);
-		this.assert_eq(MathUtil.variance(array, undefined, 0, 5), 2);
-		this.assert_eq(MathUtil.variance(array, 2, 0, 5), 2);
-		this.assert_eq(MathUtil.variance(array, undefined, 1, 4), 2 / 3);
-		this.assert_eq(MathUtil.variance(array, 3, 1, 4), 2 / 3);
-		this.assert_eq(MathUtil.variance(array, undefined, 3, 4), 0);
+		this._assert_eq(MathUtil.variance(array), 2);
+		this._assert_eq(MathUtil.variance(array, 2), 2);
+		this._assert_eq(MathUtil.variance(array, undefined, 0, 5), 2);
+		this._assert_eq(MathUtil.variance(array, 2, 0, 5), 2);
+		this._assert_eq(MathUtil.variance(array, undefined, 1, 4), 2 / 3);
+		this._assert_eq(MathUtil.variance(array, 3, 1, 4), 2 / 3);
+		this._assert_eq(MathUtil.variance(array, undefined, 3, 4), 0);
 	}
 
 	// The following tests are a simple port of src/tests/core/rng.cpp
 
-	private testUniformBounds() {
+	private _testUniformBounds() {
 		MathUtil.randomseed(155);
 		const runs = 50;
 		for (let i = 0; i < runs; ++i) {
 			let uniform = MathUtil.random();
-			this.assert_le(0, uniform);
-			this.assert_lt(uniform, 1);
+			this._assert_le(0, uniform);
+			this._assert_lt(uniform, 1);
 		}
 	}
 
-	private testSeeding() {
+	private _testSeeding() {
 		MathUtil.randomseed(155);
 		const runs = 50;
 		let values = [];
@@ -244,16 +244,16 @@ export class BaseMathUtil extends UnitTest {
 
 		MathUtil.randomseed(155);
 		for (let i = 0; i < runs; ++i) {
-			this.assert_eq(values[i * 3], MathUtil.random());
-			this.assert_eq(values[i * 3 + 1], MathUtil.randomInt([0, 5]));
-			this.assert_eq(values[i * 3 + 2], MathUtil.randomInt([10, 50]));
+			this._assert_eq(values[i * 3], MathUtil.random());
+			this._assert_eq(values[i * 3 + 1], MathUtil.randomInt([0, 5]));
+			this._assert_eq(values[i * 3 + 2], MathUtil.randomInt([10, 50]));
 		}
 	}
 
-	private kSTest(runs: number, gen: () => number, evaluate: (x: number) => number) {
+	private _kSTest(runs: number, gen: () => number, evaluate: (x: number) => number) {
 		let values: number[] = [];
 		const certainty = 1e-4;
-		this.assert_gt(runs, 35);
+		this._assert_gt(runs, 35);
 		for (let i = 0; i < runs; ++i) {
 			values.push(gen());
 		}
@@ -270,26 +270,26 @@ export class BaseMathUtil extends UnitTest {
 			let f0xi = evaluate(values[i]);
 			let doi = Math.abs(sxi - f0xi);
 			let dui = Math.abs(prev - f0xi);
-			this.assert_lt(doi, d_alpha, () => `For bucket ${i} with value ${values[i]} and expected ${f0xi}`);
-			this.assert_lt(dui, d_alpha);
+			this._assert_lt(doi, d_alpha, () => `For bucket ${i} with value ${values[i]} and expected ${f0xi}`);
+			this._assert_lt(dui, d_alpha);
 			prev = sxi;
 		}
 		return 1;
 	}
 
-	private testUniformDistribution() {
+	private _testUniformDistribution() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => MathUtil.random(), uniformDistributionFunction);
+		this._kSTest(runs, () => MathUtil.random(), uniformDistributionFunction);
 	}
 
-	private testIndependendUniform() {
+	private _testIndependendUniform() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => { let first = MathUtil.random(); let snd = MathUtil.random(); return first + snd; }, twoUniformDistributionFunction);
+		this._kSTest(runs, () => { let first = MathUtil.random(); let snd = MathUtil.random(); return first + snd; }, twoUniformDistributionFunction);
 	}
 
-	private testMultipleUniform() {
+	private _testMultipleUniform() {
 		const runs = 1000;
 		MathUtil.randomseed(155);
 		let arr: number[][] = [];
@@ -304,12 +304,12 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
+				this._kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
 			}
 		}
 	}
 
-	private testDifferentSeed() {
+	private _testDifferentSeed() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
 
@@ -325,27 +325,27 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
+				this._kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoUniformDistributionFunction);
 			}
 		}
 	}
 
-	private testIntegerDistribution() {
+	private _testIntegerDistribution() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => MathUtil.randomInt([1, 6]), integerDistribution(1, 6));
-		this.kSTest(runs, () => MathUtil.randomInt([3, 6]), integerDistribution(3, 6));
-		this.kSTest(runs, () => MathUtil.randomInt([3, 60]), integerDistribution(3, 60));
-		this.kSTest(runs, () => MathUtil.randomInt([0, 45]), integerDistribution(0, 45));
+		this._kSTest(runs, () => MathUtil.randomInt([1, 6]), integerDistribution(1, 6));
+		this._kSTest(runs, () => MathUtil.randomInt([3, 6]), integerDistribution(3, 6));
+		this._kSTest(runs, () => MathUtil.randomInt([3, 60]), integerDistribution(3, 60));
+		this._kSTest(runs, () => MathUtil.randomInt([0, 45]), integerDistribution(0, 45));
 	}
 
-	private testTwoDice() {
+	private _testTwoDice() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
-		this.kSTest(runs, () => MathUtil.randomInt([1, 6]) + MathUtil.randomInt([1, 6]), twoDice);
+		this._kSTest(runs, () => MathUtil.randomInt([1, 6]) + MathUtil.randomInt([1, 6]), twoDice);
 	}
 
-	private testDifferentSeedTwoDice() {
+	private _testDifferentSeedTwoDice() {
 		const runs = 10000;
 		MathUtil.randomseed(155);
 
@@ -361,7 +361,7 @@ export class BaseMathUtil extends UnitTest {
 		for (let i = 0; i < 10; ++i) {
 			for (let j = i + 1; j < 10; ++j) {
 				let cnt = 0;
-				this.kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoDice);
+				this._kSTest(runs, () => { let first = arr[i][cnt]; let snd = arr[j][cnt]; cnt++; return first + snd; }, twoDice);
 			}
 		}
 	}

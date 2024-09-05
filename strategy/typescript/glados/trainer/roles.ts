@@ -57,7 +57,7 @@ export class Roles {
 		this._messaging = messaging;
 	}
 
-	public _chooseExclusiveRoles() {
+	public chooseExclusiveRoles() {
 		let roleHysteresis = ROLE_HYSTERESIS;
 		if (Referee.isStopState()) {
 			roleHysteresis = 1;

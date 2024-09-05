@@ -28,11 +28,11 @@ export class GladosAbilityShoot extends UnitTest {
 
 	public constructor() {
 		super();
-		this.addSituationTest("attackposition in field", this.testAttackPositionInField,
+		this._addSituationTest("attackposition in field", this._testAttackPositionInField,
 			[["glados/test/unit/glados/shoot-situations/shoot-out-of-field", undefined]]);
 	}
 
-	private testAttackPositionInField(a: undefined) {
+	private _testAttackPositionInField(a: undefined) {
 
 		let robot = World.FriendlyRobotsById[5];
 
@@ -52,12 +52,12 @@ export class GladosAbilityShoot extends UnitTest {
 
 		let shoot = new Shoot(task);
 		// these values are the ones that were used in the first situation (if more situations are added, put these in the parameters)
-		shoot._shoot(new Vector(2.63, 1.61), 3, World.Time + 1.8, new Vector(-2.63, 1.61), 0.061);
+		shoot.shoot(new Vector(2.63, 1.61), 3, World.Time + 1.8, new Vector(-2.63, 1.61), 0.061);
 
 		let attackPosition = trainerBox.receiveSingleSender(MessageType.attackPosition)[1];
 
-		this.assert_not_undefined(attackPosition);
-		this.assert_true(Field.isInAllowedField(attackPosition!, World.Ball.radius));
+		this._assert_not_undefined(attackPosition);
+		this._assert_true(Field.isInAllowedField(attackPosition!, World.Ball.radius));
 	}
 }
 export let testClass = GladosAbilityShoot;

@@ -19,10 +19,10 @@ export class GladosDuel extends UnitTest {
 			file: "glados/test/unit/glados/duel-situations/duel1",
 			robotId: 6,
 		};
-		this.addSituationTest("duel", this.testDuel, [[s1.file, s1]]);
+		this._addSituationTest("duel", this._testDuel, [[s1.file, s1]]);
 	}
 
-	private testDuel(info: DuelInfo) {
+	private _testDuel(info: DuelInfo) {
 		const robot = World.FriendlyRobotsById[info.robotId];
 		const messaging = new Messaging();
 		const agent = new Attacker(robot, messaging);
@@ -32,7 +32,7 @@ export class GladosDuel extends UnitTest {
 		trainerBox.sendBroadcast(MessageType.mainAttacker, robot);
 		messaging.deliverMessages();
 
-		this.assert_eq(behavior, behavior.check());
+		this._assert_eq(behavior, behavior.check());
 	}
 }
 export let testClass = GladosDuel;

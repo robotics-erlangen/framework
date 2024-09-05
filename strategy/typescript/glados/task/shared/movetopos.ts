@@ -83,7 +83,7 @@ export class MoveToPos extends Task {
 		}
 
 		if (this._suggestPass != undefined) {
-			this._suggestPass._suggestPassRobotPosition(this._pos, undefined, time);
+			this._suggestPass.suggestPassRobotPosition(this._pos, undefined, time);
 		}
 	}
 }

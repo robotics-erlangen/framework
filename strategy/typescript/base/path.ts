@@ -278,7 +278,7 @@ export class Path {
 		this._trajectoryInst.seedRandom(seed);
 	}
 
-	private addObstaclesToPath(path: PathObjectCommon) {
+	private _addObstaclesToPath(path: PathObjectCommon) {
 		for (let circle of this._circleObstacles) {
 			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio ?? 0);
 		}
@@ -293,7 +293,7 @@ export class Path {
 		}
 	}
 
-	private getObstacleString() {
+	private _getObstacleString() {
 		let teamLetter = "y";
 		if (teamIsBlue) {
 			teamLetter = "b";
@@ -307,7 +307,7 @@ export class Path {
 
 	public getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
 		this._lastWasTrajectoryPath = true;
-		this.addObstaclesToPath(this._trajectoryInst);
+		this._addObstaclesToPath(this._trajectoryInst);
 		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
 		let result: { pos: Position; speed: Speed; time: number }[] = [];
@@ -319,7 +319,7 @@ export class Path {
 
 	public getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {
 		this._lastWasTrajectoryPath = false;
-		this.addObstaclesToPath(this._inst);
+		this._addObstaclesToPath(this._inst);
 		return this._inst.getPath(x1, y1, x2, y2);
 	}
 
@@ -359,7 +359,7 @@ export class Path {
 		switch (obstacle.type) {
 			case "circle": {
 				if (!isPerformanceMode) {
-					vis.addCircle(this.getObstacleString(), obstacle.center, obstacle.radius, vis.colors.redHalf, true);
+					vis.addCircle(this._getObstacleString(), obstacle.center, obstacle.radius, vis.colors.redHalf, true);
 				}
 
 				// strategy to global coordinates conversion
@@ -369,7 +369,7 @@ export class Path {
 			}
 			case "line": {
 				if (!isPerformanceMode) {
-					vis.addPath(this.getObstacleString(), [obstacle.start, obstacle.end], vis.colors.redHalf, true, undefined, 2 * obstacle.radius);
+					vis.addPath(this._getObstacleString(), [obstacle.start, obstacle.end], vis.colors.redHalf, true, undefined, 2 * obstacle.radius);
 				}
 
 				// strategy to global coordinates conversion
@@ -381,7 +381,7 @@ export class Path {
 			case "rect": {
 				if (!isPerformanceMode) {
 					vis.addPolygon(
-						this.getObstacleString(),
+						this._getObstacleString(),
 						[obstacle.start, obstacle.start.withY(obstacle.end.y), obstacle.end, obstacle.end.withY(obstacle.start.y)],
 						vis.colors.redHalf, true
 					);
@@ -396,7 +396,7 @@ export class Path {
 			case "triangle": {
 				if (!isPerformanceMode) {
 					vis.addPolygon(
-						this.getObstacleString(),
+						this._getObstacleString(),
 						[obstacle.p1, obstacle.p2, obstacle.p3],
 						vis.colors.redHalf, true
 					);
@@ -435,9 +435,9 @@ export class Path {
 				let pos = startPos + speed * time + acc * (0.5 * time * time);
 				positions.push(pos);
 			}
-			vis.addCircleRaw(this.getObstacleString(), startPos, radius, vis.colors.orangeHalf, true);
-			vis.addCircleRaw(this.getObstacleString(), positions[SAMPLES - 1], radius, vis.colors.orangeHalf, true);
-			vis.addPathRaw(this.getObstacleString(), positions, vis.colors.orangeHalf);
+			vis.addCircleRaw(this._getObstacleString(), startPos, radius, vis.colors.orangeHalf, true);
+			vis.addCircleRaw(this._getObstacleString(), positions[SAMPLES - 1], radius, vis.colors.orangeHalf, true);
+			vis.addPathRaw(this._getObstacleString(), positions, vis.colors.orangeHalf);
 		}
 
 		this._trajectoryInst.addMovingCircle(startTime, endTime, startPos.x, startPos.y,
@@ -469,7 +469,7 @@ export class Path {
 						&& speed1.equals(new Vector(0, 0))
 						&& speed2.equals(new Vector(0, 0))) {
 					// both ends are stationary
-					vis.addPathRaw(this.getObstacleString(), [startPos1, startPos2], vis.colors.orange.setAlpha(127), undefined, undefined, width);
+					vis.addPathRaw(this._getObstacleString(), [startPos1, startPos2], vis.colors.orange.setAlpha(127), undefined, undefined, width);
 				} else {
 					const SAMPLES = 5;
 					let timeStep = (endTime - startTime) / (SAMPLES - 1);
@@ -478,7 +478,7 @@ export class Path {
 						let pos1 = startPos1 + speed1 * time + acc1 * (0.5 * time * time);
 						let pos2 = startPos2 + speed2 * time + acc2 * (0.5 * time * time);
 						let alpha = 0.5 * 0.5 ** (startTime + time);
-						vis.addPathRaw(this.getObstacleString(), [pos1, pos2], vis.colors.orange.setAlpha(255 * alpha), undefined, undefined, width);
+						vis.addPathRaw(this._getObstacleString(), [pos1, pos2], vis.colors.orange.setAlpha(255 * alpha), undefined, undefined, width);
 					}
 				}
 			} else {
@@ -492,10 +492,10 @@ export class Path {
 					positions1.push(pos1);
 					positions2.push(pos2);
 				}
-				vis.addPathRaw(this.getObstacleString(), [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-				vis.addPathRaw(this.getObstacleString(), [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
-				vis.addPathRaw(this.getObstacleString(), positions1, vis.colors.orangeHalf);
-				vis.addPathRaw(this.getObstacleString(), positions2, vis.colors.orangeHalf);
+				vis.addPathRaw(this._getObstacleString(), [startPos1, positions1[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+				vis.addPathRaw(this._getObstacleString(), [startPos2, positions2[SAMPLES - 1]], vis.colors.orangeHalf, undefined, undefined, width);
+				vis.addPathRaw(this._getObstacleString(), positions1, vis.colors.orangeHalf);
+				vis.addPathRaw(this._getObstacleString(), positions2, vis.colors.orangeHalf);
 			}
 		}
 
@@ -515,7 +515,7 @@ export class Path {
 	public addFriendlyRobotObstacle(robot: FriendlyRobot, radius: number, prio: number) {
 		this._trajectoryInst.addRobotTrajectoryObstacle(robot.path._trajectoryInst.getTrajectoryAsObstacle(), prio, radius);
 		if (!isPerformanceMode) {
-			vis.addCircle(this.getObstacleString(), robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
+			vis.addCircle(this._getObstacleString(), robot.pos, 2 * robot.radius, vis.colors.goldHalf, false, undefined, undefined, robot.radius);
 		}
 	}
 
@@ -531,8 +531,8 @@ export class Path {
 		const speed = Coordinates.toGlobal(robot.speed);
 		this._trajectoryInst.addOpponentRobotObstacle(start.x, start.y, speed.x, speed.y, prio);
 		if (!isPerformanceMode) {
-			vis.addCircle(this.getObstacleString(), robot.pos, 1.5 * robot.radius, vis.colors.orchidHalf, false, undefined, undefined, robot.radius * 0.5);
-			vis.addPath(this.getObstacleString(), [robot.pos, robot.pos + robot.speed], vis.colors.orchidHalf);
+			vis.addCircle(this._getObstacleString(), robot.pos, 1.5 * robot.radius, vis.colors.orchidHalf, false, undefined, undefined, robot.radius * 0.5);
+			vis.addPath(this._getObstacleString(), [robot.pos, robot.pos + robot.speed], vis.colors.orchidHalf);
 		}
 	}
 

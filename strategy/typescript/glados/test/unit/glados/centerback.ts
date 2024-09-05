@@ -26,10 +26,10 @@ export class GladosCenterback extends UnitTest {
 			centerbackTarget: new Vector(-0.11, -4.70),
 			shouldChip: false
 		};
-		this.addSituationTest("no own goal chip", this.testCenterbackChip, [[s1.file, s1]]);
+		this._addSituationTest("no own goal chip", this._testCenterbackChip, [[s1.file, s1]]);
 	}
 
-	private testCenterbackChip(info: CenterbackInfo) {
+	private _testCenterbackChip(info: CenterbackInfo) {
 		const robot = World.FriendlyRobotsById[info.robotId];
 		const messaging = new Messaging();
 		const agent = new Defender(robot, messaging);
@@ -37,9 +37,9 @@ export class GladosCenterback extends UnitTest {
 		let centerback = new CenterbackTask(behavior, { pos: info.centerbackTarget });
 		centerback.run();
 		if (info.shouldChip) {
-			this.assert_eq((robot as any)._kickStyle, pb.robot.Command.KickStyle.Chip);
+			this._assert_eq((robot as any)._kickStyle, pb.robot.Command.KickStyle.Chip);
 		} else {
-			this.assert_undefined((robot as any)._kickStyle);
+			this._assert_undefined((robot as any)._kickStyle);
 		}
 	}
 }

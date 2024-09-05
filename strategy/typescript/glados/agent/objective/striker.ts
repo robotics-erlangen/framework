@@ -94,12 +94,12 @@ export class Striker extends Objective {
 			// if the regressive zone is used splitZonesClosestToMainAttacker should use produce one zone less
 			const remainingZonesOffensive = remainingZones - (useRegressiveZone ? 1 : 0);
 
-			let newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZonesOffensive, [offensiveSplitZone]);
+			let newZones = this._splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZonesOffensive, [offensiveSplitZone]);
 			remainingZones -= newZones.length;
 
 			if (useRegressiveZone) {
 				const regressiveSplitZone = { boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: MIDFIELD_OFFENSIVE_SPLIT, bottom: TOTAL_BOTTOM }, timesDivisible: 1 };
-				const newRegressiveZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - 1, [regressiveSplitZone]);
+				const newRegressiveZones = this._splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - 1, [regressiveSplitZone]);
 				newZones = newZones.concat(newRegressiveZones);
 			}
 

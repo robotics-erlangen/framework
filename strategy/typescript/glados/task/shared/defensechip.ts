@@ -44,7 +44,7 @@ export class DefenseChip extends Task {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 		this._robot.trajectory.update(ToTarget, moveDest, (World.Ball.pos - this._robot.pos).angle());
 
-		this._forceShoot._doForceShoot();
+		this._forceShoot.doForceShoot();
 		this._robot.chip(2);
 	}
 }

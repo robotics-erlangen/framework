@@ -276,7 +276,7 @@ export class Keeper extends Task {
 				&& World.Ball.pos.distanceTo(this._robot.pos) < 1) {
 			debug.set("chip", true);
 			this._robot.chip(3);
-			this._forceShoot._doForceShoot();
+			this._forceShoot.doForceShoot();
 		}
 	}
 }

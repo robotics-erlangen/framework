@@ -5,22 +5,22 @@ import { UnitTest } from "glados/test/unit/unittest";
 export class BaseDebug extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("wrap", this.testWrap);
+		this._addTest("wrap", this._testWrap);
 	}
 
-	private testWrap() {
+	private _testWrap() {
 		// make sure wrap copies members
 		const one: any = () => {};
 		one.member = 42;
 		const oneWrapped = debug.wrap("unittest", one);
-		this.assert_eq(one.member, oneWrapped.member);
+		this._assert_eq(one.member, oneWrapped.member);
 
 		// make sure wrap respects the prototype
 		// who changes the prototype of a function anyways?
 		const two = () => {};
 		Object.setPrototypeOf(two, { someField: 42 });
 		const twoWrapped = debug.wrap("unittest", two);
-		this.assert_eq(Object.getPrototypeOf(two), Object.getPrototypeOf(twoWrapped));
+		this._assert_eq(Object.getPrototypeOf(two), Object.getPrototypeOf(twoWrapped));
 
 		/*
 		 * Make sure the wrapped function respects the `this` given by context
@@ -34,7 +34,7 @@ export class BaseDebug extends UnitTest {
 
 		const three: { [name: string]: () => void } = {
 			unwrapped: function() {
-				testInstance.assert_eq(this, three);
+				testInstance._assert_eq(this, three);
 			},
 		};
 		three.wrapped = debug.wrap("unittest", three.unwrapped);
@@ -49,7 +49,7 @@ export class BaseDebug extends UnitTest {
 		 */
 		const bindTarget = {};
 		const boundFunction = (function(this: any) {
-			testInstance.assert_eq(this, bindTarget);
+			testInstance._assert_eq(this, bindTarget);
 		}).bind(bindTarget);
 		const wrappedBoundFunction = debug.wrap("unittest", boundFunction);
 		boundFunction();

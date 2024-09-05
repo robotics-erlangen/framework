@@ -36,7 +36,7 @@ export class Defender extends Agent {
 		];
 	}
 
-	public _run() {
+	protected _run() {
 		this._messaging.sendBroadcast(MessageType.defenderFlag);
 	}
 

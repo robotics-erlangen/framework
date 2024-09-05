@@ -11,10 +11,10 @@ export class BaseBall extends UnitTest {
 	public constructor() {
 		super();
 		Coordinates._setIsBlue(true);
-		this.addTest("toString", this.testToString);
-		this.addTest("update", this.testUpdate);
-		this.addTest("speed tracking", this.testSpeedTracking);
-		this.addTest("speed tracking without robot", this.testSpeedTrackingWithoutRobot);
+		this._addTest("toString", this._testToString);
+		this._addTest("update", this._testUpdate);
+		this._addTest("speed tracking", this._testSpeedTracking);
+		this._addTest("speed tracking without robot", this._testSpeedTrackingWithoutRobot);
 	}
 
 	public static getOverlays() {
@@ -22,12 +22,12 @@ export class BaseBall extends UnitTest {
 		return ["base/plot", plot];
 	}
 
-	private testToString() {
+	private _testToString() {
 		let ball = new Ball();
-		this.assert_eq(ball._toString(), "Ball(pos = ( 0.000,  0.000), speed = 0.0)");
+		this._assert_eq(ball.toString(), "Ball(pos = ( 0.000,  0.000), speed = 0.0)");
 	}
 
-	private ballData(pos: Position, speed: Speed, posZ: number, speedZ: number) {
+	private _ballData(pos: Position, speed: Speed, posZ: number, speedZ: number) {
 		let globalPos = Coordinates.Coordinates.toGlobal(pos);
 		let globalSpeed = Coordinates.Coordinates.toGlobal(speed);
 		return {
@@ -40,81 +40,81 @@ export class BaseBall extends UnitTest {
 		};
 	}
 
-	private testUpdate() {
+	private _testUpdate() {
 		let ball = new Ball();
-		this.assert_false(ball.isPositionValid());
+		this._assert_false(ball.isPositionValid());
 
 		let ballPos = new Vector(1, 1);
 		let ballSpeed = new Vector(0.5, 0.5);
-		ball._update(this.ballData(ballPos, ballSpeed, 2, 3), 1234);
-		this.assert_vector_eq(ball.pos, ballPos);
-		this.assert_vector_eq(ball.speed, ballSpeed);
-		this.assert_eq(ball.posZ, 2);
-		this.assert_eq(ball.speedZ, 3);
-		this.assert_true(ball.isPositionValid());
+		ball.update(this._ballData(ballPos, ballSpeed, 2, 3), 1234);
+		this._assert_vector_eq(ball.pos, ballPos);
+		this._assert_vector_eq(ball.speed, ballSpeed);
+		this._assert_eq(ball.posZ, 2);
+		this._assert_eq(ball.speedZ, 3);
+		this._assert_true(ball.isPositionValid());
 
-		ball._update(undefined, 12345);
-		this.assert_false(ball.isPositionValid());
-		this.assert_eq(ball.lostSince, 12345);
+		ball.update(undefined, 12345);
+		this._assert_false(ball.isPositionValid());
+		this._assert_eq(ball.lostSince, 12345);
 
-		ball._update(undefined, 12346);
-		this.assert_false(ball.isPositionValid());
-		this.assert_eq(ball.lostSince, 12345);
+		ball.update(undefined, 12346);
+		this._assert_false(ball.isPositionValid());
+		this._assert_eq(ball.lostSince, 12345);
 
-		ball._update(this.ballData(ballPos, ballSpeed, 2, 3), 12346);
-		this.assert_true(ball.isPositionValid());
+		ball.update(this._ballData(ballPos, ballSpeed, 2, 3), 12346);
+		this._assert_true(ball.isPositionValid());
 	}
 
-	private testSpeedTracking() {
+	private _testSpeedTracking() {
 		let ball = new Ball();
 		let robot = new Robot(3);
 		// just a random value
 		let time = 1234;
-		this.assert_eq(ball.maxSpeed, 0);
+		this._assert_eq(ball.maxSpeed, 0);
 
 		let ballPos = new Vector(0, 0);
 		let robotPos = new Vector(0, 0);
 		robot.pos = robotPos;
 		let ballSpeed = new Vector(2, 0.0);
 		for (let i = 0; i < 4; i++) {
-			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
+			ball.update(this._ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
-		this.assert_eq(ball.framesDecelerating, 3);
-		this.assert_eq(ball.maxSpeed, ballSpeed.length());
+		this._assert_eq(ball.framesDecelerating, 3);
+		this._assert_eq(ball.maxSpeed, ballSpeed.length());
 
 		// stop ball
 		ballSpeed = new Vector(0, 0);
-		ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
-		this.assert_eq(ball.framesDecelerating, 4);
+		ball.update(this._ballData(ballPos, ballSpeed, 0, 0), time);
+		this._assert_eq(ball.framesDecelerating, 4);
 
 		ballSpeed = new Vector(0.5, 0);
 		for (let i = 0; i < 4; i++) {
-			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
+			ball.update(this._ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
-		this.assert_eq(ball.framesDecelerating, 3);
-		this.assert_eq(ball.maxSpeed, ballSpeed.length());
+		this._assert_eq(ball.framesDecelerating, 3);
+		this._assert_eq(ball.maxSpeed, ballSpeed.length());
 
 		// stop ball
 		ballSpeed = ballSpeed.withX(ballSpeed.x * World.BallModel.BallSwitchRatio - 0.01);
-		ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time);
+		ball.update(this._ballData(ballPos, ballSpeed, 0, 0), time);
 	}
 
-	private testSpeedTrackingWithoutRobot() {
+	private _testSpeedTrackingWithoutRobot() {
 		let ball = new Ball();
 		let robot = new Robot(3);
 		// just a random value
 		let time = 1234;
-		this.assert_eq(ball.maxSpeed, 0);
+		this._assert_eq(ball.maxSpeed, 0);
 
 		let ballPos = new Vector(0, 0);
 		let robotPos = new Vector(2, 3);
 		robot.pos = robotPos;
 		let ballSpeed = new Vector(2, 0.0);
 		for (let i = 0; i < 4; i++) {
-			ball._update(this.ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
+			ball.update(this._ballData(ballPos, ballSpeed, 0, 0), time, undefined, [robot]);
 		}
-		this.assert_eq(ball.framesDecelerating, 3);
-		this.assert_ne(ball.maxSpeed, ballSpeed.length());
+		this._assert_eq(ball.framesDecelerating, 3);
+		this._assert_ne(ball.maxSpeed, ballSpeed.length());
 	}
 }
 export let testClass = BaseBall;

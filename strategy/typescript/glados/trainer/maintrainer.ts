@@ -14,14 +14,14 @@ export class MainTrainer extends Trainer {
 
 		this._defense = new Defense(this.messaging);
 		this._attackRatio = new AttackRatio(this.messaging);
-		this.fixAttackRatio();
+		this._fixAttackRatio();
 	}
 
 	public get attackRatio(): AttackRatio {
 		return this._attackRatio;
 	}
 
-	private fixAttackRatio() {
+	private _fixAttackRatio() {
 		if (this._mode === "passive") {
 			this._attackRatio.attackRatio = () => {
 				return {
@@ -45,6 +45,6 @@ export class MainTrainer extends Trainer {
 
 	public run() {
 		super.run();
-		this._defense._assignDefenders();
+		this._defense.assignDefenders();
 	}
 }

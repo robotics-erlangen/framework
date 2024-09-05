@@ -16,7 +16,7 @@ export class PerfectDribblerRotateAndShoot {
 		this._robot = task.behavior().agent().robot();
 	}
 
-	public _rotateAndShoot(destAngle: number) {
+	public rotateAndShoot(destAngle: number) {
 
 		let invert = this._robot.dir < destAngle ? 1 : -1;
 		let maxRotate = 0.4 * (2 * Math.PI) * invert;

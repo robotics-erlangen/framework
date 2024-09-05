@@ -13,14 +13,14 @@ export class DirectRotation {
 		// TODO: only add a reasonable directionChange, not a million
 		// FIXME?: Assuming the direction change will keep on going, we can still calculate if it will be faster to do the piruette, or to break and return and break again and accelerate again. TODO: Is that even what we want? At some point the dir change will stop and then we have to break our speed again.
 		const feedforwardSpeed: number = this._lastTime == undefined ? 0 : geom.normalizeAngle(targetDir - this._lastTargetDir!) / (World.Time - this._lastTime);
-		let [angularSpeed, angularAccel] = DirectRotation.calculateRotation(robotDir, currentOmega, targetDir,
+		let [angularSpeed, angularAccel] = DirectRotation._calculateRotation(robotDir, currentOmega, targetDir,
 		rotAccel, rotBrake, rotSpeed, rotExpTime, feedforwardSpeed);
 		this._lastTargetDir = targetDir;
 		this._lastTime = World.Time;
 		return [angularSpeed, angularAccel];
 	}
 
-	private static calculateRotation(currentDir: number, currentOmegaParam: number, targetDir: number,
+	private static _calculateRotation(currentDir: number, currentOmegaParam: number, targetDir: number,
 			accelerate: number, brake: number, maxSpeed: number, exponentialTime: number, feedforwardSpeed: number): [number, number] {
 		let currentOmega = currentOmegaParam - feedforwardSpeed;
 		let fullBrakeTime = Math.abs(currentOmega / brake);

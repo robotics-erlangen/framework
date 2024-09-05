@@ -32,7 +32,7 @@ export class WallkickAbility {
 		this._robot = robot;
 	}
 
-	public _wallkick(restart: boolean) {
+	public wallkick(restart: boolean) {
 		let obstacleTable: PathHelper.PathHelperParameters = {
 			ignoreDefenseArea: true,
 			ignoreOpponentDefenseArea: true,

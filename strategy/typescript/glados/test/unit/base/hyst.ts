@@ -6,21 +6,21 @@ import { UnitTest } from "glados/test/unit/unittest";
 export class BaseHyst extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("LessThanHyst", this.testLessThanHyst);
-		this.addTest("GreaterThanHyst", this.testGreaterThanHyst);
-		this.addTest("InIntervalHyst", this.testInIntervalHyst);
-		this.addTest("MultiValueHyst", this.testMultiValueHyst);
-		this.addTest("VectorHyst", this.testVectorHyst);
-		this.addTest("AngleHyst", this.testAngleHyst);
+		this._addTest("LessThanHyst", this._testLessThanHyst);
+		this._addTest("GreaterThanHyst", this._testGreaterThanHyst);
+		this._addTest("InIntervalHyst", this._testInIntervalHyst);
+		this._addTest("MultiValueHyst", this._testMultiValueHyst);
+		this._addTest("VectorHyst", this._testVectorHyst);
+		this._addTest("AngleHyst", this._testAngleHyst);
 	}
 
-	private testHystSequence<In, Out>(hyst: Hyst<In, Out>, io: [In, Out][], assert_fn: (got: Out, expected: Out, input: In) => void) {
+	private _testHystSequence<In, Out>(hyst: Hyst<In, Out>, io: [In, Out][], assert_fn: (got: Out, expected: Out, input: In) => void) {
 		for (const [i, o] of io) {
 			assert_fn(hyst.update(i), o, i);
 		}
 	}
 
-	private testLessThanHyst() {
+	private _testLessThanHyst() {
 		const IN_OUT: [number, boolean][] = [
 			[-2, true],
 			[-1, true],
@@ -41,28 +41,28 @@ export class BaseHyst extends UnitTest {
 		for (const initialState of [false, true]) {
 			{
 				const hyst = new LessThanHyst(THRESHOLD, HYST, initialState);
-				this.assert_eq(hyst.state, initialState);
-				this.testHystSequence(
+				this._assert_eq(hyst.state, initialState);
+				this._testHystSequence(
 					hyst,
 					IN_OUT,
-					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 				);
 			}
 			{
 				const hyst = LessThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
-				this.assert_eq(hyst.state, initialState);
-				this.testHystSequence(
+				this._assert_eq(hyst.state, initialState);
+				this._testHystSequence(
 					hyst,
 					IN_OUT,
-					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 				);
 			}
 		}
 
-		this.assert_error(() => new LessThanHyst(10, -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new LessThanHyst(10, -0.4), () => "no error on negative hyst value");
 	}
 
-	private testGreaterThanHyst() {
+	private _testGreaterThanHyst() {
 		const IN_OUT: [number, boolean][] = [
 			[-2, false],
 			[-1, false],
@@ -83,28 +83,28 @@ export class BaseHyst extends UnitTest {
 		for (const initialState of [false, true]) {
 			{
 				const hyst = new GreaterThanHyst(THRESHOLD, HYST, initialState);
-				this.assert_eq(hyst.state, initialState);
-				this.testHystSequence(
+				this._assert_eq(hyst.state, initialState);
+				this._testHystSequence(
 					hyst,
 					IN_OUT,
-					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 				);
 			}
 			{
 				const hyst = GreaterThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
-				this.assert_eq(hyst.state, initialState);
-				this.testHystSequence(
+				this._assert_eq(hyst.state, initialState);
+				this._testHystSequence(
 					hyst,
 					IN_OUT,
-					(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+					(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 				);
 			}
 		}
 
-		this.assert_error(() => new GreaterThanHyst(10, -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new GreaterThanHyst(10, -0.4), () => "no error on negative hyst value");
 	}
 
-	private testInIntervalHyst() {
+	private _testInIntervalHyst() {
 		const IN_OUT: [number, boolean][] = [
 			[-7, false],
 			[-6, false],
@@ -130,19 +130,19 @@ export class BaseHyst extends UnitTest {
 
 		for (const initialState of [false, true]) {
 			const hyst = new InIntervalHyst(THRESHOLDS, HYST, initialState);
-			this.assert_eq(hyst.state, initialState);
-			this.testHystSequence(
+			this._assert_eq(hyst.state, initialState);
+			this._testHystSequence(
 				hyst,
 				IN_OUT,
-				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 			);
 		}
 
-		this.assert_error(() => new InIntervalHyst([1, 10], -0.4), () => "no error on negative hyst value");
-		this.assert_error(() => new InIntervalHyst([10, 1], 0.4), () => "no error on empty interval");
+		this._assert_error(() => new InIntervalHyst([1, 10], -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new InIntervalHyst([10, 1], 0.4), () => "no error on empty interval");
 	}
 
-	private testMultiValueHyst() {
+	private _testMultiValueHyst() {
 		const VALUES: string[] = ["a", "b", "c", "d", "e", "f"];
 		const IN_OUT: [number, string][] = [
 			[0, "a"],
@@ -171,22 +171,22 @@ export class BaseHyst extends UnitTest {
 
 		for (const initialState of VALUES) {
 			const hyst = new MultiValueHyst(VALUES, THRESHOLDS, HYST, initialState);
-			this.assert_eq(hyst.state, initialState);
-			this.testHystSequence(
+			this._assert_eq(hyst.state, initialState);
+			this._testHystSequence(
 				hyst,
 				IN_OUT,
-				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 			);
 		}
 
-		this.assert_error(() => new MultiValueHyst(["a"], [], 0.4), () => "no error on too few values");
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [], 0.4), () => "no error on too few thresholds");
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4), () => "no error on too many thresholds");
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4), () => "no error on negative hyst value");
-		this.assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x"), () => "no error on invalid initialState");
+		this._assert_error(() => new MultiValueHyst(["a"], [], 0.4), () => "no error on too few values");
+		this._assert_error(() => new MultiValueHyst(["a", "b"], [], 0.4), () => "no error on too few thresholds");
+		this._assert_error(() => new MultiValueHyst(["a", "b"], [1, 2], 0.4), () => "no error on too many thresholds");
+		this._assert_error(() => new MultiValueHyst(["a", "b"], [1], -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new MultiValueHyst(["a", "b"], [1], 0.4, "x"), () => "no error on invalid initialState");
 	}
 
-	private testVectorHyst() {
+	private _testVectorHyst() {
 		const TARGET: Vector = new Vector(1, 2);
 		const IN_OUT: [Vector, boolean][] = [
 			[TARGET + new Vector(0, 0), true],
@@ -210,20 +210,20 @@ export class BaseHyst extends UnitTest {
 
 		for (const initialState of [false, true]) {
 			const hyst = new VectorHyst(TARGET, DIST, HYST, initialState);
-			this.assert_eq(hyst.state, initialState);
-			this.testHystSequence(
+			this._assert_eq(hyst.state, initialState);
+			this._testHystSequence(
 				hyst,
 				IN_OUT,
-				(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+				(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 			);
 		}
 
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4), () => "no error on negative hyst value");
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2), () => "no error on hyst value too large");
-		this.assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2), () => "no error on negative dist");
+		this._assert_error(() => new VectorHyst(new Vector(0, 0), 2, -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new VectorHyst(new Vector(0, 0), 1, 2), () => "no error on hyst value too large");
+		this._assert_error(() => new VectorHyst(new Vector(0, 0), -1, 2), () => "no error on negative dist");
 	}
 
-	private testAngleHyst() {
+	private _testAngleHyst() {
 		const TARGET: number = 2;
 		const IN_OUT: [number, boolean][] = [
 			[TARGET - 2.0, false],
@@ -260,29 +260,29 @@ export class BaseHyst extends UnitTest {
 			for (const offset of [-2 * Math.PI, 0, 2 * Math.PI]) {
 				{
 					const hyst = new AngleHyst(TARGET + offset, DIFF, HYST, initialState);
-					this.assert_eq(hyst.state, initialState);
-					this.testHystSequence(
+					this._assert_eq(hyst.state, initialState);
+					this._testHystSequence(
 						hyst,
 						IN_OUT,
-						(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+						(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 					);
 				}
 				{
 					const hyst = new AngleHyst(TARGET + offset, DIFF, HYST, initialState);
-					this.assert_eq(hyst.state, initialState);
-					this.testHystSequence(
+					this._assert_eq(hyst.state, initialState);
+					this._testHystSequence(
 						hyst,
 						IN_OUT.map(([i, o]) => [i + offset, o]),
-						(got, expected, input) => this.assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
+						(got, expected, input) => this._assert_eq(got, expected, () => `${hyst}.update(${input}) returned ${got} instead of ${expected}`)
 					);
 				}
 			}
 		}
 
-		this.assert_error(() => new AngleHyst(0, 2, -0.4), () => "no error on negative hyst value");
-		this.assert_error(() => new AngleHyst(0, -1, 1), () => "no error on hyst value too large");
-		this.assert_error(() => new AngleHyst(0, -1, 2), () => "no error on negative diff");
-		this.assert_error(() => new AngleHyst(0, 4, 2), () => "no error on diff greater than pi");
+		this._assert_error(() => new AngleHyst(0, 2, -0.4), () => "no error on negative hyst value");
+		this._assert_error(() => new AngleHyst(0, -1, 1), () => "no error on hyst value too large");
+		this._assert_error(() => new AngleHyst(0, -1, 2), () => "no error on negative diff");
+		this._assert_error(() => new AngleHyst(0, 4, 2), () => "no error on diff greater than pi");
 	}
 }
 export let testClass = BaseHyst;

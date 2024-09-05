@@ -22,6 +22,6 @@ export class TestShoot extends Task {
 			task: this
 		};
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
-		this._shoot._shoot(this._targetPos, this._targetSpeed);
+		this._shoot.shoot(this._targetPos, this._targetSpeed);
 	}
 }

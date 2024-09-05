@@ -32,7 +32,7 @@ export class Move extends Behavior {
 			// override force keeping in pool from the deferred behavior,
 			// otherwise the only robot in a move not running force keeping in pool will be the one
 			// running a deferred behavior, usually the mainattacker (not good)
-			this.forceDeferredKeepingInPool();
+			this._forceDeferredKeepingInPool();
 			return deferredResult;
 		}
 

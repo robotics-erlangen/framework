@@ -7,13 +7,13 @@ declare let path: any;
 export class UnitTest {
 	private _tests: { [name: string]: [Function, [string, any][]] } = {};
 
-	private static formatMessage(reason: string, msg?: () => string): string {
+	private static _formatMessage(reason: string, msg?: () => string): string {
 		msg ??= () => "";
 		const sep = msg === undefined ? "" : ": ";
 		return `Assert failed: ${reason}${sep}${msg()}`;
 	}
 
-	private static deepEq(a: any, b: any): boolean {
+	private static _deepEq(a: any, b: any): boolean {
 		if (a === b) {
 			return true;
 		}
@@ -29,7 +29,7 @@ export class UnitTest {
 				if (!(key in a) || !(key in b)) {
 					return false;
 				}
-				if (!UnitTest.deepEq(a[key], b[key])) {
+				if (!UnitTest._deepEq(a[key], b[key])) {
 					return false;
 				}
 			}
@@ -121,7 +121,7 @@ export class UnitTest {
 		return failedCounter;
 	}
 
-	protected addTest(name: string, test: Function): void {
+	protected _addTest(name: string, test: Function): void {
 		this._tests[name] = [test, []];
 	}
 
@@ -132,125 +132,125 @@ export class UnitTest {
 	// * hysteresis of all used functions
 	// * World.Ball.maxSpeed (very important if functions like Oberserver Ball.ballRollTime are used)
 	// * observer updates (ObserverBall.update()) and other functions usually called in a preprocessor
-	protected addSituationTest<T>(name: string, test: (situationData: T) => void, situations: [string, T][]): void {
+	protected _addSituationTest<T>(name: string, test: (situationData: T) => void, situations: [string, T][]): void {
 		this._tests[name] = [test, situations];
 	}
 
-	protected assert_eq(a: any, b: any, msg?: () => string) {
+	protected _assert_eq(a: any, b: any, msg?: () => string) {
 		if (a !== b) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_ne(a: any, b: any, msg?: () => string) {
+	protected _assert_ne(a: any, b: any, msg?: () => string) {
 		if (a === b) {
-			throw new Error(UnitTest.formatMessage(`both values are '${a}'`, msg));
+			throw new Error(UnitTest._formatMessage(`both values are '${a}'`, msg));
 		}
 	}
 
-	protected assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
+	protected _assert_eq_eps(a: number, b: number, eps: number, msg?: () => string) {
 		if (isNaN(a) || isNaN(b) || Math.abs(a - b) > eps) {
-			throw new Error(UnitTest.formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
+			throw new Error(UnitTest._formatMessage(`diff between ${a} and ${b} (${Math.abs(a - b)} is greater than ${eps})`, msg));
 		}
 	}
 
-	protected assert_deep_eq(a: any, b: any, msg?: () => string) {
-		if (!UnitTest.deepEq(a, b)) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
+	protected _assert_deep_eq(a: any, b: any, msg?: () => string) {
+		if (!UnitTest._deepEq(a, b)) {
+			throw new Error(UnitTest._formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_vector_eq(a: Vector, b: Vector, msg?: () => string) {
+	protected _assert_vector_eq(a: Vector, b: Vector, msg?: () => string) {
 		if (!a.equals(b)) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_vector_ne(a: Vector, b: Vector, msg?: () => string) {
+	protected _assert_vector_ne(a: Vector, b: Vector, msg?: () => string) {
 		if (a.equals(b)) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is equal to '${b}'`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is equal to '${b}'`, msg));
 		}
 	}
 
-	protected assert_vector_eq_eps(a: Vector, b: Vector, eps: number, msg?: () => string) {
+	protected _assert_vector_eq_eps(a: Vector, b: Vector, eps: number, msg?: () => string) {
 		if (isNaN(a.distanceToSq(b)) || a.distanceToSq(b) > eps * eps) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not equal to '${b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not equal to '${b}'. Distance: '${a.distanceTo(b)}' > '${eps}'`, msg));
 		}
 	}
 
-	protected assert_false(a: any, msg?: () => string) {
+	protected _assert_false(a: any, msg?: () => string) {
 		if (a !== false) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not false`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not false`, msg));
 		}
 	}
 
-	protected assert_falsy(a: any, msg?: () => string) {
+	protected _assert_falsy(a: any, msg?: () => string) {
 		if (a) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not falsy`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not falsy`, msg));
 		}
 	}
 
-	protected assert_true(a: any, msg?: () => string) {
+	protected _assert_true(a: any, msg?: () => string) {
 		if (a !== true) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not true`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not true`, msg));
 		}
 	}
 
-	protected assert_truthy(a: any, msg?: () => string) {
+	protected _assert_truthy(a: any, msg?: () => string) {
 		if (!a) {
-			throw new Error(UnitTest.formatMessage(`'${a}' is not truthy`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' is not truthy`, msg));
 		}
 	}
 
-	protected assert_not_undefined(a: any, msg?: () => string) {
+	protected _assert_not_undefined(a: any, msg?: () => string) {
 		if (a === undefined) {
-			throw new Error(UnitTest.formatMessage(`'${a}' should not be undefined`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' should not be undefined`, msg));
 		}
 	}
 
-	protected assert_undefined(a: any, msg?: () => string) {
+	protected _assert_undefined(a: any, msg?: () => string) {
 		if (a !== undefined) {
-			throw new Error(UnitTest.formatMessage(`'${a}' should be undefined`, msg));
+			throw new Error(UnitTest._formatMessage(`'${a}' should be undefined`, msg));
 		}
 	}
 
-	protected assert_error(a: () => void, msg?: () => string) {
-		tryCatchThen(a, () => {}, () => { throw new Error(UnitTest.formatMessage("function did not throw error", msg)); });
+	protected _assert_error(a: () => void, msg?: () => string) {
+		tryCatchThen(a, () => {}, () => { throw new Error(UnitTest._formatMessage("function did not throw error", msg)); });
 	}
 
-	protected assert_ge(a: number, b: number, msg?: () => string) {
+	protected _assert_ge(a: number, b: number, msg?: () => string) {
 		if (isNaN(a) || isNaN(b) || a < b) {
-			throw new Error(UnitTest.formatMessage(`${a} is not greater than or equal to ${b}`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is not greater than or equal to ${b}`, msg));
 		}
 	}
 
-	protected assert_le(a: number, b: number, msg?: () => string) {
+	protected _assert_le(a: number, b: number, msg?: () => string) {
 		if (isNaN(a) || isNaN(b) || a > b) {
-			throw new Error(UnitTest.formatMessage(`${a} is not less than or equal to ${b}`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is not less than or equal to ${b}`, msg));
 		}
 	}
 
-	protected assert_gt(a: number, b: number, msg?: () => string) {
+	protected _assert_gt(a: number, b: number, msg?: () => string) {
 		if (isNaN(a) || isNaN(b) || a <= b) {
-			throw new Error(UnitTest.formatMessage(`${a} is not greater than ${b}`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is not greater than ${b}`, msg));
 		}
 	}
 
-	protected assert_lt(a: number, b: number, msg?: () => string) {
+	protected _assert_lt(a: number, b: number, msg?: () => string) {
 		if (isNaN(a) || isNaN(b) || a >= b) {
-			throw new Error(UnitTest.formatMessage(`${a} is not less than ${b}`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is not less than ${b}`, msg));
 		}
 	}
 
-	protected assert_not_nan(a: number, msg?: () => string) {
+	protected _assert_not_nan(a: number, msg?: () => string) {
 		if (isNaN(a)) {
-			throw new Error(UnitTest.formatMessage(`${a} is NaN`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is NaN`, msg));
 		}
 	}
 
-	protected assert_nan(a: number, msg?: () => string) {
+	protected _assert_nan(a: number, msg?: () => string) {
 		if (!isNaN(a)) {
-			throw new Error(UnitTest.formatMessage(`${a} is not NaN`, msg));
+			throw new Error(UnitTest._formatMessage(`${a} is not NaN`, msg));
 		}
 	}
 }

@@ -70,7 +70,7 @@ export class DribbleToPos extends Task {
 		this._useCMA = params.useCMA === true;
 	}
 
-	private getBallPosition(): Position {
+	private _getBallPosition(): Position {
 		if (isBallValid()) {
 			return BallObserver.getRealisticBallPos();
 		} else {
@@ -81,14 +81,14 @@ export class DribbleToPos extends Task {
 	public run() {
 		let targetPos = this._pos;
 		const directionGateToBall = (BallObserver.getRealisticBallPos() - this._pos).normalized();
-		const directionRobotToBall = (this.getBallPosition() - this._robot.pos).normalized();
+		const directionRobotToBall = (this._getBallPosition() - this._robot.pos).normalized();
 
 		let distanceToBall = 0;
 		let angleCurrentPosToBall = this._robot.dir;
 		let angleBallToTargetPos = 1;
 
 		if (isBallValid()) {
-			let ballDirection = this.getBallPosition() - this._robot.pos;
+			let ballDirection = this._getBallPosition() - this._robot.pos;
 			const targetDirection = (targetPos - this._robot.pos).normalized();
 
 			distanceToBall = ballDirection.length() - this._robot.radius + World.Ball.radius;
@@ -103,7 +103,7 @@ export class DribbleToPos extends Task {
 		let preliminaryTargetPos: Position;
 		let noObstaclesInArea = true;
 		if (!DribbleToPos._currentlyDribbling && this._obstacleToAvoid == undefined) {
-			preliminaryTargetPos = this.getBallPosition() + (this._robot.radius - World.Ball.radius) * -directionRobotToBall;
+			preliminaryTargetPos = this._getBallPosition() + (this._robot.radius - World.Ball.radius) * -directionRobotToBall;
 
 			for (let obstacle of this._customObstacles) {
 				if (obstacle.type !== "circle" || !obstacle.name?.startsWith("dribble")) {
@@ -123,7 +123,7 @@ export class DribbleToPos extends Task {
 
 		if (this._obstacleToAvoid != undefined) {
 			this._obstacleToAvoid.radius *= 0.5;
-			this._alternativeDirection = (this.getBallPosition() - this._obstacleToAvoid.center).normalized();
+			this._alternativeDirection = (this._getBallPosition() - this._obstacleToAvoid.center).normalized();
 			let angleDiffObstacle = this._alternativeDirection.angle() - (angleCurrentPosToBall + Math.PI);
 			while (angleDiffObstacle > 2 * Math.PI) {
 				angleDiffObstacle -= 2 * Math.PI;
@@ -135,7 +135,7 @@ export class DribbleToPos extends Task {
 			const extraDistance = angleDiffObstacle > 0.25 * Math.PI && angleDiffObstacle < 1.75 * Math.PI
 				? this._robot.radius
 				: 0;
-			this._alternativeTargetPos = this.getBallPosition() + (extraDistance + this._robot.radius - World.Ball.radius) * this._alternativeDirection;
+			this._alternativeTargetPos = this._getBallPosition() + (extraDistance + this._robot.radius - World.Ball.radius) * this._alternativeDirection;
 		}
 
 		let angleDiff = angleCurrentPosToBall - this._robot.dir;
@@ -179,11 +179,11 @@ export class DribbleToPos extends Task {
 			}
 
 			targetPos = noObstaclesInArea
-				? this.getBallPosition() + (offset + this._robot.radius - World.Ball.radius) * directionGateToBall
+				? this._getBallPosition() + (offset + this._robot.radius - World.Ball.radius) * directionGateToBall
 				: this._alternativeTargetPos + offset * this._alternativeDirection;
 
 			if (isBallValid()) {
-				this._dir = (this.getBallPosition() - targetPos).normalized().angle();
+				this._dir = (this._getBallPosition() - targetPos).normalized().angle();
 			}
 
 			const dribblerSpeed = (distanceToBall < 0.05) ? 1.0 : 1 - Math.max(0.1, distanceToBall) / 0.1;

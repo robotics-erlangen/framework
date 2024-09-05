@@ -82,7 +82,7 @@ export class TIGERsTestGoalShot extends Task {
 		debug.set("wayTooFar", this._lastWasWayTooFar);
 
 		if (this._framesInDribbler >= 5) {
-			this._rotateAndShoot._rotateAndShoot((target - this._robot.pos).angle());
+			this._rotateAndShoot.rotateAndShoot((target - this._robot.pos).angle());
 		} else {
 			this._robot.trajectory.update(ToTarget,
 				World.Ball.pos + (this._robot.pos - World.Ball.pos).withLength(this._robot.shootRadius),

@@ -186,7 +186,7 @@ export class FeintPassTask extends Task {
 
 		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		if (this._passDestSuggestion && attackPosition && this._suggestPass) {
-			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition,
+			this._suggestPass.suggestPass(this._passDestSuggestion, attackPosition,
 				Physics.robotTimeToPos(this._robot, this._passDestSuggestion, new Vector(0, 0))[0]);
 		}
 

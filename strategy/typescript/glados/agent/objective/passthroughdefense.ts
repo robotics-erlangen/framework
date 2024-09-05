@@ -44,7 +44,7 @@ export class PassThroughDefense extends Objective {
 		parameterizeClass(Support, { isStriker: false, samplingCtor: StrikerSampling }),
 	]);
 
-	private static robotsInAreaAroundDefense() {
+	private static _robotsInAreaAroundDefense() {
 		const offset = 1.0;
 		const corner1 = new Vector(G.DefenseWidthHalf + offset, G.FieldHeightHalf - G.DefenseHeight - offset);
 		const corner2 = new Vector(-G.FieldWidthHalf - offset, G.FieldHeightHalf);
@@ -54,12 +54,12 @@ export class PassThroughDefense extends Objective {
 	}
 
 	public static canStart(ball: BallLike) {
-		const opponentDefendersCount = PassThroughDefense.robotsInAreaAroundDefense();
+		const opponentDefendersCount = PassThroughDefense._robotsInAreaAroundDefense();
 		return opponentDefendersCount > 6 && ball.pos.y > G.FieldHeightHalf - G.DefenseHeight * 5 / 3;
 	}
 
 	public canContinue = (ball: BallLike) => {
-		const opponentDefendersCount = PassThroughDefense.robotsInAreaAroundDefense();
+		const opponentDefendersCount = PassThroughDefense._robotsInAreaAroundDefense();
 		return opponentDefendersCount < 5 || ball.pos.y > G.FieldHeightHalf - G.DefenseHeight * 2;
 	};
 
@@ -158,7 +158,7 @@ export class PassThroughDefense extends Objective {
 			}
 		} else if (remainingZones > 0) {
 			const startBoundaries: SplitZone[] = [{ boundaries: { left: TOTAL_LEFT, right: TOTAL_RIGHT, top: DEFENSE_AREA_Y_ZONE_END, bottom: TOTAL_BOTTOM }, timesDivisible: 4 }];
-			const newZones = this.splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - startBoundaries.length + 1, startBoundaries);
+			const newZones = this._splitZonesClosestToMainAttacker(mainAttackerPos, participants, remainingZones - startBoundaries.length + 1, startBoundaries);
 			zones = zones.concat(newZones);
 		}
 

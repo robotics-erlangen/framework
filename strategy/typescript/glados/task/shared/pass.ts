@@ -178,12 +178,12 @@ export class Pass extends Task {
 		}
 
 		if (this._chip) {
-			this._shoot._chipPass(targetPos, this._ballReceiptPos, undefined, maxAngleError);
+			this._shoot.chipPass(targetPos, this._ballReceiptPos, undefined, maxAngleError);
 		} else {
 			if (isFreekickLike) {
-				this._shoot._shootFreeKick(targetPos, this._passSpeed, this._targetTime, maxAngleError);
+				this._shoot.shootFreeKick(targetPos, this._passSpeed, this._targetTime, maxAngleError);
 			} else {
-				this._shoot._shoot(targetPos, this._passSpeed, this._targetTime, this._ballReceiptPos, maxAngleError);
+				this._shoot.shoot(targetPos, this._passSpeed, this._targetTime, this._ballReceiptPos, maxAngleError);
 			}
 		}
 	}

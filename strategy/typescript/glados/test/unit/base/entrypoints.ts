@@ -5,37 +5,37 @@ import { UnitTest } from "glados/test/unit/unittest";
 export class BaseEntrypoints extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("wrapper", this.testWrapper);
-		this.addTest("duplicates", this.testDuplicates);
+		this._addTest("wrapper", this._testWrapper);
+		this._addTest("duplicates", this._testDuplicates);
 	}
 
-	private static tmp() {
+	private static _tmp() {
 		return false;
 	}
 
-	private static wrapper_const(func: Function) {
+	private static _wrapper_const(func: Function) {
 		return func;
 	}
 
-	private static wrapper_other(_func: any) {
-		return BaseEntrypoints.wrapper_other;
+	private static _wrapper_other(_func: any) {
+		return BaseEntrypoints._wrapper_other;
 	}
 
-	private testWrapper() {
+	private _testWrapper() {
 		let name = "test";
-		Entrypoints.add(name, BaseEntrypoints.tmp);
+		Entrypoints.add(name, BaseEntrypoints._tmp);
 
-		let eps = Entrypoints.get(BaseEntrypoints.wrapper_const);
-		this.assert_not_undefined(eps[name]);
-		this.assert_eq(eps[name], BaseEntrypoints.tmp);
+		let eps = Entrypoints.get(BaseEntrypoints._wrapper_const);
+		this._assert_not_undefined(eps[name]);
+		this._assert_eq(eps[name], BaseEntrypoints._tmp);
 
-		let eps2 = Entrypoints.get(BaseEntrypoints.wrapper_other);
-		this.assert_eq(eps2[name], BaseEntrypoints.wrapper_other);
+		let eps2 = Entrypoints.get(BaseEntrypoints._wrapper_other);
+		this._assert_eq(eps2[name], BaseEntrypoints._wrapper_other);
 	}
 
-	private testDuplicates() {
-		Entrypoints.add("test2", BaseEntrypoints.tmp);
-		this.assert_error(function() { Entrypoints.add("test", BaseEntrypoints.tmp); });
+	private _testDuplicates() {
+		Entrypoints.add("test2", BaseEntrypoints._tmp);
+		this._assert_error(function() { Entrypoints.add("test", BaseEntrypoints._tmp); });
 	}
 }
 export let testClass = BaseEntrypoints;

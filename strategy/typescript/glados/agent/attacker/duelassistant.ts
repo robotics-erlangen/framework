@@ -21,7 +21,7 @@ export class DuelAssistant extends Behavior {
 		this._lastTrue = undefined;
 	}
 
-	private rateRobot(sender: FriendlyRobot): number {
+	private _rateRobot(sender: FriendlyRobot): number {
 		let distanceToDuelRobot = this._robot.pos.distanceTo(sender.pos);
 		let distanceToOwnGoal = World.Geometry.FriendlyGoal.distanceTo(this._robot.pos);
 		let distanceBallToOwnGoal = World.Geometry.FriendlyGoal.distanceTo(World.Ball.pos);
@@ -59,7 +59,7 @@ export class DuelAssistant extends Behavior {
 				this._lastTrue = undefined;
 				return undefined;
 			}
-			let rating = this.rateRobot(duellingRobot);
+			let rating = this._rateRobot(duellingRobot);
 			let ratingArg: Rating.LeveledRating = new Rating.LeveledRating(MessageType.duelAssistant);
 			ratingArg.setRating(0, rating);
 			this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [MessageType.duelAssistant, ratingArg]);

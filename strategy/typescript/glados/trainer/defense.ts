@@ -99,7 +99,7 @@ export class Defense {
 	}
 
 	private _lastManmarkOrder: Map<number, Robot> = new Map();
-	private nextManmarkAssignment(defenders: FriendlyRobot[], counter: number): [Robot, FriendlyRobot] | undefined {
+	private _nextManmarkAssignment(defenders: FriendlyRobot[], counter: number): [Robot, FriendlyRobot] | undefined {
 		if (defenders.length === 0) {
 			return undefined;
 		}
@@ -171,7 +171,7 @@ export class Defense {
 	private _assignManmarkDefenders(defenders: FriendlyRobot[], nReservedDefenders: number) {
 		let counter = 0;
 		while (defenders.length - nReservedDefenders > 0) {
-			let assignment = this.nextManmarkAssignment(defenders, counter);
+			let assignment = this._nextManmarkAssignment(defenders, counter);
 			if (assignment == undefined) {
 				break;
 			}
@@ -417,7 +417,7 @@ export class Defense {
 		}
 	}
 
-	public _assignDefenders(): void {
+	public assignDefenders(): void {
 		this._previousManmarkAssignments = new Map(this._manmarkAssignments);
 		this._previousPiggyAssignments = new Map(this._piggyAssignments);
 		this._manmarkAssignments = new Map();

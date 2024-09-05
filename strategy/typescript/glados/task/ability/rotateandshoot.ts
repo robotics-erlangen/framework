@@ -17,7 +17,7 @@ export class RotateAndShoot {
 		this._robot = task.behavior().agent().robot();
 	}
 
-	public _rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {
+	public rotateAndShoot(destAngle: number, customPos: Position = World.Ball.pos) {
 		if (this._startTime == undefined) {
 			this._startTime = World.Time;
 		}

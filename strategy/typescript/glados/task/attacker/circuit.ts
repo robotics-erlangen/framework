@@ -38,7 +38,7 @@ export class Circuit extends Task {
 		this._robot.trajectory.update(ToTarget, pos, dir);
 
 		if (this._passPos) {
-			this._suggestPass._suggestPassRobotPosition(this._passPos, undefined, undefined, this._anonym);
+			this._suggestPass.suggestPassRobotPosition(this._passPos, undefined, undefined, this._anonym);
 		}
 	}
 }

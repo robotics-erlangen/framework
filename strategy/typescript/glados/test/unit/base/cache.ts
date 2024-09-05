@@ -5,16 +5,16 @@ import { UnitTest } from "glados/test/unit/unittest";
 export class BaseCache extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("different arguments", this.testDifferentArguments);
-		this.addTest("undefined parameters", this.testUndefinedParameters);
-		this.addTest("parameters", this.testParameters);
-		this.addTest("side effects", this.testSideEffects);
-		this.addTest("heavy", this.testHeavy);
-		this.addTest("forever", this.testForever);
-		this.addTest("function name", this.testFunctionName);
+		this._addTest("different arguments", this._testDifferentArguments);
+		this._addTest("undefined parameters", this._testUndefinedParameters);
+		this._addTest("parameters", this._testParameters);
+		this._addTest("side effects", this._testSideEffects);
+		this._addTest("heavy", this._testHeavy);
+		this._addTest("forever", this._testForever);
+		this._addTest("function name", this._testFunctionName);
 	}
 
-	private testFunctionName() {
+	private _testFunctionName() {
 		function bar() {
 			return 4;
 		}
@@ -24,11 +24,11 @@ export class BaseCache extends UnitTest {
 		let cachedBar = Cache.forFrame(bar);
 		let cachedFoo = Cache.forFrame(foo);
 
-		this.assert_eq(bar.name, cachedBar.name);
-		this.assert_eq(foo.name, cachedFoo.name);
+		this._assert_eq(bar.name, cachedBar.name);
+		this._assert_eq(foo.name, cachedFoo.name);
 	}
 
-	private testDifferentArguments() {
+	private _testDifferentArguments() {
 		function foo(a: number, b: number, c: number) {
 			return a * (b + c);
 		}
@@ -36,10 +36,10 @@ export class BaseCache extends UnitTest {
 
 		let a = cached(1, 2, 3);
 		let b = cached(2, 3, 4);
-		this.assert_ne(a, b);
+		this._assert_ne(a, b);
 	}
 
-	private testUndefinedParameters() {
+	private _testUndefinedParameters() {
 		function bar() {
 			return 4;
 		}
@@ -51,13 +51,13 @@ export class BaseCache extends UnitTest {
 		let c = cached(undefined, 7);
 		// equal to a
 		let d = cached(undefined, undefined, undefined);
-		this.assert_eq(a, 4);
-		this.assert_eq(b, 4);
-		this.assert_eq(c, 4);
-		this.assert_eq(d, 4);
+		this._assert_eq(a, 4);
+		this._assert_eq(b, 4);
+		this._assert_eq(c, 4);
+		this._assert_eq(d, 4);
 	}
 
-	private testParameters() {
+	private _testParameters() {
 		function echo(...args: any[]) {
 			return args;
 		}
@@ -67,13 +67,13 @@ export class BaseCache extends UnitTest {
 		let b = cached("bla");
 		let c = cached(undefined, 7);
 		let d = cached(undefined, undefined, undefined, 5);
-		this.assert_deep_eq(a, []);
-		this.assert_deep_eq(b, ["bla"]);
-		this.assert_deep_eq(c, [undefined, 7]);
-		this.assert_deep_eq(d, [undefined, undefined, undefined, 5]);
+		this._assert_deep_eq(a, []);
+		this._assert_deep_eq(b, ["bla"]);
+		this._assert_deep_eq(c, [undefined, 7]);
+		this._assert_deep_eq(d, [undefined, undefined, undefined, 5]);
 	}
 
-	private testSideEffects() {
+	private _testSideEffects() {
 		let side = 0;
 		function sideEffect() {
 			side = side + 1;
@@ -84,15 +84,15 @@ export class BaseCache extends UnitTest {
 		let before = side;
 		cached();
 		let after = side;
-		this.assert_eq(before, after);
+		this._assert_eq(before, after);
 
 		Cache.resetFrame();
 		cached();
 		let afterReset = side;
-		this.assert_eq(after + 1, afterReset);
+		this._assert_eq(after + 1, afterReset);
 	}
 
-	private testHeavy() {
+	private _testHeavy() {
 		function heavy() {
 			let a = 0;
 			for (let i = 0; i < 1000000; i++) {
@@ -105,10 +105,10 @@ export class BaseCache extends UnitTest {
 		for (let i = 0; i < 100000; i++) {
 			cached();
 		}
-		this.assert_true(true);
+		this._assert_true(true);
 	}
 
-	private testForever() {
+	private _testForever() {
 		let side = 0;
 		function sideEffect() {
 			side = side + 1;
@@ -120,13 +120,13 @@ export class BaseCache extends UnitTest {
 		let mid = side;
 		cached();
 		let after = side;
-		this.assert_eq(before + 1, mid);
-		this.assert_eq(mid, after);
+		this._assert_eq(before + 1, mid);
+		this._assert_eq(mid, after);
 
 		Cache.resetFrame();
 		cached();
 		let afterReset = side;
-		this.assert_eq(after, afterReset);
+		this._assert_eq(after, afterReset);
 	}
 }
 export let testClass = BaseCache;

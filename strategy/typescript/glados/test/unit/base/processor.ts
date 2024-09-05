@@ -18,51 +18,51 @@ class SpyProcess implements Process {
 export class BaseProcessor extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("correct pre and post", this.testCorrectPreAndPost);
-		this.addTest("finished process", this.testFinishedProcess);
+		this._addTest("correct pre and post", this._testCorrectPreAndPost);
+		this._addTest("finished process", this._testFinishedProcess);
 	}
 
-	private testCorrectPreAndPost() {
+	private _testCorrectPreAndPost() {
 		let preInstance = new SpyProcess();
 		let postInstance = new SpyProcess();
 		Processor.addPre(preInstance);
-		this.assert_eq(preInstance.counter, 0);
+		this._assert_eq(preInstance.counter, 0);
 		Processor.pre();
-		this.assert_eq(preInstance.counter, 1);
-		this.assert_eq(postInstance.counter, 0);
+		this._assert_eq(preInstance.counter, 1);
+		this._assert_eq(postInstance.counter, 0);
 		Processor.post();
-		this.assert_eq(preInstance.counter, 1);
-		this.assert_eq(postInstance.counter, 0);
+		this._assert_eq(preInstance.counter, 1);
+		this._assert_eq(postInstance.counter, 0);
 		Processor.addPost(postInstance);
-		this.assert_eq(preInstance.counter, 1);
-		this.assert_eq(postInstance.counter, 0);
+		this._assert_eq(preInstance.counter, 1);
+		this._assert_eq(postInstance.counter, 0);
 		Processor.pre();
-		this.assert_eq(preInstance.counter, 2);
-		this.assert_eq(postInstance.counter, 0);
+		this._assert_eq(preInstance.counter, 2);
+		this._assert_eq(postInstance.counter, 0);
 		Processor.post();
-		this.assert_eq(preInstance.counter, 2);
-		this.assert_eq(postInstance.counter, 1);
+		this._assert_eq(preInstance.counter, 2);
+		this._assert_eq(postInstance.counter, 1);
 	}
 
-	private testFinishedProcess() {
+	private _testFinishedProcess() {
 		let instance = new SpyProcess();
 		Processor.addPre(instance);
-		this.assert_eq(instance.counter, 0);
+		this._assert_eq(instance.counter, 0);
 		Processor.pre();
-		this.assert_eq(instance.counter, 1);
+		this._assert_eq(instance.counter, 1);
 		instance.finished = true;
 		Processor.pre();
-		this.assert_eq(instance.counter, 2);
+		this._assert_eq(instance.counter, 2);
 		// check that process is removed
 		Processor.pre();
-		this.assert_eq(instance.counter, 2);
+		this._assert_eq(instance.counter, 2);
 
 		// an already finished process is run exactly once
 		Processor.addPre(instance);
 		Processor.pre();
-		this.assert_eq(instance.counter, 3);
+		this._assert_eq(instance.counter, 3);
 		Processor.pre();
-		this.assert_eq(instance.counter, 3);
+		this._assert_eq(instance.counter, 3);
 	}
 }
 export let testClass = BaseProcessor;

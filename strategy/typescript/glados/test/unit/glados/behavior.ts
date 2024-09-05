@@ -37,7 +37,7 @@ class TestBehavior extends Behavior {
 		return this;
 	}
 
-	public _updateTask() {
+	protected _updateTask() {
 		return undefined!;
 	}
 }
@@ -45,33 +45,33 @@ class TestBehavior extends Behavior {
 export class GladosBehavior extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("test_Behavior_agent", this.test_Behavior_agent);
-		this.addTest("test_CheckableList_check", this.test_CheckableList_check);
-		this.addTest("test_CheckableList_agent", this.test_CheckableList_agent);
+		this._addTest("test_Behavior_agent", this._test_Behavior_agent);
+		this._addTest("test_CheckableList_check", this._test_CheckableList_check);
+		this._addTest("test_CheckableList_agent", this._test_CheckableList_agent);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	private test_Behavior_agent() {
+	private _test_Behavior_agent() {
 		const robot = { tag: "A" };
 		const agentOne = mockAgent("A", robot);
 		const agentTwo = mockAgent("B", robot);
 
 		const behavior = new TestBehavior(agentOne);
-		this.assert_eq(behavior.agent(), agentOne);
+		this._assert_eq(behavior.agent(), agentOne);
 		behavior.setAgent(agentTwo);
-		this.assert_eq(behavior.agent(), agentTwo);
+		this._assert_eq(behavior.agent(), agentTwo);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	private test_CheckableList_check() {
+	private _test_CheckableList_check() {
 		const CHECKABLE_A = mockCheckable("A", false);
 		const CHECKABLE_B = mockCheckable("B", true);
 		const list = new CheckableList(mockAgent("check"), [CHECKABLE_A, CHECKABLE_B]);
-		this.assert_true(list.check() instanceof CHECKABLE_B);
+		this._assert_true(list.check() instanceof CHECKABLE_B);
 	}
 
 	// eslint-disable-next-line @typescript-eslint/naming-convention
-	private test_CheckableList_agent() {
+	private _test_CheckableList_agent() {
 		const CHECKABLE_A = mockCheckable("A", true);
 
 		const agentOne = mockAgent("A");
@@ -79,13 +79,13 @@ export class GladosBehavior extends UnitTest {
 
 		const list = new CheckableList(agentOne, [CHECKABLE_A]);
 
-		this.assert_eq(list.agent(), agentOne);
-		this.assert_eq(list.check()!.agent(), agentOne);
+		this._assert_eq(list.agent(), agentOne);
+		this._assert_eq(list.check()!.agent(), agentOne);
 
 		list.setAgent(agentTwo);
 
-		this.assert_eq(list.agent(), agentTwo);
-		this.assert_eq(list.check()!.agent(), agentTwo);
+		this._assert_eq(list.agent(), agentTwo);
+		this._assert_eq(list.check()!.agent(), agentTwo);
 	}
 }
 

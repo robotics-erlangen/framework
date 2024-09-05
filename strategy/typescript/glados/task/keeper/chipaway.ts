@@ -23,7 +23,7 @@ export class ChipAway extends Task {
 		// chip to opponent's defense line, so that the ball would roll into the goal's center
 		let oppGoal = World.Geometry.OpponentGoal;
 		let chipPos = oppGoal + (this._robot.pos - oppGoal).withLength(World.Geometry.DefenseHeight);
-		this._shoot._chipToPos(chipPos);
+		this._shoot.chipToPos(chipPos);
 		vis.addCircle("t/chipaway: target", chipPos, 0.05, vis.colors.orangeHalf, true);
 	}
 }

@@ -536,7 +536,7 @@ export class Messaging {
 		 * @param data - The message data
 		 */
 		public send<M extends Send>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
-			this.sendGeneric(type, dest, data, false);
+			this._sendGeneric(type, dest, data, false);
 		}
 
 		/**
@@ -547,7 +547,7 @@ export class Messaging {
 		 * @param data - The message data
 		 */
 		public sendRepeated<M extends SendRepeated>(type: M, dest: FriendlyRobot, data: DataOf<M>): void {
-			this.sendGeneric(type, dest, data, true);
+			this._sendGeneric(type, dest, data, true);
 		}
 
 		/**
@@ -557,7 +557,7 @@ export class Messaging {
 		 * @param data - The message data
 		 */
 		public sendToTrainer<M extends SendToTrainer>(type: M, data: DataOf<M>): void {
-			this.sendGeneric(type, "trainer", data, false);
+			this._sendGeneric(type, "trainer", data, false);
 		}
 
 		/**
@@ -567,7 +567,7 @@ export class Messaging {
 		 * @param data - The message data
 		 */
 		public sendToTrainerRepeated<M extends SendToTrainerRepeated>(type: M, data: DataOf<M>): void {
-			this.sendGeneric(type, "trainer", data, true);
+			this._sendGeneric(type, "trainer", data, true);
 		}
 
 		/**
@@ -598,11 +598,11 @@ export class Messaging {
 		public sendBroadcast<M extends SendBroadcast | SendBroadcastNoData>(type: M, data: DataOf<M>, impersonation?: MessageOrigin): void {
 			if (type === MessageType.plannedAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid PAttackTime");
 			if (type === MessageType.earliestAttackTime && (data === -Infinity || data === Infinity)) throw new Error("Invalid EAttackTime");
-			this.sendGeneric(type, "all", data, false, impersonation);
+			this._sendGeneric(type, "all", data, false, impersonation);
 		}
 
 		// for trainer -> trainer and impersonated messages
-		private debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number, impersonation?: MessageOrigin) {
+		private _debugTrainerMessage(type: MessageType, data: any, repeated: boolean, messageCount: number, impersonation?: MessageOrigin) {
 			debug.pushtop("Trainer -> Trainer Inbox");
 
 			const messageName = impersonation && impersonation !== "trainer"
@@ -620,7 +620,7 @@ export class Messaging {
 		}
 
 		// TODO: more specific send methods for the different cases to improve performance
-		private sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
+		private _sendGeneric<M extends MessageType>(type: M, receiver: "all" | "trainer" | FriendlyRobot, data: DataOf<M>, repeated: boolean, impersonation?: MessageOrigin) {
 			if (impersonation !== undefined && this._origin !== "trainer") {
 				throw new Error("Only the trainer is allowed to impersonate agents");
 			}
@@ -664,7 +664,7 @@ export class Messaging {
 			// debug messages from the trainer to itself directly, since they can be immediately received
 			if (impersonation !== undefined
 				|| (receiver === "trainer" && this._origin === "trainer")) {
-				this.debugTrainerMessage(type, data, repeated, messageCount, impersonation);
+				this._debugTrainerMessage(type, data, repeated, messageCount, impersonation);
 			}
 		}
 

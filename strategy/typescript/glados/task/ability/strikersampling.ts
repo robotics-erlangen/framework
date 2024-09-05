@@ -51,7 +51,7 @@ export class StrikerSampling implements Sampling {
 	}
 
 
-	private canReachInTime(ballPos: Position): number {
+	private _canReachInTime(ballPos: Position): number {
 		if (!this._mainAttacker) {
 			return 1;
 		}
@@ -64,23 +64,23 @@ export class StrikerSampling implements Sampling {
 		let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5);
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("canReachInTime", ballPos, rating);
+			visualizeRating("_canReachInTime", ballPos, rating);
 		}
 
 		return rating;
 	}
 
-	private passTooShort(ballPos: Position): number {
+	private _passTooShort(ballPos: Position): number {
 		let rating = Rating.valueToRating(ballPos.distanceTo(this._attackPosition), 3, 5);
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("passTooShort", ballPos, rating);
+			visualizeRating("_passTooShort", ballPos, rating);
 		}
 
 		return rating;
 	}
 
-	private volleyPass(ballPos: Position): number {
+	private _volleyPass(ballPos: Position): number {
 		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
 			return 1;
 		}
@@ -91,19 +91,19 @@ export class StrikerSampling implements Sampling {
 		let rating = volleySuccessProbability * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("volleyPass", ballPos, rating);
+			visualizeRating("_volleyPass", ballPos, rating);
 		}
 
 		return rating;
 	}
 
-	private goalAngle(ballPos: Position): number {
+	private _goalAngle(ballPos: Position): number {
 		let minRating = 0.0;
 		let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos);
 		let rating = Rating.valueToRating(angle, 0, geom.degreeToRadian(20)) * (1 - minRating) + minRating;
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("goalAngle", ballPos, rating);
+			visualizeRating("_goalAngle", ballPos, rating);
 		}
 		return rating;
 	}
@@ -119,43 +119,43 @@ export class StrikerSampling implements Sampling {
 	// 	return rating
 	// end
 
-	private crossPass(ballPos: Position): number {
+	private _crossPass(ballPos: Position): number {
 		let angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal).absoluteAngleDiff(
 			this._attackPosition - World.Geometry.OpponentGoal);
 		let rating = Rating.valueToRating(angleAttackGoalBall, 0, Math.PI * 0.5);
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("crossPass", ballPos, rating);
+			visualizeRating("_crossPass", ballPos, rating);
 		}
 
 		return rating * 0.5 + 0.5;
 	}
 
-	private distToGoal(ballPos: Position): number {
+	private _distToGoal(ballPos: Position): number {
 		let minRating = World.Ball.speed.length() < 1 ? 0.3 : 0.1;
 
-		let distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal);
+		let _distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal);
 		let minDist = World.Geometry.DefenseHeight + 0.7;
-		let ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist);
-		let ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist);
+		let ratingBase = Rating.valueToRating(_distToGoal, World.Geometry.FieldHeight * 0.7, minDist);
+		let ratingBonus = Rating.valueToRating(_distToGoal, minDist + 2, minDist);
 		let rating = 0.2 * ratingBase + 0.8 * ratingBonus;
 
 		// rating demerit for steep passes, as these often miss due to volley inaccuracy
 		if (G.DefenseWidth != undefined && Math.abs(ballPos.x) > G.DefenseWidth / 2
 				&& World.Ball.pos.y > 1.5 * G.DefenseHeight) {
 			let demeritWeight = 0.3;
-			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth / 2, minDist * 1.2);
+			let distanceRatingDemerit = Rating.valueToRating(_distToGoal, G.DefenseWidth / 2, minDist * 1.2);
 			rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit;
 		}
 
 		if (!amun.isPerformanceMode && VISUALIZE_SAMPLING) {
-			visualizeRating("distToGoal", ballPos, rating);
+			visualizeRating("_distToGoal", ballPos, rating);
 		}
 
 		return rating * (1 - minRating) + minRating;
 	}
 
-	private volleyCircle(ballPos: Position): number {
+	private _volleyCircle(ballPos: Position): number {
 		// the smaller the radius is, the more positions are viable for volley
 
 		let minRating = 0.6;
@@ -169,37 +169,37 @@ export class StrikerSampling implements Sampling {
 	public evalLocation(ballPos: Position, bestScore: number): number {
 		let score = 1;
 
-		score *= this.distToGoal(ballPos);
+		score *= this._distToGoal(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.crossPass(ballPos);
+		score *= this._crossPass(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.goalAngle(ballPos);
+		score *= this._goalAngle(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.volleyCircle(ballPos);
+		score *= this._volleyCircle(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.passTooShort(ballPos);
+		score *= this._passTooShort(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.volleyPass(ballPos);
+		score *= this._volleyPass(ballPos);
 		if (score < bestScore) {
 			return score;
 		}
 
-		score *= this.canReachInTime(ballPos);
+		score *= this._canReachInTime(ballPos);
 
 		visualizeRating("total", ballPos, score);
 

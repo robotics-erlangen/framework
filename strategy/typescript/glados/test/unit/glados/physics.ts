@@ -10,11 +10,11 @@ import { UnitTest } from "glados/test/unit/unittest";
 export class GladosPhysics extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("not modifying", this.notModifying);
-		this.addTest("ball model matching", this.ballModelMatching);
+		this._addTest("not modifying", this._notModifying);
+		this._addTest("ball model matching", this._ballModelMatching);
 	}
 
-	private getDummyBall(flying: boolean = false) {
+	private _getDummyBall(flying: boolean = false) {
 		if (flying) {
 			return Object.freeze({
 				pos: Object.freeze(new Vector(2, 1)),
@@ -39,7 +39,7 @@ export class GladosPhysics extends UnitTest {
 	}
 
 	// a joint test of physics functions and base/robot:shootSpeed
-	private ballModelMatching() {
+	private _ballModelMatching() {
 
 		for (let distance of [0, 0.1, 0.5, 1, 2, 5, 10]) {
 			for (let endSpeed of [0, 0.1, 0.5, 1, 2, 5]) {
@@ -66,14 +66,14 @@ export class GladosPhysics extends UnitTest {
 				const rollTime = Physics.ballRollTime(ball, distance);
 				const ballAtEnd = Physics.ballAtTime(ball, rollTime);
 
-				this.assert_eq_eps(endSpeed, ballAtEnd.speed.x, 0.01);
+				this._assert_eq_eps(endSpeed, ballAtEnd.speed.x, 0.01);
 			}
 		}
 	}
 
-	private notModifying() {
+	private _notModifying() {
 		// checks if any of the functions modify the ball they are given
-		let ball = this.getDummyBall(false);
+		let ball = this._getDummyBall(false);
 		Physics.ballSwitchParameters(ball);
 		Physics.ballAtTime(ball, 2);
 		Physics.ballAtTimeExperimental(ball, 2);
@@ -86,7 +86,7 @@ export class GladosPhysics extends UnitTest {
 		Physics.ballLandPos(ball);
 
 
-		ball = this.getDummyBall(true);
+		ball = this._getDummyBall(true);
 		Physics.ballSwitchParameters(ball);
 		Physics.ballAtTime(ball, 2);
 		Physics.ballAtTimeExperimental(ball, 2);

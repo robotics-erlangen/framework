@@ -16,6 +16,6 @@ export class Wallkick extends Task {
 	}
 
 	public run() {
-		this._wallkick._wallkick(false);
+		this._wallkick.wallkick(false);
 	}
 }

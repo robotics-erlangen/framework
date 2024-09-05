@@ -50,7 +50,7 @@ export class FeintPass extends Behavior {
 		this._nextAttackPosition = undefined;
 	}
 
-	private getFeintPosition(sender: FriendlyRobot | undefined, passInfoTable: ReadonlyRec<PassInfo[]>,
+	private _getFeintPosition(sender: FriendlyRobot | undefined, passInfoTable: ReadonlyRec<PassInfo[]>,
 			attackPosition: Position, plannedAttackTime: number | undefined, zone: Zone): [PassInfo | undefined, Position | undefined] {
 		let relevantPassInfoMessage = undefined;
 		let bestTime = Infinity;
@@ -204,7 +204,7 @@ export class FeintPass extends Behavior {
 
 			// If we are planning a pass
 			if (passPlanned) {
-				let [passInfo, feintPos] = this.getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime, zone);
+				let [passInfo, feintPos] = this._getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime, zone);
 
 				debug.set("isReachable", passInfo != undefined);
 
@@ -270,7 +270,7 @@ export class FeintPass extends Behavior {
 						}
 					}
 				// If we can't reach the new pass, but the old one already was shot and we can reach it
-				} else if (wasPassShot && this.checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
+				} else if (wasPassShot && this._checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
 					// Continue feinting the old pass
 					this.applyForMainAttacker(undefined, undefined, 0);
 					if (this._task instanceof FeintPassTask) {
@@ -291,7 +291,7 @@ export class FeintPass extends Behavior {
 				}
 				// We can't reach the new one and the old pass is either dead or unreachable ---> do something else
 			// We aren't planning a pass, but our old pass was already shot and we can reach it
-			} else if (wasPassShot && this.checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
+			} else if (wasPassShot && this._checkIsOldPassUnreachable(lastFeintPassTarget.feintPos)) {
 				// Continue feinting the old pass
 				this.applyForMainAttacker(undefined, undefined, 0);
 
@@ -328,7 +328,7 @@ export class FeintPass extends Behavior {
 
 		// We aren't already doing a feint but a pass is being planned
 		} else if (passPlanned) {
-			let [passInfo, feintPos] = this.getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime!, zone);
+			let [passInfo, feintPos] = this._getFeintPosition(sender, passInfoTable!, attackPosition, plannedAttackTime!, zone);
 			debug.set("newPassReachable", passInfo !== undefined);
 			// if the new pass is reachable and is not ours to accept
 			if (passInfo !== undefined && feintPos !== undefined && passInfo.target !== this._robot) {
@@ -376,7 +376,7 @@ export class FeintPass extends Behavior {
 
 	// needs feintPos as parameter since this._task.feintPos can be undefined, so this way the method can only be called in situations where
 	// feintPos is guaranteed to be defined
-	private checkIsOldPassUnreachable(feintPos: Position): boolean {
+	private _checkIsOldPassUnreachable(feintPos: Position): boolean {
 		let ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(feintPos));
 		let dummyEvacuatePos = feintPos + (feintPos - this._robot.pos).withLength(2 * this._robot.radius);
 		let robotTime = Math.min(

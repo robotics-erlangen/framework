@@ -6,11 +6,11 @@ import { isInZone } from "glados/util/zone";
 export class Zone extends UnitTest {
 	public constructor() {
 		super();
-		this.addTest("testInZone", this.testInZone);
-		this.addTest("testInZoneBoundary", this.testInZoneBoundary);
+		this._addTest("_testInZone", this._testInZone);
+		this._addTest("_testInZoneBoundary", this._testInZoneBoundary);
 	}
 
-	private testInZone() {
+	private _testInZone() {
 		const zone = {
 			boundaries: {
 				left: -2,
@@ -21,17 +21,17 @@ export class Zone extends UnitTest {
 			defaultPos: new Vector(0, 0)
 		};
 		const pos = new Vector(0, 0);
-		this.assert_true(isInZone(pos, zone));
+		this._assert_true(isInZone(pos, zone));
 
 		// edges are in the zone
 		const borderPos = new Vector(-2, -1);
-		this.assert_true(isInZone(borderPos, zone));
+		this._assert_true(isInZone(borderPos, zone));
 
 		const outPos = new Vector(-2.05, -1);
-		this.assert_false(isInZone(outPos, zone));
+		this._assert_false(isInZone(outPos, zone));
 	}
 
-	private testInZoneBoundary() {
+	private _testInZoneBoundary() {
 		const zone = {
 			boundaries: {
 				left: -2,
@@ -42,8 +42,8 @@ export class Zone extends UnitTest {
 			defaultPos: new Vector(0, 0)
 		};
 		const pos = new Vector(-2.05, 0);
-		this.assert_false(isInZone(pos, zone));
-		this.assert_true(isInZone(pos, zone, 0.05));
+		this._assert_false(isInZone(pos, zone));
+		this._assert_true(isInZone(pos, zone, 0.05));
 	}
 }
 

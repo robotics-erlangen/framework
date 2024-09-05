@@ -33,7 +33,7 @@ export class Trainer {
 
 	public run() {
 		this._debugInbox("Trainer Inbox");
-		this._roles._chooseExclusiveRoles();
-		this._groups._runGroups();
+		this._roles.chooseExclusiveRoles();
+		this._groups.runGroups();
 	}
 }

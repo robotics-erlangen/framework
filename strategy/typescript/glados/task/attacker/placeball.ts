@@ -275,7 +275,7 @@ export class PlaceBall extends Task {
 				break;
 			}
 			case State.WALLKICK: {
-				this._wallkick._wallkick(this._restartWallkick);
+				this._wallkick.wallkick(this._restartWallkick);
 
 				break;
 
