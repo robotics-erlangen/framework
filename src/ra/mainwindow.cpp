@@ -344,6 +344,19 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
         addAction(action);
     }
 
+    // populate 'Widgets' tab (QMenu class) with all QDockWidgets and QToolBars
+    QList<QDockWidget*> dockWidgets = findChildren<QDockWidget*>();
+    for (QDockWidget* dockWidget : dockWidgets) {
+        QAction* toggleAction = dockWidget->toggleViewAction();
+        ui->menuWidgets->addAction(toggleAction);
+    }
+    ui->menuWidgets->addSeparator();
+    QList<QToolBar*> toolBar = findChildren<QToolBar*>();
+    for (QToolBar* tool : toolBar) {
+        QAction* toggleAction = tool->toggleViewAction();
+        ui->menuWidgets->addAction(toggleAction);
+    }
+
     addAction(ui->actionGoLive);
     addAction(ui->actionFrameBack);
     addAction(ui->actionFrameForward);
