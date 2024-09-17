@@ -391,7 +391,7 @@
   </widget>
   <widget class="QToolBar" name="toolBarInfo">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Metainformation</string>
    </property>
    <attribute name="toolBarArea">
     <enum>TopToolBarArea</enum>
