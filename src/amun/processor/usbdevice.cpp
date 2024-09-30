@@ -20,6 +20,7 @@
 
 #include "usbdevice.h"
 #include "usbthread.h"
+#include <atomic>
 #include <libusb.h>
 #include <QThread>
 #include <QMutexLocker>

@@ -28,6 +28,8 @@
 #include <QByteArray>
 #include <QObject>
 #include <QString>
+#include <memory>
+#include <optional>
 
 class Timer;
 class USBDevice;
@@ -38,7 +40,7 @@ class Transceiver2015 : public TransceiverLayer
 {
     Q_OBJECT
 
-private:
+protected:
     enum class State {
         DISCONNECTED,
         HANDSHAKE,
@@ -46,29 +48,22 @@ private:
     };
 
 public:
-    enum class Kind {
-        Actual2015,
-        HBC_Primary,
-        HBC_Secondary,
-    };
-public:
-    static int numDevicesPresent(Kind);
+    [[nodiscard]] static std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<TransceiverError>> tryOpen(USBThread * context, const Timer *timer, QObject *parent);
 
     Transceiver2015(const Transceiver2015&) = delete;
     Transceiver2015& operator=(const Transceiver2015&) = delete;
 
-    explicit Transceiver2015(USBThread *, Kind, const Timer *timer, QObject *parent = nullptr);
     ~Transceiver2015() override;
 
     bool isOpen() const final {
-        return m_device && m_connectionState == State::CONNECTED;
+        return m_connectionState == State::CONNECTED;
     }
 
     void newCycle() final { m_packet.resize(0); }
 
-    bool open(int which) final;
+    static bool openDevice();
 
-    void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) final;
+    void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) override;
 
     void addPingPacket(qint64 time) final;
     void addStatusPacket() final;
@@ -81,27 +76,30 @@ public slots:
 private slots:
     void onReadyRead();
 
-private:
-    bool write(const QByteArray &packet);
-    void close();
+protected:
+    explicit Transceiver2015(USBDevice *, const Timer *timer, QString debugName);
+    [[nodiscard]] std::optional<TransceiverError> read();
+    [[nodiscard]] std::optional<TransceiverError> sendInitPacket();
 
-    void handleInitPacket(const char *data, uint size);
+private:
+    [[nodiscard]] std::optional<TransceiverError> write(const QByteArray &packet);
+
+    [[nodiscard]] std::optional<TransceiverError> handleInitPacket(const char *data, uint size);
     void handlePingPacket(const char *data, uint size);
     void handleStatusPacket(const char *data, uint size);
     void handleDatagramPacket(const char *data, uint size);
 
-    void sendInitPacket();
-    void sendTransceiverConfiguration();
+    [[nodiscard]] std::optional<TransceiverError> sendTransceiverConfiguration();
+
+signals:
+    void connectionSucceeded();
+
+protected:
+    USBDevice *m_device = nullptr;
+    State m_connectionState = State::DISCONNECTED;
 
 private:
-    /** Both Transceiver2015 and HBC use the same command protocol with
-     * different Vendor and Product IDs
-     */
-    Kind m_kind;
-
-    State m_connectionState = State::DISCONNECTED;
     USBThread *m_context = nullptr;
-    USBDevice *m_device = nullptr;
     const Timer *m_timer = nullptr;
 
     amun::TransceiverConfiguration m_configuration;

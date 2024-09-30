@@ -27,18 +27,25 @@
 
 namespace Radio { class Address; }
 
+struct TransceiverError {
+    QString m_deviceName;
+    QString m_errorMessage;
+    qint64 m_restartDelayInNs = 0;
+};
+
+// IMPORTANT: constructed TransceiverLayer objects are expected to be completely initialized.
+// If it is unfeasable to handle the initialization in the constructor then handle this in a
+// factory of some kind and set the constructor to be private/protected.
 class TransceiverLayer : public QObject {
     Q_OBJECT
 public:
     TransceiverLayer(QObject *parent = nullptr)
         : QObject(parent) {}
-    virtual ~TransceiverLayer() = default;
+    virtual ~TransceiverLayer() {};
 
     virtual bool isOpen() const = 0;
 
     virtual void newCycle() = 0;
-
-    virtual bool open(int which) = 0;
 
     virtual void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) = 0;
 

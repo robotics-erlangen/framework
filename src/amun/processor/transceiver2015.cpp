@@ -26,11 +26,14 @@
 #include "firmware-interface/transceiver2012.h"
 #include "firmware-interface/radiocommand2014.h"
 #include "radio_address.h"
+#include "transceiverlayer.h"
 #include "usbdevice.h"
 #include "usbthread.h"
 #include <QByteArray>
 #include <QString>
 #include <libusb.h>
+#include <QEventLoop>
+#include <QTimer>
 
 using namespace Radio;
 
@@ -44,152 +47,85 @@ const int PROTOCOL_VERSION = 5;
 constexpr qint16 TRANSCEIVER2015_VENDOR_ID  = 0x03eb;
 constexpr qint16 TRANSCEIVER2015_PRODUCT_ID = 0x6127;
 
-constexpr qint16 HBC_VENDOR_ID  = 0x09fb;
-constexpr qint16 HBC_PRODUCT_ID_PRIMARY = 0x0de2;
-constexpr qint16 HBC_PRODUCT_ID_SECONDARY = 0x0ee2;
-
-constexpr qint16 vidForKind(Transceiver2015::Kind kind) {
-    switch (kind) {
-        case Transceiver2015::Kind::Actual2015:
-            return TRANSCEIVER2015_VENDOR_ID;
-        case Transceiver2015::Kind::HBC_Primary:
-        case Transceiver2015::Kind::HBC_Secondary:
-            return HBC_VENDOR_ID;
-    }
-}
-
-constexpr qint16 pidForKind(Transceiver2015::Kind kind) {
-    switch (kind) {
-        case Transceiver2015::Kind::Actual2015:
-            return TRANSCEIVER2015_PRODUCT_ID;
-        case Transceiver2015::Kind::HBC_Primary:
-            return HBC_PRODUCT_ID_PRIMARY;
-        case Transceiver2015::Kind::HBC_Secondary:
-            return HBC_PRODUCT_ID_SECONDARY;
-    }
-}
-
-int Transceiver2015::numDevicesPresent(Kind kind)
+std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<TransceiverError>> Transceiver2015::tryOpen(USBThread * context, const Timer *timer, QObject *parent)
 {
+    std::vector<std::unique_ptr<TransceiverLayer>> transceivers;
+    std::vector<TransceiverError> errors;
 #ifdef USB_FOUND
-    qint16 vid = vidForKind(kind);
-    qint16 pid = pidForKind(kind);
+    const auto baseName = QString {"T15"};
 
-    libusb_init(nullptr);
+    QList<USBDevice*> devices = USBDevice::getDevices(TRANSCEIVER2015_VENDOR_ID, TRANSCEIVER2015_PRODUCT_ID, context);
+    for (size_t which = 0; !devices.isEmpty(); ++which) {
+        USBDevice *device = devices.takeFirst();
 
-    libusb_device** deviceList = nullptr;
-    const int n = libusb_get_device_list(nullptr, &deviceList);
-    const int num_found = std::count_if(deviceList, deviceList + n, [vid, pid](libusb_device *device) -> bool {
-        libusb_device_descriptor descriptor;
-        // always succeeds if libusb version >= 1.0.16
-        libusb_get_device_descriptor(device, &descriptor);
-        return descriptor.idVendor == vid
-            && descriptor.idProduct == pid;
-    });
-    libusb_free_device_list(deviceList, true);
+        const auto name = QString { "T15%1" }
+            .arg(which);
 
-    return num_found;
+        // can't be make_unique, because the constructor is private, which means make_unique can't call it
+        auto transceiver = std::unique_ptr<Transceiver2015>(new Transceiver2015(device, timer, name));
+
+        connect(transceiver.get(), SIGNAL(sendStatus(Status)), parent, SIGNAL(sendStatus(Status)));
+        connect(transceiver.get(), SIGNAL(errorOccurred(QString, QString, qint64)), parent, SLOT(transceiverErrorOccurred(QString, QString, qint64)));
+        connect(transceiver.get(), SIGNAL(sendRawRadioResponses(qint64, QList<QByteArray>)), parent, SLOT(onRawRadioResponse(qint64, QList<QByteArray>)));
+        // TODO We should keep a per device timeout
+        connect(transceiver.get(), SIGNAL(deviceResponded(QString)), parent, SLOT(transceiverResponded(QString)));
+
+        // try to open the communication channel
+        if (!transceiver->m_device->open(QIODevice::ReadWrite)) {
+            errors.emplace_back(name, device->errorString());
+            continue;
+        }
+
+        transceiver->sendInitPacket();
+        QEventLoop loop;
+        connect(transceiver.get(), &Transceiver2015::connectionSucceeded, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
+        QTimer timer;
+        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
+        timer.setSingleShot(true);
+        timer.start(100);
+        loop.exec();
+
+        // only add transceiver if it is connected after handshake
+        if (transceiver->isOpen()) {
+            transceivers.push_back(std::move(transceiver));
+        } else {
+            errors.emplace_back(name, "Handshake timed out!");
+        }
+    }
+    // devices should be empty now, but just in case delete the rest of the list
+    qDeleteAll(devices);
+
+    if (transceivers.size() > 1) {
+        errors.emplace_back(baseName, "More than one T15 is untested!");
+        transceivers.clear();
+    }
+
 #else
-    return 0;
+    errors.emplace_back("T2015|HBC", "Compiled without libusb support!");
 #endif // USB_FOUND
+    return {std::move(transceivers), std::move(errors)};
 }
 
-Transceiver2015::Transceiver2015(USBThread *context, Kind kind, const Timer *timer, QObject *parent) :
-    TransceiverLayer(parent),
-    m_kind(kind),
-    m_context(context),
-    m_timer(timer)
+Transceiver2015::Transceiver2015(USBDevice *device, const Timer *timer, QString debugName) :
+    TransceiverLayer(),
+    m_device(device),
+    m_timer(timer),
+    m_debugName(debugName)
 {
     // default channel
     m_configuration.set_channel(10);
+    connect(m_device, &USBDevice::readyRead, this, &Transceiver2015::onReadyRead);
 }
 
 Transceiver2015::~Transceiver2015()
 {
-    close();
-}
-
-bool Transceiver2015::open(int which)
-{
 #ifdef USB_FOUND
-    close();
-
-    // HACK THIS IS NOT HOW IT IS SUPPOSED TO BE
-    if (m_kind == Kind::HBC_Secondary) {
-        which = 0;
-    }
-
-    QList<USBDevice*> devices = USBDevice::getDevices(vidForKind(m_kind), pidForKind(m_kind), m_context);
-    if (devices.isEmpty()) {
-        emit errorOccurred(m_debugName, "Device not found");
-        return false;
-    }
-
-    if (which >= devices.size()) {
-        emit errorOccurred(m_debugName, "Trying to select out of bounds receiver");
-        return false;
-    }
-
-    USBDevice *device = devices.takeAt(which);
-    qDeleteAll(devices);
-
-    m_device = device;
-    connect(m_device, &USBDevice::readyRead, this, &Transceiver2015::onReadyRead);
-
-    // try to open the communication channel
-    if (!m_device->open(QIODevice::ReadWrite)) {
-        // TODO Should we close here?
-        emit errorOccurred(m_debugName, m_device->errorString());
-        return false;
-    }
-
-    m_which = which;
-    QString name;
-    switch (m_kind) {
-        case Kind::Actual2015:
-            name = "T15";
-            break;
-        case Kind::HBC_Primary:
-            name = "HBCPrim";
-            break;
-        case Kind::HBC_Secondary:
-            name = "HBCSec";
-            break;
-    };
-
-    m_debugName = QString { "%1%2" }
-        .arg(name)
-        .arg(m_which);
-
-    // publish transceiver status
-    Status status(new amun::Status);
-    status->mutable_transceiver()->set_active(true);
-    status->mutable_transceiver()->set_name(m_debugName.toStdString());
-    status->mutable_transceiver()->set_error("Handshake");
-    emit sendStatus(status);
-
-    // send protocol handshake
-    // the transceiver should return the highest supported version <= hostConfig->protocolVersion
-    // if the version is higher/less than supported by the host, then the connection will fail
-    m_connectionState = State::HANDSHAKE;
-    sendInitPacket();
-
-    return true;
-#else
-    emit errorOccurred("T2015|HBC", "Compiled without libusb support!");
-
-    return false;
-#endif // USB_FOUND
+    delete m_device;
+#endif
 }
 
 void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
 {
-    // the HBC transceivers can only send to one half of the ids of the robots, so it does not make sense to send commands for all 16 to
-    // every single one of them
-    if ((m_kind == Kind::HBC_Primary && target.unicastTarget() > 7) || (m_kind == Kind::HBC_Secondary && target.unicastTarget() < 8)) {
-        return;
-    }
-
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SEND_NRF24;
     senderCommand.size = len + sizeof(TransceiverSendNRF24Packet);
@@ -280,10 +216,16 @@ void Transceiver2015::handleCommand(const Command &command)
 void Transceiver2015::onReadyRead()
 {
 #ifdef USB_FOUND
-    if (!m_device) {
-        return;
+    const auto readError = read();
+    if (readError.has_value()) {
+        emit errorOccurred(readError->m_deviceName, readError->m_errorMessage, readError->m_restartDelayInNs);
     }
+#endif // USB_FOUND
+}
 
+std::optional<TransceiverError> Transceiver2015::read()
+{
+#ifdef USB_FOUND
     const int maxSize = 512;
     char buffer[maxSize];
     QList<QByteArray> rawResponses;
@@ -292,8 +234,7 @@ void Transceiver2015::onReadyRead()
     // read until no further data is available
     const int size = m_device->read(buffer, maxSize);
     if (size == -1) {
-        emit errorOccurred(m_debugName, m_device->errorString());
-        return;
+        return TransceiverError(m_debugName, m_device->errorString());
     }
 
     const qint64 receiveTime = m_timer->currentTime();
@@ -314,9 +255,15 @@ void Transceiver2015::onReadyRead()
         pos += sizeof(TransceiverResponsePacket);
         // handle command
         switch (header->command) {
-        case COMMAND_INIT_REPLY:
-            handleInitPacket(&buffer[pos], header->size);
-            break;
+        case COMMAND_INIT_REPLY: {
+                const auto result = handleInitPacket(&buffer[pos], header->size);
+                if (result.has_value()) {
+                    return result;
+                } else {
+                    emit connectionSucceeded();
+                }
+                break;
+            }
         case COMMAND_PING_REPLY:
             handlePingPacket(&buffer[pos], header->size);
             break;
@@ -336,52 +283,34 @@ void Transceiver2015::onReadyRead()
 
     emit sendRawRadioResponses(receiveTime, rawResponses);
 #endif // USB_FOUND
+    return {};
 }
 
-bool Transceiver2015::write(const QByteArray &packet)
+std::optional<TransceiverError> Transceiver2015::write(const QByteArray &packet)
 {
 #ifdef USB_FOUND
-    if (!m_device) {
-        return false;
-    }
-
     // close radio link on errors
     // transmission usually either succeeds completely or fails horribly
     // write does not actually guarantee complete delivery!
     if (m_device->write(packet) < 0) {
-        emit errorOccurred(m_debugName, m_device->errorString());
-        return false;
+        return TransceiverError(m_debugName, m_device->errorString());
     }
 #endif // USB_FOUND
-    return true;
+    return {};
 }
 
-void Transceiver2015::close()
-{
-#ifdef USB_FOUND
-    m_which = -1;
-    delete m_device;
-    m_device = nullptr;
-    m_connectionState = State::DISCONNECTED;
-    m_debugName.clear();
-#endif
-}
-
-void Transceiver2015::handleInitPacket(const char *data, uint size)
+std::optional<TransceiverError> Transceiver2015::handleInitPacket(const char *data, uint size)
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
-        emit errorOccurred(m_debugName, "Invalid reply from transceiver", (qint64) 10 * 1000 * 1000 * 1000);
-        return;
+        return TransceiverError(m_debugName, "Invalid reply from transceiver", (qint64) 10 * 1000 * 1000 * 1000);
     }
 
     const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
     if (handshake->protocolVersion < PROTOCOL_VERSION) {
-        emit errorOccurred(m_debugName, "Outdated firmware", (qint64) 10 * 1000 * 1000 * 1000);
-        return;
+        return TransceiverError(m_debugName, "Outdated firmware", (qint64) 10 * 1000 * 1000 * 1000);
     } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
-        emit errorOccurred(m_debugName, "Not yet supported transceiver firmware", (qint64) 10 * 1000 * 1000 * 1000);
-        return;
+        return TransceiverError(m_debugName, "Not yet supported transceiver firmware", (qint64) 10 * 1000 * 1000 * 1000);
     }
 
     m_connectionState = State::CONNECTED;
@@ -393,7 +322,7 @@ void Transceiver2015::handleInitPacket(const char *data, uint size)
     emit sendStatus(status);
 
     // send channel informations
-    sendTransceiverConfiguration();
+    return sendTransceiverConfiguration();
 }
 
 void Transceiver2015::handlePingPacket(const char *data, uint size)
@@ -440,8 +369,20 @@ void Transceiver2015::handleDatagramPacket(const char *data, uint size)
     emit deviceResponded(m_debugName);
 }
 
-void Transceiver2015::sendInitPacket()
+std::optional<TransceiverError> Transceiver2015::sendInitPacket()
 {
+    // publish transceiver status
+    Status status(new amun::Status);
+    status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_name(m_debugName.toStdString());
+    status->mutable_transceiver()->set_error("Handshake");
+    emit sendStatus(status);
+
+    // send protocol handshake
+    // the transceiver should return the highest supported version <= hostConfig->protocolVersion
+    // if the version is higher/less than supported by the host, then the connection will fail
+    m_connectionState = State::HANDSHAKE;
+
     // send init handshake
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_INIT;
@@ -453,10 +394,10 @@ void Transceiver2015::sendInitPacket()
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet);
+    return write(usb_packet);
 }
 
-void Transceiver2015::sendTransceiverConfiguration()
+std::optional<TransceiverError> Transceiver2015::sendTransceiverConfiguration()
 {
     // configure transceiver frequency
     TransceiverCommandPacket senderCommand;
@@ -469,6 +410,6 @@ void Transceiver2015::sendTransceiverConfiguration()
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char *) &config, sizeof(config));
-    write(usb_packet);
+    return write(usb_packet);
 }
 

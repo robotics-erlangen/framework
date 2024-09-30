@@ -23,9 +23,9 @@
 #include "firmware-interface/radiocommand.h"
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommandpasta.h"
-#include "firmware-interface/transceiver2012.h"
 #include "radiosystem.h"
 #include "transceiver2015.h"
+#include "transceiverHBC.h"
 #include "usbdevice.h"
 #include "usbthread.h"
 #include <QByteArray>
@@ -33,7 +33,6 @@
 #include <QTimer>
 #include <algorithm>
 #include <array>
-#include <functional>
 #include <numbers>
 
 using namespace Radio;
@@ -139,10 +138,8 @@ void RadioSystem::handleCommand(const Command &command)
     }
 
     for (const auto &generation : m_transceivers) {
-        for (TransceiverLayer *transceiver : generation) {
-            if (transceiver) {
-                transceiver->handleCommand(command);
-            }
+        for (auto& transceiver : generation) {
+            transceiver->handleCommand(command);
         }
     }
 }
@@ -157,103 +154,39 @@ void RadioSystem::handleTeam(const robot::Team &team)
 
 void RadioSystem::openTransceiver()
 {
-    bool createdNewTransceiver = [this]() -> bool {
-        if (anyTransceiverPresent()) {
-            return false;
-        }
+    m_transceivers = {};
+    auto [transceivers2015, errors2015] = Transceiver2015::tryOpen(m_context, m_timer, this);
+    auto [transceiversHBC, errorsHBC] = TransceiverHBC::tryOpen(m_context, m_timer, this);
 
-        constexpr size_t IndexTransceiver2015 = 0;
-        constexpr size_t IndexHBCPrimary = 1;
-        constexpr size_t IndexHBCSecondary = 2;
-        struct Info {
-            int numPresent;
-            std::function<TransceiverLayer *()> create;
-        } possibleDevices[] = {
-            {
-                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::Actual2015),
-                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::Actual2015, m_timer, this }; } },
-            {
-                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC_Primary),
-                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC_Primary, m_timer, this }; } },
-            {
-                Transceiver2015::numDevicesPresent(Transceiver2015::Kind::HBC_Secondary),
-                [this]() { return new Transceiver2015 { m_context, Transceiver2015::Kind::HBC_Secondary, m_timer, this }; } },
-        };
+    m_transceivers[0] = std::move(transceivers2015);
+    m_transceivers[1] = std::move(transceiversHBC);
 
-        if (std::all_of(
-                std::begin(possibleDevices),
-                std::end(possibleDevices),
-                [](const Info& info) { return info.numPresent == 0; })) {
-            transceiverErrorOccurred(QString{}, "No transceiver found", 0);
-            return false;
-        }
-
-        if (possibleDevices[IndexTransceiver2015].numPresent > 1) {
-            transceiverErrorOccurred(QString{}, "More than one Transceiver 2015 is untested", 0);
-            return false;
-        }
-
-        if (possibleDevices[IndexHBCPrimary].numPresent > 1) {
-            transceiverErrorOccurred(QString{}, "More than one HBC Primary does not make sense.", 0);
-            return false;
-        }
-
-        if (possibleDevices[IndexHBCSecondary].numPresent > 1) {
-            transceiverErrorOccurred(QString{}, "More than one HBC Secondary does not make sense.", 0);
-            return false;
-        }
-
-        if (std::any_of(
-                std::begin(possibleDevices),
-                std::end(possibleDevices),
-                [](const Info& info) { return info.numPresent > 2; })) {
-            transceiverErrorOccurred(QString{}, "More than two transceivers of a kind present", 0);
-            return false;
-        }
-
-        for (int i = 0; i < possibleDevices[IndexTransceiver2015].numPresent; ++i) {
-            m_transceivers[IndexGen2014][i] = possibleDevices[IndexTransceiver2015].create();
-        }
-
-        for (int i = 0; i < possibleDevices[IndexHBCPrimary].numPresent; ++i) {
-            m_transceivers[IndexGenPasta][i] = possibleDevices[IndexHBCPrimary].create();
-        }
-
-        for (int i = 0; i < possibleDevices[IndexHBCSecondary].numPresent; ++i) {
-            m_transceivers[IndexGenPasta][i + possibleDevices[IndexHBCPrimary].numPresent] = possibleDevices[IndexHBCSecondary].create();
-        }
-
-        return anyTransceiverPresent();
-    }();
-
-    if (createdNewTransceiver) {
-        for (const auto &generation : m_transceivers) {
-            for (TransceiverLayer *transceiver : generation) {
-                if (!transceiver) {
-                    continue;
+    const bool foundWorkingTransceiver = anyTransceiverPresent();
+    for (const auto errors : {errors2015, errorsHBC}) {
+        for (const auto error : errors) {
+            if (foundWorkingTransceiver) {
+                Status status { new amun::Status };
+                status->mutable_transceiver()->set_active(false);
+                if (!error.m_deviceName.isNull()) {
+                    status->mutable_transceiver()->set_name(error.m_deviceName.toStdString());
                 }
-
-                connect(transceiver, &TransceiverLayer::sendStatus, this, &RadioSystem::sendStatus);
-                connect(transceiver, &TransceiverLayer::errorOccurred, this, &RadioSystem::transceiverErrorOccurred);
-                connect(transceiver, &TransceiverLayer::sendRawRadioResponses, this, &RadioSystem::onRawRadioResponse);
-                // TODO We should keep a per device timeout
-                connect(transceiver, &TransceiverLayer::deviceResponded, this, &RadioSystem::transceiverResponded);
+                status->mutable_transceiver()->set_error(error.m_errorMessage.toStdString());
+                emit sendStatus(status);
+            } else {
+                transceiverErrorOccurred(error.m_deviceName, error.m_errorMessage, error.m_restartDelayInNs);
             }
         }
     }
 
-    if (callOpenOnAllTransceivers()) {
+    if (foundWorkingTransceiver) {
         m_timeoutTimer->start(500);
+    } else {
+        transceiverErrorOccurred("T2015|HBC", "No devices found!", 0);
     }
 }
 
 void RadioSystem::closeTransceiver()
 {
-    for (const auto& generation : m_transceivers) {
-        for (TransceiverLayer *transceiver : generation) {
-            delete transceiver;
-        }
-    }
     m_transceivers = {};
 
     m_timeoutTimer->stop();
@@ -270,46 +203,19 @@ bool RadioSystem::ensureOpen()
 
 bool RadioSystem::anyTransceiverPresent() const
 {
-    for (const auto& generation : m_transceivers) {
-        for (const TransceiverLayer* transceiver : generation) {
-            if (transceiver) {
-                return true;
-            }
-        }
-    }
-    return false;
+    return std::ranges::any_of(m_transceivers, ([](const auto& transceiversForGen) { return !transceiversForGen.empty(); }));
 }
 
 bool RadioSystem::areAllTransceiversOpen() const
 {
     for (const auto& generation : m_transceivers) {
-        for (TransceiverLayer *transceiver : generation) {
-            if (!transceiver) {
-                continue;
-            }
+        for (const auto& transceiver : generation) {
             if (!transceiver->isOpen()) {
                 return false;
             }
         }
     }
     return true;
-}
-
-bool RadioSystem::callOpenOnAllTransceivers()
-{
-    bool anyPresent = false;
-    bool success = true;
-    for (const auto& generation : m_transceivers) {
-        for (int i = 0; i < generation.size(); ++i) {
-            TransceiverLayer *transceiver = generation[i];
-            if (!transceiver) {
-                continue;
-            }
-            anyPresent = true;
-            success &= transceiver->open(i);
-        }
-    }
-    return anyPresent && success;
 }
 
 void RadioSystem::transceiverErrorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs)
@@ -551,11 +457,7 @@ void RadioSystem::addRobot2014Command(int id, const robot::Command &command, boo
         data.cur_omega = RADIOCOMMAND2014_INVALID_SPEED;
     }
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2014]) {
-        if (!transceiver) {
-            continue;
-        }
-
+    for (const auto& transceiver : m_transceivers[IndexGen2014]) {
         transceiver->addSendCommand(
             Address { Unicast, Generation::Gen2014, id },
             sizeof(RadioResponseHeader) + sizeof(RadioResponse2014),
@@ -585,11 +487,7 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGen2014]) {
-        if (!transceiver) {
-            continue;
-        }
-
+    for (const auto& transceiver : m_transceivers[IndexGen2014]) {
         transceiver->addSendCommand(
             Address { Broadcast, Generation::Gen2014 },
             // Use a expected response size of 1 to add a delay of 240 us to
@@ -681,11 +579,7 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    for (TransceiverLayer *transceiver : m_transceivers[IndexGenPasta]) {
-        if (!transceiver) {
-            continue;
-        }
-
+    for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
         transceiver->addSendCommand(
             Address { Unicast, Generation::GenPasta, id },
             sizeof(RadioResponseHeader) + sizeof(RadioResponsePasta),
@@ -713,10 +607,8 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     m_frameTimes[m_packetCounter] = time;
 
     for (const auto &generation : m_transceivers) {
-        for (TransceiverLayer *transceiver : generation) {
-            if (transceiver) {
-                transceiver->newCycle();
-            }
+        for (auto& transceiver : generation) {
+            transceiver->newCycle();
         }
     }
 
@@ -742,11 +634,7 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     }
 
     for (const auto &generation : m_transceivers) {
-        for (TransceiverLayer *transceiver : generation) {
-            if (!transceiver) {
-                continue;
-            }
-
+        for (auto& transceiver : generation) {
             transceiver->addPingPacket(time);
             if (m_packetCounter == 255) {
                 transceiver->addStatusPacket();

@@ -106,13 +106,12 @@ private:
     qint64 m_processingStart;
     int m_droppedCommands;
 
-    /** TransceiverLayer for two generations, up to two transceivers per
-     * generation at the same time.
+    /** TransceiverLayer for two generations.
      *
      * Thus, the first index is used to select the generation. The second index
      * is used to select one of two transceivers.
      */
-    std::array<std::array<TransceiverLayer *, 2>, 2> m_transceivers {};
+    std::array<std::vector<std::unique_ptr<TransceiverLayer>>, 2> m_transceivers;
 
     USBThread *m_context = nullptr;
 };
