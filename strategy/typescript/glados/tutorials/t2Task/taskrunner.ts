@@ -1,14 +1,18 @@
+/**
+ * This file just creates the entrypoint to run the tutorial.
+ * You shouldn't modify the code in this file.
+ */
+
 import { FriendlyRobot } from "base/robot";
 import { Vector } from "base/vector";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
+import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
-import { TutorialTask } from "glados/tutorials/t2Task/tutorial2";
+import { Tutorial2 } from "glados/tutorials/t2Task/tutorial2";
 
-// This file just creates the entrypoint to run the tutorial. You shouldn't modify the code in this file.
 
-export class Tutorial2 extends Move {
+export class TaskRunner extends Move {
 	public static readonly MIN_ROBOTS: number = 3;
 	public static readonly MAX_ROBOTS: number = 3;
 	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
@@ -47,7 +51,7 @@ export class Tutorial2 extends Move {
 		} else {
 
 			for (let i = 0; i < this._robots.length; i++) {
-				taskAssignments.set(this._robots[i], Assignment.create({ class: TutorialTask, params: [i] }));
+				taskAssignments.set(this._robots[i], Assignment.create({ class: Tutorial2, params: [i] }));
 			}
 		}
 

@@ -1,3 +1,8 @@
+/**
+ * This file just creates the entrypoint to run the tutorial.
+ * You shouldn't modify the code in this file.
+ */
+
 import * as DebugCommands from "base/debugcommands";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";
@@ -7,11 +12,10 @@ import * as World from "base/world";
 import { MessageBox } from "glados/control/messaging";
 import { Assignment, Move, MoveParameters } from "glados/group/move/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
-import { TutorialTask } from "glados/tutorials/t3Ball/tutorial3";
+import { Tutorial3 } from "glados/tutorials/t3Ball/tutorial3";
 
 
 export class BallTeleporter extends Move {
-
 	public static readonly MIN_ROBOTS: number = 1;
 	public static readonly MAX_ROBOTS: number = 1;
 	public static readonly ALLOW_EXTRA_ATTACKERS: boolean = false;
@@ -71,7 +75,7 @@ export class BallTeleporter extends Move {
 
 		} else {
 
-			taskAssignments[this._robots[0]] = Assignment.create({ class: TutorialTask });
+			taskAssignments[this._robots[0]] = Assignment.create({ class: Tutorial3 });
 
 		}
 

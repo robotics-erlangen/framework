@@ -13,8 +13,8 @@ import { Moves as MoveGroup } from "glados/group/moves";
 import { Support as SupportGroup } from "glados/group/support";
 import { Group } from "glados/trainer/groups";
 import { MainTrainer } from "glados/trainer/maintrainer";
-import { Tutorial as Tutorial1 } from "glados/tutorials/t1Move/tutorial";
-import { Tutorial2 } from "glados/tutorials/t2Task/tutentrypoint";
+import { Tutorial1 as Tutorial1 } from "glados/tutorials/t1Move/tutorial1";
+import { TaskRunner as Tutorial2 } from "glados/tutorials/t2Task/taskrunner";
 import { BallTeleporter as Tutorial3 } from "glados/tutorials/t3Ball/ballteleporter";
 
 let coord: MainCoordinator | undefined = undefined;
