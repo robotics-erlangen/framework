@@ -41,6 +41,8 @@ export class BaseHyst extends UnitTest {
 		for (const initialState of [false, true]) {
 			{
 				const hyst = new LessThanHyst(THRESHOLD, HYST, initialState);
+				this._assert_eq(hyst.threshold, THRESHOLD);
+				this._assert_eq(hyst.hyst, HYST);
 				this._assert_eq(hyst.state, initialState);
 				this._testHystSequence(
 					hyst,
@@ -50,6 +52,8 @@ export class BaseHyst extends UnitTest {
 			}
 			{
 				const hyst = LessThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
+				this._assert_eq(hyst.threshold, THRESHOLD);
+				this._assert_eq(hyst.hyst, HYST);
 				this._assert_eq(hyst.state, initialState);
 				this._testHystSequence(
 					hyst,
@@ -60,6 +64,11 @@ export class BaseHyst extends UnitTest {
 		}
 
 		this._assert_error(() => new LessThanHyst(10, -0.4), () => "no error on negative hyst value");
+
+		const hyst = new LessThanHyst(0, HYST);
+		this._assert_eq(hyst.threshold, 0);
+		hyst.threshold = 1;
+		this._assert_eq(hyst.threshold, 1);
 	}
 
 	private _testGreaterThanHyst() {
@@ -83,6 +92,8 @@ export class BaseHyst extends UnitTest {
 		for (const initialState of [false, true]) {
 			{
 				const hyst = new GreaterThanHyst(THRESHOLD, HYST, initialState);
+				this._assert_eq(hyst.threshold, THRESHOLD);
+				this._assert_eq(hyst.hyst, HYST);
 				this._assert_eq(hyst.state, initialState);
 				this._testHystSequence(
 					hyst,
@@ -92,6 +103,8 @@ export class BaseHyst extends UnitTest {
 			}
 			{
 				const hyst = GreaterThanHyst.fromBounds(THRESHOLD - HYST, THRESHOLD + HYST, initialState);
+				this._assert_eq(hyst.threshold, THRESHOLD);
+				this._assert_eq(hyst.hyst, HYST);
 				this._assert_eq(hyst.state, initialState);
 				this._testHystSequence(
 					hyst,
@@ -102,6 +115,12 @@ export class BaseHyst extends UnitTest {
 		}
 
 		this._assert_error(() => new GreaterThanHyst(10, -0.4), () => "no error on negative hyst value");
+
+		const hyst = new GreaterThanHyst(0, HYST);
+		this._assert_eq(hyst.threshold, 0);
+		hyst.threshold = 1;
+		amun.log(hyst);
+		this._assert_eq(hyst.threshold, 1);
 	}
 
 	private _testInIntervalHyst() {
