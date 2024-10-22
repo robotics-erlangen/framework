@@ -86,7 +86,7 @@ export interface Hyst<In, Out> {
  * See the documentation of this module for an example.
  *
  * How this class is intended to be used:
- * Usually, when you want to check if a value is less than some threshold,
+ * Usually, when you want to check if a value is less than some constant threshold,
  * you'd write
  *
  *     if (value < threshold) {
@@ -96,15 +96,26 @@ export interface Hyst<In, Out> {
  * If value is a noisy value (for example, from the vision), this comparison
  * will flicker. To prevent this, we need to add a hysteresis to this comparison:
  *
- *     if (this.belowThreshold.update(value)) {
+ *     if (this._belowThreshold.update(value)) {  // instead of value < threshold
  *         ...
  *     }
  *
  * And in the constructor of the object:
  *
+ *     private _belowThreshold: LessThanHyst;
  *     constructor() {
  *         ...
- *         this.belowThreshold = new LessThanHyst(threshold, HYST);
+ *         this._belowThreshold = new LessThanHyst(threshold, HYST);
+ *     }
+ *
+ * To update the threshold of the comparison, use
+ *
+ *     this._belowThreshold.threshold = newThreshold;
+ *
+ * or, in combination with a call to update:
+ *
+ *     if (this._belowThreshold.update(value, threshold)) {  // instead of value < threshold
+ *         ...
  *     }
  *
  * The choice of HYST depends on multiple factors:
