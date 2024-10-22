@@ -161,6 +161,14 @@ export class LessThanHyst implements Hyst<number, boolean> {
 		return (this._lowerBound + this._upperBound) / 2;
 	}
 
+	public set threshold(threshold: number) {
+		// as hyst is computed from the bounds in the getter,
+		// we need to save that value before modifying the bounds
+		const hyst = this.hyst;
+		this._lowerBound = threshold - hyst;
+		this._upperBound = threshold + hyst;
+	}
+
 	/**
 	 * The hysteresis value defines the size of the transition
 	 * region. In the interval from [threshold - hyst,
@@ -180,7 +188,11 @@ export class LessThanHyst implements Hyst<number, boolean> {
 	 * @param x - The new value
 	 * @returns The new state of the hysteresis
 	 */
-	public update(x: number): boolean {
+	public update(x: number, threshold?: number): boolean {
+		if (threshold !== undefined) {
+			this.threshold = threshold;
+		}
+
 		if (x < this._lowerBound) {
 			this.state = true;
 		}
@@ -265,6 +277,10 @@ export class GreaterThanHyst implements Hyst<number, boolean> {
 	 */
 	public get threshold(): number {
 		return this._lessThan.threshold;
+	}
+
+	public set threshold(threshold: number) {
+		this._lessThan.threshold = threshold;
 	}
 
 	/**
