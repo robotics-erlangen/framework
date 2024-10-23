@@ -64,32 +64,11 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
         // can't be make_unique, because the constructor is private, which means make_unique can't call it
         auto transceiver = std::unique_ptr<Transceiver2015>(new Transceiver2015(device, timer, name));
 
-        connect(transceiver.get(), SIGNAL(sendStatus(Status)), parent, SIGNAL(sendStatus(Status)));
-        connect(transceiver.get(), SIGNAL(errorOccurred(QString, QString, qint64)), parent, SLOT(transceiverErrorOccurred(QString, QString, qint64)));
-        connect(transceiver.get(), SIGNAL(sendRawRadioResponses(qint64, QList<QByteArray>)), parent, SLOT(onRawRadioResponse(qint64, QList<QByteArray>)));
-        // TODO We should keep a per device timeout
-        connect(transceiver.get(), SIGNAL(deviceResponded(QString)), parent, SLOT(transceiverResponded(QString)));
-
-        // try to open the communication channel
-        if (!transceiver->m_device->open(QIODevice::ReadWrite)) {
-            errors.emplace_back(name, device->errorString());
-            continue;
-        }
-
-        transceiver->sendInitPacket();
-        QEventLoop loop;
-        connect(transceiver.get(), &Transceiver2015::connectionSucceeded, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
-        QTimer timer;
-        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
-        timer.setSingleShot(true);
-        timer.start(100);
-        loop.exec();
-
-        // only add transceiver if it is connected after handshake
-        if (transceiver->isOpen()) {
-            transceivers.push_back(std::move(transceiver));
+        const auto transceiverErrors = transceiver->tryConnect(parent);
+        if (transceiverErrors.has_value()) {
+            errors.insert(errors.end(), transceiverErrors.value().begin(), transceiverErrors.value().end());
         } else {
-            errors.emplace_back(name, "Handshake timed out!");
+            transceivers.push_back(std::move(transceiver));
         }
     }
     // devices should be empty now, but just in case delete the rest of the list
@@ -115,6 +94,45 @@ Transceiver2015::Transceiver2015(USBDevice *device, const Timer *timer, QString 
     // default channel
     m_configuration.set_channel(10);
     connect(m_device, &USBDevice::readyRead, this, &Transceiver2015::onReadyRead);
+}
+
+std::optional<std::vector<TransceiverError>> Transceiver2015::tryConnect(QObject* parent)
+{
+    connect(this, SIGNAL(sendStatus(Status)), parent, SIGNAL(sendStatus(Status)));
+    std::vector<TransceiverError> deviceError;
+    const auto gatherErrorConnection = connect(this, &TransceiverLayer::errorOccurred, [&deviceError] (const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs = 0) {
+        deviceError.emplace_back(transceiverName, errorMsg, restartDelayInNs);
+    });
+    connect(this, SIGNAL(sendRawRadioResponses(qint64, QList<QByteArray>)), parent, SLOT(onRawRadioResponse(qint64, QList<QByteArray>)));
+    // TODO We should keep a per device timeout
+    connect(this, SIGNAL(deviceResponded(QString)), parent, SLOT(transceiverResponded(QString)));
+
+    // try to open the communication channel
+    if (!m_device->open(QIODevice::ReadWrite)) {
+        return {{TransceiverError(m_debugName, m_device->errorString())}};
+    }
+
+    sendInitPacket();
+    QEventLoop loop;
+    connect(this, &Transceiver2015::connectionSucceeded, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
+    QTimer timer;
+    connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
+    timer.setSingleShot(true);
+    timer.start(100);
+    loop.exec();
+    QObject::disconnect(gatherErrorConnection);
+
+    // only add transceiver if it is connected after handshake
+    if (!deviceError.empty()) {
+        return deviceError;
+    } else if (!isOpen()) {
+        return {{TransceiverError(m_debugName, "Handshake timed out!")}};
+    } else {
+        // technically we could lose an error that happens between the disconnect above and here,
+        // but it *probably* will never lead to any issues. Hopefully.
+        connect(this, SIGNAL(errorOccurred(QString, QString, qint64)), parent, SLOT(transceiverErrorOccurred(QString, QString, qint64)));
+        return {};
+    }
 }
 
 Transceiver2015::~Transceiver2015()

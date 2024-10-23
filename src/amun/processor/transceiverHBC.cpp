@@ -97,32 +97,11 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
         // can't be make_unique, because the constructor is private, which means make_unique can't call it
         auto transceiver = std::unique_ptr<TransceiverHBC>(new TransceiverHBC(device, timer, name, kind));
 
-        connect(transceiver.get(), SIGNAL(sendStatus(Status)), parent, SIGNAL(sendStatus(Status)));
-        connect(transceiver.get(), SIGNAL(errorOccurred(QString, QString, qint64)), parent, SLOT(transceiverErrorOccurred(QString, QString, qint64)));
-        connect(transceiver.get(), SIGNAL(sendRawRadioResponses(qint64, QList<QByteArray>)), parent, SLOT(onRawRadioResponse(qint64, QList<QByteArray>)));
-        // TODO We should keep a per device timeout
-        connect(transceiver.get(), SIGNAL(deviceResponded(QString)), parent, SLOT(transceiverResponded(QString)));
-
-        // try to open the communication channel
-        if (!transceiver->m_device->open(QIODevice::ReadWrite)) {
-            errors.emplace_back(name, device->errorString());
-            continue;
-        }
-
-        transceiver->sendInitPacket();
-        QEventLoop loop;
-        connect(transceiver.get(), &Transceiver2015::connectionSucceeded, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
-        QTimer timer;
-        connect(&timer, &QTimer::timeout, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
-        timer.setSingleShot(true);
-        timer.start(100);
-        loop.exec();
-
-        // only add transceiver if it is connected after handshake
-        if (transceiver->isOpen()) {
-            transceivers.push_back(std::move(transceiver));
+        const auto transceiverErrors = transceiver->tryConnect(parent);
+        if (transceiverErrors.has_value()) {
+            errors.insert(errors.end(), transceiverErrors.value().begin(), transceiverErrors.value().end());
         } else {
-            errors.emplace_back(name, "Handshake timed out!");
+            transceivers.push_back(std::move(transceiver));
         }
     }
 

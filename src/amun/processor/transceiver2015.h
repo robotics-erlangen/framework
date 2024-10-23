@@ -80,6 +80,7 @@ protected:
     explicit Transceiver2015(USBDevice *, const Timer *timer, QString debugName);
     [[nodiscard]] std::optional<TransceiverError> read();
     [[nodiscard]] std::optional<TransceiverError> sendInitPacket();
+    [[nodiscard]] std::optional<std::vector<TransceiverError>> tryConnect(QObject* parent);
 
 private:
     [[nodiscard]] std::optional<TransceiverError> write(const QByteArray &packet);
