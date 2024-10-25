@@ -76,6 +76,8 @@ RadioSystem::RadioSystem(const Timer *timer) :
 
 RadioSystem::~RadioSystem()
 {
+    // make sure to close all transceiver connections to avoid race conditions with the desctructor of m_context
+    closeTransceiver();
     delete m_context;
 }
 
