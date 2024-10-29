@@ -626,7 +626,7 @@ export const partialAmun: any = {
 				1623746939905473648,
 				1623746939905478148
 			],
-			"system_delay": 30000000,
+			"vision_transmission_delay": 30000000,
 			"world_source": pb.world.WorldSource.INTERNAL_SIMULATION
 		};
 	},

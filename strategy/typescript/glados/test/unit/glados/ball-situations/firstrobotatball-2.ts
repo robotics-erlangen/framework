@@ -262,7 +262,7 @@ export const partialAmun: any = {
 			"vision_frame_times": [
 				1624472363162129000
 			],
-			"system_delay": 30000000,
+			"vision_transmission_delay": 30000000,
 			"world_source": pb.world.WorldSource.EXTERNAL_SIMULATION
 		};
 	},

@@ -64,7 +64,7 @@ export const partialAmun: any = {
 			],
 			"is_simulated": true,
 			"has_vision_data": true,
-			"system_delay": 30000000
+			"vision_transmission_delay": 30000000
 		};
 	},
 

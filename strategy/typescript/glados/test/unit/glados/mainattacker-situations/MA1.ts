@@ -853,7 +853,7 @@ export const partialAmun: any = {
 				1623337449311824911,
 				1623337449311826311
 			],
-			"system_delay": 30000000
+			"vision_transmission_delay": 30000000
 		};
 	},
 
