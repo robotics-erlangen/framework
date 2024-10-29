@@ -122,7 +122,7 @@ message VirtualFieldTransform {
 message CommandTracking {
     optional bool aoi_enabled = 1;
     optional world.TrackingAOI aoi = 2;
-    optional int64 system_delay = 3;
+    optional int64 vision_transmission_delay = 3;
     optional bool reset = 4;
     optional bool enable_virtual_field = 5;
     optional VirtualFieldTransform field_transform = 6;

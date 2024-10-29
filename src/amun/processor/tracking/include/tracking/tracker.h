@@ -89,7 +89,7 @@ private:
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
     CameraInfo * const m_cameraInfo;
 
-    qint64 m_systemDelay;
+    qint64 m_visionTransmissionDelay;
     qint64 m_timeSinceLastReset;
     // used to delay the reset, to avoid accepting invalid vision frames that were sent before reset was triggered
     qint64 m_timeToReset = std::numeric_limits<qint64>::max();

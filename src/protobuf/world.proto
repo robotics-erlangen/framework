@@ -144,7 +144,7 @@ message State {
     // data for tracking replay and vision extraction
     repeated SSL_WrapperPacket vision_frames = 10;
     repeated int64 vision_frame_times = 14;
-    optional int64 system_delay = 15;
+    optional int64 vision_transmission_delay = 15;
     optional int64 radio_command_delay = 18;
     optional WorldSource world_source = 16;
 }

@@ -63,7 +63,7 @@ TEST(CombinedLogWriter, WriteAndReadAgainEquality) {
                 Status status(new amun::Status);
                 status->set_time(i + 1);
                 status->mutable_world_state()->set_time(i);
-                status->mutable_world_state()->set_system_delay(i);
+                status->mutable_world_state()->set_vision_transmission_delay(i);
                 writer.handleStatus(status);
             }
 
@@ -89,7 +89,7 @@ TEST(CombinedLogWriter, WriteAndReadAgainEquality) {
             if (lastTime > 1) {
                 ASSERT_TRUE(status->has_world_state());
                 ASSERT_EQ(status->world_state().time(), status->time() - 1);
-                ASSERT_EQ(status->world_state().system_delay(), status->time() - 1);
+                ASSERT_EQ(status->world_state().vision_transmission_delay(), status->time() - 1);
             }
             lastTime = status->time();
         }

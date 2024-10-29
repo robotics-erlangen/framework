@@ -26,12 +26,11 @@
 #include "protobuf/geometry.h"
 #include "core/fieldtransform.h"
 #include <QDebug>
-#include <iostream>
 #include <limits>
 
 Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_cameraInfo(new CameraInfo),
-    m_systemDelay(0),
+    m_visionTransmissionDelay(0),
     m_timeSinceLastReset(0),
     m_geometryUpdated(false),
     m_hasVisionData(false),
@@ -170,7 +169,7 @@ void Tracker::process(qint64 currentTime)
         }
 
         // time on the field for which the frame was captured as seen by this computers clock
-        const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
+        const qint64 sourceTime = p.time - visionProcessingTime - m_visionTransmissionDelay;
 
         // delayed reset to clear frames older than the reset command
         if (sourceTime > m_timeToReset) {
@@ -300,7 +299,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     world::State *worldState = status->mutable_world_state();
     worldState->set_time(currentTime);
     worldState->set_has_vision_data(m_hasVisionData);
-    worldState->set_system_delay(m_systemDelay);
+    worldState->set_vision_transmission_delay(m_visionTransmissionDelay);
 
     if (!m_robotsOnly) {
         BallTracker *ball = bestBallFilter();
@@ -735,8 +734,8 @@ void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
         m_aoi_y2 = command.aoi().y2();
     }
 
-    if (command.has_system_delay()) {
-        m_systemDelay = command.system_delay();
+    if (command.has_vision_transmission_delay()) {
+        m_visionTransmissionDelay = command.vision_transmission_delay();
     }
 
     // allows resetting by the strategy
