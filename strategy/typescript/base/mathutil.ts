@@ -28,6 +28,7 @@ let min = Math.min;
 let max = Math.max;
 import * as Option from "base/option";
 import { Random } from "base/random";
+import { Vector } from "base/vector";
 
 let amunCopy = amun;
 
@@ -161,7 +162,6 @@ export function round(val: number, digits: number = 0): number {
 	return Math.floor(val * fac + 0.5) / fac;
 }
 
-
 /** Solves a*t + b for t */
 export function solveLin(a: number, b: number): number | undefined {
 	if (a === 0) {
@@ -170,20 +170,11 @@ export function solveLin(a: number, b: number): number | undefined {
 	return -b / a;
 }
 
-
-function sgn(value: number): 1 | -1 {
-	if (value >= 0) {
-		return 1;
-	} else {
-		return -1;
-	}
-}
-
 /**
  * Solves a*t^2 + b*t + c for t
- * @returns The smallest positive solution or largest
+ * @returns All real-number solutions (up to two), sorted
  */
-export function solveSq(a: number, b: number, c: number): [number, number?] | [] {
+export function solveSq(a: number, b: number, c: number): number[] {
 	if (a === 0) {
 		// return Math.solveLin(b, c)
 		if (b === 0) {
@@ -200,7 +191,7 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | []
 		return [-b / (2 * a)];
 	}
 	det = Math.sqrt(det);
-	let t2 = (-b - sgn(b) * det) / (2 * a);
+	let t2 = (-b - (b < 0 ? -1 : 1) * det) / (2 * a);
 	let t1 = c / (a * t2);
 	let minTi = Math.min(t1, t2);
 
@@ -211,6 +202,134 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | []
 		return [t1, t2];
 	} else {
 		return [t2, t1];
+	}
+}
+
+/**
+ * Solves a*t^2 + b*t + c for t
+ * @returns All solutions in the form Vector(re, im) (up to two, deduplicated)
+ */
+export function solveSqComplex(a: number, b: number, c: number): Vector[] {
+	// TODO: Ported from https://github.com/rawify/RootFinder.js under the MIT license (modified)
+	if (Math.abs(a) < 1e-14) {
+		if (Math.abs(b) > 1e-14) {
+			// Linear solution
+			const x = -c / b;
+			return [new Vector(x, 0)];
+		}
+	} else {
+		const D = b * b - 4 * a * c;
+		if (Math.abs(D) < 1e-14) {
+			const x = -b / (2 * a);
+			return [new Vector(x, 0)];
+		} else if (D > 0) {
+			const sqrtD = Math.sqrt(D);
+			const x1 = (-b + sqrtD) / (2 * a);
+			const x2 = (-b - sqrtD) / (2 * a);
+			if (x1 === x2) return [new Vector(x1, 0)];
+			else return [new Vector(x1, 0), new Vector(x2, 0)];
+		} else {
+			const re = -b / (2 * a);
+			const im = Math.sqrt(-D) / (2 * a);
+			if (im === 0) return [new Vector(re, im)];
+			else return [new Vector(re, im), new Vector(re, -im)];
+		}
+	}
+	return [];
+}
+
+/**
+ * Solves a*t^3 + b*t^2 + c*t + d for t
+ * @returns All real-number solutions (up to three, deduplicated)
+ */
+export function solveCub(a: number, b: number, c: number, d: number): number[] {
+	// Solving the equation is already slow enough that the slight speedup from duplicating the code here isn't really worth it
+	let result: number[] = [];
+	for (const complex of solveCubComplex(a, b, c, d)) {
+		if (Math.abs(complex.y) < 1e-14) {
+			result.push(complex.x);
+		}
+	}
+	return result;
+}
+
+/**
+ * Solves a*t^3 + b*t^2 + c*t + d for t
+ * @returns All solutions in the form Vector(re, im) (up to three, deduplicated)
+ */
+export function solveCubComplex(a: number, b: number, c: number, d: number): Vector[] {
+	// TODO: Ported from https://github.com/rawify/RootFinder.js under the MIT license (modified)
+	if (a === 0) {
+		return solveSqComplex(b, c, d);
+	}
+
+	if (d === 0) {
+		let tmp = solveSqComplex(a, b, c);
+		if (!tmp[0].equals(new Vector(0, 0)) && !tmp[1].equals(new Vector(0, 0))) tmp.unshift(new Vector(0, 0));
+		return tmp;
+	}
+
+	// Normalize coefficients
+	const denom = a;
+	a = b / denom;
+	b = c / denom;
+	c = d / denom;
+
+	// Depressed cubic coefficients
+	const roots = [];
+	const p = b - a * a / 3;
+	const q = (2 * a * a * a) / 27 - (a * b) / 3 + c;
+	const D = (q / 2) ** 2 + (p / 3) ** 3;
+
+	if (Math.abs(D) < 1e-14) {
+		if (Math.abs(q) < 1e-14) {
+			// Triple root
+			roots.push(new Vector(-a / 3, 0));
+		} else {
+			// One single and one double root
+			const u = Math.cbrt(-q / 2);
+			const t1 = 2 * u - a / 3;
+			const t2 = -u - a / 3;
+			roots.push(new Vector(t1, 0), new Vector(t2, 0));
+		}
+	} else if (D > 0) {
+		// One real root and two complex conjugate roots
+		const sqrtD = Math.sqrt(D);
+		const u = Math.cbrt(-q / 2 + sqrtD);
+		const v = Math.cbrt(-q / 2 - sqrtD);
+		const t = u + v;
+		const realRoot = t - a / 3;
+		// Real root
+		roots.push(new Vector(realRoot, 0));
+
+		// Complex conjugate roots
+		const realPart = -0.5 * (u + v) - a / 3;
+		const imaginaryPart = (Math.sqrt(3) / 2) * (u - v);
+		roots.push(
+			new Vector(realPart, imaginaryPart),
+			new Vector(realPart, -imaginaryPart)
+		);
+	} else {
+		// Three real roots
+		const r = Math.sqrt(-p / 3);
+		const phi = Math.acos(-q / (2 * r ** 3));
+		for (let k = 0; k < 3; k++) {
+			const angle = (phi + 2 * Math.PI * k) / 3;
+			const t = 2 * r * Math.cos(angle);
+			const x = t - a / 3;
+			roots.push(new Vector(x, 0));
+		}
+	}
+
+	// Deduplicate solutions
+	if (roots[0].equals(roots[1]) && roots[0].equals(roots[2])) {
+		return [roots[0]];
+	} else if (roots[0].equals(roots[1])) {
+		return [roots[1], roots[2]];
+	} else if (roots[0].equals(roots[2])) {
+		return [roots[0], roots[1]];
+	} else {
+		return roots;
 	}
 }
 
@@ -247,4 +366,3 @@ export function variance(array: number[], avg?: number, indexStart: number = 0, 
 	}
 	return variance / (indexEnd - indexStart);
 }
-

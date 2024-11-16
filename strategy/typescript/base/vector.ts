@@ -208,7 +208,8 @@ export class Vector {
 	}
 
 	/**
-	 * Returns a rotated version of this vector
+	 * Returns a rotated version of this vector.
+	 * The rotation is specified relative to the current angle.
 	 * Angles are oriented counterclockwise
 	 * @param angle - angle in radians
 	 */
@@ -323,8 +324,37 @@ export class Vector {
 		return new Vector(x1, x2);
 	}
 
-	public complexMultiplication(other: Vector): Vector {
+	public complexMul(other: Vector): Vector {
 		return new Vector(this.x * other.x - this.y * other.y, this.x * other.y + this.y * other.x);
+	}
+
+	public complexDiv(other: Vector): Vector {
+		if (other.y === 0) {
+			// Divisor is real
+			return new Vector(this.x / other.x, this.y / other.x);
+		}
+
+		if (Math.abs(other.x) < Math.abs(other.y)) {
+			const x = other.x / other.y;
+			const t = other.x * x + other.y;
+
+			return new Vector((this.x * x + this.y) / t, (this.y * x - this.x) / t);
+		} else {
+			const x = other.y / other.x;
+			const t = other.y * x + other.x;
+
+			return new Vector((this.x + this.y * x) / t, (this.y - this.x * x) / t);
+		}
+	}
+
+	public complexPowReal(p: number): Vector {
+		const magnitude = Math.sqrt(this.x * this.x + this.y * this.y);
+		const arg = Math.atan2(this.y, this.x);
+
+		const newMagnitude = Math.pow(magnitude, p);
+		const newArg = arg * p;
+
+		return new Vector(newMagnitude * Math.cos(newArg), newMagnitude * Math.sin(newArg));
 	}
 
 	public insideSector(startVector: Vector, endVector: Vector) {
