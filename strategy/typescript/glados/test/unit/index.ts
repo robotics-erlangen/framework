@@ -38,6 +38,7 @@ let fakeAmunModule = {
 const testPrefix = "glados/test/unit/";
 const tests: { [name: string]: string } = {
 	"BaseBall": `${testPrefix}base/ball`,
+	"BaseBezier": `${testPrefix}base/bezier`,
 	"BaseCache": `${testPrefix}base/cache`,
 	"BaseCoordinates": `${testPrefix}base/coordinates`,
 	"BaseDebug": `${testPrefix}base/debug`,

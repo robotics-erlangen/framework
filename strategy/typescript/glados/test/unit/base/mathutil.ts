@@ -1,4 +1,5 @@
 import * as MathUtil from "base/mathutil";
+import { Vector } from "base/vector";
 
 const EPS = 1E-12;
 
@@ -83,6 +84,8 @@ export class BaseMathUtil extends UnitTest {
 		this._addTest("round", this._testRound);
 		this._addTest("solveLine", this._testSolveLin);
 		this._addTest("solveSq", this._testSolveSq);
+		this._addTest("solveSqComplex", this._testSolveSqComplex);
+		this._addTest("solveCubComplex", this._testSolveCubComplex);
 		this._addTest("sign", this._testSign);
 		this._addTest("average", this._testAverage);
 		this._addTest("variance", this._testVariance);
@@ -190,6 +193,34 @@ export class BaseMathUtil extends UnitTest {
 		[x1, x2] = MathUtil.solveSq(0, 0, 2);
 		this._assert_eq(x1, undefined);
 		this._assert_eq(x2, undefined);
+	}
+
+	private _testSolveSqComplex() {
+		let list = MathUtil.solveSqComplex(1, 2, 2);
+		this._assert_eq(list.length, 2);
+		this._assert_not_undefined(list.find((value) => value.distanceToSq(new Vector(-1, 1)) < 1e-10));
+		this._assert_not_undefined(list.find((value) => value.distanceToSq(new Vector(-1, -1)) < 1e-10));
+
+		list = MathUtil.solveSqComplex(1, 0, 0);
+		this._assert_eq(list.length, 1);
+		this._assert_deep_eq(list[0], new Vector(0, 0));
+
+		this._assert_eq(MathUtil.solveSqComplex(0, 7853, 6)[0].x, MathUtil.solveLin(7853, 6));
+	}
+
+	private _testSolveCubComplex() {
+		let list = MathUtil.solveCubComplex(1, 1, 1, 1);
+		this._assert_eq(list.length, 3);
+		this._assert_not_undefined(list.find((value) => value.distanceToSq(new Vector(-1, 0)) < 1e-10));
+		this._assert_not_undefined(list.find((value) => value.distanceToSq(new Vector(-0, 1)) < 1e-10));
+		this._assert_not_undefined(list.find((value) => value.distanceToSq(new Vector(-0, -1)) < 1e-10));
+
+		list = MathUtil.solveCubComplex(1, 0, 0, 0);
+		this._assert_eq(list.length, 1);
+		this._assert_deep_eq(list[0], new Vector(0, 0));
+
+		this._assert_deep_eq(MathUtil.solveCubComplex(0, 5412, 7853, 6), MathUtil.solveSqComplex(5412, 7853, 6));
+		this._assert_eq(MathUtil.solveCubComplex(0, 0, 76, 324)[0].x, MathUtil.solveLin(76, 324));
 	}
 
 	private _testSign() {

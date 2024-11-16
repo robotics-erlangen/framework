@@ -1,5 +1,6 @@
 // these imports are just so that vs-code thinks the files are imported and works properly
 import "glados/test/unit/base/ball";
+import "glados/test/unit/base/bezier";
 import "glados/test/unit/base/cache";
 import "glados/test/unit/base/coordinates";
 import "glados/test/unit/base/debug";
