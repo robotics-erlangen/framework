@@ -102,6 +102,7 @@ public:
     FieldWidget& operator=(const FieldWidget&) = delete;
 
     void setHorusMode(bool enable);
+    void setCornerBlockCathetusLength(float cornerBlockCathetusLength);
 
 signals:
     void sendCommand(const Command &command);
@@ -298,6 +299,7 @@ private:
     bool m_internalRefereeEnabled = false;
     bool m_enableDragMeasure;
     bool m_flipped;
+    float m_cornerBlockCathetusLength;
 
     SSL_Referee m_referee;
     std::unique_ptr<VirtualFieldConfiguration> m_virtualFieldConfiguration;

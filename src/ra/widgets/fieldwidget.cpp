@@ -427,6 +427,10 @@ void FieldWidget::setHorusMode(bool enable)
     switchScene(enable ? 1 : 0);
 }
 
+void FieldWidget::setCornerBlockCathetusLength(float cornerBlockCathetusLength) {
+    m_cornerBlockCathetusLength = cornerBlockCathetusLength;
+}
+
 void FieldWidget::toggleStrategyVisualizations()
 {
     if (m_isLogplayer) {
@@ -2066,13 +2070,22 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     painter->save();
 
-    QRectF rect1;
-    rect1.setLeft(-geometry.field_width() / 2.0f);
-    rect1.setTop(-geometry.field_height() / 2.0f);
-    rect1.setWidth(geometry.field_width());
-    rect1.setHeight(geometry.field_height());
+    const float fieldWidth = geometry.field_width();
+    const float fieldHeight = geometry.field_height();
+    const float goalWidth = geometry.goal_width();
+    const float goalWallWidth = geometry.goal_wall_width();
+    const float halfFieldWidth = fieldWidth / 2.0f;
+    const float halfFieldHeight = fieldHeight / 2.0f;
+    const float halfGoalWidth = goalWidth / 2.0f;
 
-    const float offset = geometry.boundary_width() + 0.025f;
+    QRectF rect1;
+    rect1.setLeft(-halfFieldWidth);
+    rect1.setTop(-halfFieldHeight);
+    rect1.setWidth(fieldWidth);
+    rect1.setHeight(fieldHeight);
+
+    const float boundaryWidth = geometry.boundary_width();
+    const float offset = boundaryWidth + 0.025f;
     const QRectF rect2 = rect1.adjusted(-offset, -offset, offset, offset);
 
     if (m_actionAntialiasing->isChecked()) {
@@ -2084,6 +2097,30 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     painter->setPen(QPen(Qt::white, 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
     painter->setBrush(QColor(0,60,0));
     painter->drawRect(rect2);
+
+    // corner blocks
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(Qt::white);
+    for (const float xSign : { -1, 1 }) {
+        for (const float ySign : { -1, 1 }) {
+            const float wf = halfFieldWidth + boundaryWidth;
+            const float hf = halfFieldHeight + boundaryWidth;
+            const QPointF corner[] = {
+                QPointF{xSign * wf, ySign * hf},
+                QPointF{xSign * (wf - m_cornerBlockCathetusLength), ySign * hf},
+                QPointF{xSign * wf, ySign * (hf - m_cornerBlockCathetusLength)},
+            };
+            painter->drawConvexPolygon(corner, 3);
+
+            const float wg = halfGoalWidth + goalWallWidth;
+            const QPointF goal[] = {
+                QPointF{xSign * wg, ySign * hf},
+                QPointF{xSign * (wg + m_cornerBlockCathetusLength), ySign * hf},
+                QPointF{xSign * wg, ySign * (hf - m_cornerBlockCathetusLength)},
+            };
+            painter->drawConvexPolygon(goal, 3);
+        }
+    }
 
     painter->setPen(QPen(Qt::white, 0));
     painter->setBrush(Qt::NoBrush);
@@ -2101,8 +2138,8 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     // penalty points
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::white);
-    painter->drawEllipse(QPointF(0, geometry.field_height() / 2.0 - geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
-    painter->drawEllipse(QPointF(0, -geometry.field_height() / 2.0 + geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
+    painter->drawEllipse(QPointF(0, halfFieldHeight - geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
+    painter->drawEllipse(QPointF(0, -halfFieldHeight + geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
 
     painter->restore();
 }

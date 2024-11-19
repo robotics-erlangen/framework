@@ -679,6 +679,7 @@ void MainWindow::simulatorSetupChanged(QAction * action)
 
     // reload the strategies / autoref
     sendCommand(command);
+    ui->field->setCornerBlockCathetusLength(command->simulator().simulator_setup().geometry().corner_block_cathetus_length());
 
     // resend all the information the simulator needs
     ui->robots->resend();
