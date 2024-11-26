@@ -159,6 +159,7 @@ message UiResponse {
     optional string requested_log_uid = 11;
     optional logfile.LogOffer log_offers = 12;
     optional string log_uid_parser_error = 13;
+    optional string log_open_error = 14;
 }
 
 message LoggingInfo {

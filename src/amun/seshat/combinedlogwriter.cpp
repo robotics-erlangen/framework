@@ -29,6 +29,7 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QVector>
+#include <string>
 
 namespace CombinedLogWriterInternal {
     class SignalSource: public QObject {
@@ -316,6 +317,15 @@ void CombinedLogWriter::sendIsLogging(bool log)
     emit sendStatus(s);
 }
 
+void CombinedLogWriter::sendLogFileOpenError(std::string error)
+{
+    Status s = Status::createArena();
+    s->set_time(m_lastTime);
+    amun::UiResponse* response = s->mutable_pure_ui_response();
+    response->set_log_open_error(error);
+    emit sendStatus(s);
+}
+
 void CombinedLogWriter::recordButtonToggled(bool enabled, QString overwriteFilename)
 {
     if (enabled) {
@@ -331,6 +341,7 @@ void CombinedLogWriter::recordButtonToggled(bool enabled, QString overwriteFilen
             m_logFile = nullptr;
             // show in the ui that the recording failed by informing it that the recording finished.
             sendIsLogging(false);
+            sendLogFileOpenError(QString("Failed to create log file %1").arg(filename).toStdString());
             return;
         }
         connect(m_signalSource, SIGNAL(gotStatusForRecording(Status)), m_logFile, SLOT(writeStatus(Status)));

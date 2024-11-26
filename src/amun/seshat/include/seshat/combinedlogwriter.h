@@ -70,6 +70,7 @@ private:
     void recordButtonToggled(bool enabled, QString overwriteFilename);
     void useLogfileLocation(bool enabled);
     void sendIsLogging(bool log);
+    void sendLogFileOpenError(std::string error);
 
 private:
     enum class LogState {

@@ -854,6 +854,10 @@ void MainWindow::handleStatus(const Status &status)
             QMessageBox::critical(this, "Visionlog export error", QString::fromStdString(response.export_visionlog_error()));
         }
 
+        if (response.has_log_open_error()) {
+            QMessageBox::critical(this, "Log error", QString::fromStdString(response.log_open_error()));
+        }
+
         if (response.has_requested_log_uid()) {
             QMessageBox::information(this, "Log UID", QString::fromStdString(response.requested_log_uid()));
         }
