@@ -1,6 +1,6 @@
 /**
  * @module coordinates
- * Functions to convert from global to strategy let coordinates and back.
+ * Functions to convert from global to strategy local coordinates and back.
  * Only use to convert values from or for amun!
  */
 
@@ -44,17 +44,17 @@ interface CoordinatesType {
 	 */
 	toGlobal(num: number): number;
 	/**
-	 * Converts global coordinates from amun to strategy let coordinates
+	 * Converts global coordinates from amun to strategy local coordinates
 	 * @param pos - vector to convert
 	 */
 	toLocal(pos: Vector): Vector;
 	/**
-	 * Converts global coordinates from amun to strategy let coordinates
+	 * Converts global coordinates from amun to strategy local coordinates
 	 * @param pos - vector to convert
 	 */
 	toLocal(pos: Readonly<Vector>): Readonly<Vector>;
 	/**
-	 * Converts global coordinates from amun to strategy let coordinates
+	 * Converts global coordinates from amun to strategy local coordinates
 	 * @param num - angle to convert
 	 */
 	toLocal(num: number): number;
