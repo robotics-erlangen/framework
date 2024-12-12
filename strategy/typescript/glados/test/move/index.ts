@@ -25,6 +25,7 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 import { Circle } from "glados/group/move/victory/circle";
 import { LoadingCenter, LoadingBack } from "glados/group/move/victory/loading";
 import { MovingOwlLogoBack, MovingOwlLogoFull } from "glados/group/move/victory/movinglogo";
+import { DirectSnake, FullScatterSnake, BackScatterSnake } from "glados/group/move/victory/snake";
 /* eslint-enable import/order */
 
 let testMoves: (typeof Move)[] = [
@@ -46,6 +47,9 @@ let victoryMoves: (typeof Move)[] = [
 	LoadingBack,
 	MovingOwlLogoFull,
 	MovingOwlLogoBack,
+	FullScatterSnake,
+	BackScatterSnake,
+	DirectSnake,
 ];
 
 let coord: MainCoordinator | undefined = undefined;
