@@ -4,23 +4,7 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// Constants defining limits for various radio command parameters
-static const uint8_t RADIOCOMMAND2024_DRIBBLER_MAX = 100;
-static const uint8_t RADIOCOMMAND2024_KICK_MAX = 255;
-static const float RADIOCOMMAND2024_LINEAR_MAX = 10;
-static const float RADIOCOMMAND2024_CHIP_MAX = 5;
-static const int16_t RADIOCOMMAND2024_V_MAX = 32767;
-static const int16_t RADIOCOMMAND2024_OMEGA_MAX = 32767;
-static const int16_t RADIOCOMMAND2024_DELTA_V_MAX = 127;
-static const int16_t RADIOCOMMAND2024_DELTA_OMEGA_MAX = 127;
-static const int16_t RADIOCOMMAND2024_INVALID_SPEED = 0x8000;
-
 // =========== Both directions - Start ===========
-
-typedef enum {
-    PACKET_TYPE_SPAM = 0,   // UDP-style packet for normal robot operation
-    PACKET_TYPE_SAFE = 1    // Acknowledged TCP-style packet for one-off packets
-} RadioPacketType2024;
 
 /**
  * @brief Common header for all radio packets.
@@ -28,11 +12,11 @@ typedef enum {
 typedef struct {
     uint8_t counter:6;      // Overflowing packet counter to determine packet loss
     uint8_t acknum:1;       // The seqnum of the last recieved packet
-    RadioPacketType2024 packet_type:1;
-} __attribute__ ((packed)) RadioPacketHeader2024;
+    bool datagram:1;
+} __attribute__ ((packed)) RadioPacketHeader2025;
 
 typedef struct {
-    float kcoupling_val1;
+    /*float kcoupling_val1;
     float kcoupling_val2;
     float kcoupling_val3;
     float kcoupling_val4;
@@ -48,11 +32,12 @@ typedef struct {
     float velocity_coupling_phi;
     uint8_t ir_param;
     float max_accel;
-    float pfusch_faktor;
+    float pfusch_faktor;*/
     float mass_factor;
 } ConfigParams;
 
 // ============ Both directions - End ============
+
 // ======== Command (PC -> Robot) - Start ========
 
 /**
@@ -80,41 +65,33 @@ typedef struct {
     int8_t delta2_v_y;      // Second delta for y velocity in mm/s
     int8_t delta2_omega;    // Second delta for angular velocity in 5 mrad/s
     int8_t time_offset;     // Radiosystem processing delay. Unit: 1/10 ms = 100 microseconds (Only needs 7 bits to contain the max needed range of 10ms)
-} __attribute__ ((packed)) ControlPayload2024;
+} __attribute__ ((packed)) RegularCommandPayload2025;
 
-/**
- * @brief Enumeration of command types that arrive in acknowledged packets.
- */
 typedef enum {
     READ_ID_COMMAND,
     READ_CONFIG_COMMAND,
     WRITE_CONFIG_COMMAND
-} SafeCommandType2024;
+} DatagramCommandType2025;
 
-/**
- * @brief Structure for acknowledged command payload.
- */
 typedef struct {
     uint8_t seqnum:1;                   // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
-    SafeCommandType2024 data_type:7;    // Which union variant is used
+    DatagramCommandType2025 data_type:7;    // Which union variant is used
     union {
         ConfigParams config;
         // PLACEHOLDER: no READ_CONFIG_COMMAND params are here because the cmd contains no data
     } data;
-} __attribute__ ((packed)) SafeCommandPayload2024;
+} __attribute__ ((packed)) DatagramCommandPayload2025;
 
-/**
- * @brief Main structure for radio command. (PC -> Robot)
- */
 typedef struct {
-    RadioPacketHeader2024 header;
+    RadioPacketHeader2025 header;
     union {
-        ControlPayload2024 control_payload;
-        SafeCommandPayload2024 safe_payload;
+        RegularCommandPayload2025 regular;
+        DatagramCommandPayload2025 datagram;
     } payload;
-} RadioCommand2024;
+} RadioCommand2025;
 
 // ========= Command (PC -> Robot) - END ==========
+
 // ======== Response (Robot -> PC) - START ========
 
 /**
@@ -140,37 +117,31 @@ typedef struct {
     int16_t v_x;                    // Sideways velocity in mm/s
     int16_t v_y;                    // Forward velocity in mm/s
     int16_t omega;                  // Angular velocity in mrad/s
-} __attribute__ ((packed)) FeedbackResponsePayload2024;
+} __attribute__ ((packed)) RegularResponsePayload2025;
 
-/**
- * @brief Enumeration of acknowledged response types.
- */
 typedef enum {
     ID_RESPONSE,
     CONFIG_RESPONSE
-} SafeResponseType2024;
+} DatagramResponseType2025;
 
-/**
- * @brief Structure for acknowledged response payload.
- */
 typedef struct {
     uint8_t seqnum:1;                   // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
-    SafeResponseType2024 data_type:7;   // Which union variant to use
+    DatagramResponseType2025 data_type:7;   // Which union variant to use
     union {
         uint8_t id;
         ConfigParams config;
     } data;
-} __attribute__ ((packed)) SafeResponsePayload2024;
+} __attribute__ ((packed)) DatagramResponsePayload2025;
 
 /**
  * @brief Main structure for radio response.
  */
 typedef struct {
-    RadioPacketHeader2024 header;
+    RadioPacketHeader2025 header;
     union {
-        FeedbackResponsePayload2024 feedback_payload;
-        SafeResponsePayload2024 safe_payload;
+        RegularResponsePayload2025 regular;
+        DatagramResponsePayload2025 datagram;
     } payload;
-} RadioResponse2024;
+} RadioResponse2025;
 
 // =========== Response (Robot -> PC) - END ===========
