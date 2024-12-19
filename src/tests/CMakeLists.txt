@@ -27,6 +27,7 @@ add_executable(cpptests
     core/run_out_of_scope.cpp
     core/timeconversion.cpp
     core/coordinates.cpp
+    firmware-interface/radiocommand2025conversion.cpp
     amun/strategy/path/boundingbox.cpp
     amun/strategy/path/alphatimetrajectory.cpp
     amun/strategy/path/linesegment.cpp
@@ -66,6 +67,7 @@ target_link_libraries(cpptests
     amun::simulator
     amun::tracking
     amuncli::testtools
+    firmware::interface
     visionlog
     pthread
     Qt6::Gui

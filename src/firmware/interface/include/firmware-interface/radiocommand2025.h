@@ -40,32 +40,78 @@ typedef struct {
 
 // ======== Command (PC -> Robot) - Start ========
 
+typedef enum {
+    TRAJECTORY_PATH = 0,
+    SPLINE = 1,
+} TrajectoryType2025;
+
+typedef union {
+    struct {
+        int16_t start_pos_x:10;
+        int16_t start_pos_y:10;
+        int16_t start_phi:9;
+
+        int16_t start_vel_x:8;
+        int16_t start_vel_y:8;
+        int16_t start_omega:10;
+
+        int16_t end_pos_x:10;
+        int16_t end_pos_y:10;
+        int16_t end_phi:9;
+
+        int16_t end_vel_x:8;
+        int16_t end_vel_y:8;
+        int16_t end_omega:10;
+
+        int16_t alpha:9;
+        uint16_t t:9;
+
+        uint16_t a_max:8;
+        uint16_t v_max:8;
+    } trajectory_path;
+    struct {
+        int16_t x_a_0:11;
+        int16_t x_a_1:11;
+        int16_t x_a_2:11;
+        int16_t x_a_3:12;
+
+        int16_t y_a_0:11;
+        int16_t y_a_1:11;
+        int16_t y_a_2:11;
+        int16_t y_a_3:12;
+
+        int16_t phi_a_0:11;
+        int16_t phi_a_1:11;
+        int16_t phi_a_2:12;
+        int16_t phi_a_3:14;
+    } __attribute__ ((packed)) spline;
+} Trajectory2025;
+
 /**
  * @brief Structure for robot control commands (without header)
  */
 typedef struct {
-    bool chip:1;            // 0: Flat kick, 1: Chip
-    bool charge:1;          // 0: Discharge kick/chip capacitors, 1: Charge kick/chip capacitors
-    bool force_kick:1;      // 0: Kick on ir detection, 1: Force kick now
-    bool eject_sdcard:1;    // 0: nothing, 1: eject SD card
-    bool standby:1;         // 0: active, 1: standby //! seems useless to me?
-    uint8_t unused:3;
-    int8_t dribbler;        // -100 to 100, percentage of max speed
-    uint8_t shot_power;     // 0: Disable kicker, 1-255: Enable kicker with set power. Conversion from value to shot distance in meters: max_chip_dist=5; max_flat_dist=10; if chip { shot_power / 255 * max_chip_dist } else { shot_power / 255 * max_flat_dist }
-    int16_t obs_v_x;        // Current sideways velocity in mm/s
-    int16_t obs_v_y;        // Current forward velocity in mm/s
-    int16_t obs_omega;      // Current angular velocity in mrad/s
-    int16_t v_x;            // x velocity in mm/s
-    int16_t v_y;            // y velocity in mm/s
-    int16_t omega;          // Angular velocity in mrad/s
-    int8_t delta1_v_x;      // First delta for x velocity in mm/s
-    int8_t delta1_v_y;      // First delta for y velocity in mm/s
-    int8_t delta1_omega;    // First delta for angular velocity in 5 mrad/s
-    int8_t delta2_v_x;      // Second delta for x velocity in mm/s
-    int8_t delta2_v_y;      // Second delta for y velocity in mm/s
-    int8_t delta2_omega;    // Second delta for angular velocity in 5 mrad/s
-    int8_t time_offset;     // Radiosystem processing delay. Unit: 1/10 ms = 100 microseconds (Only needs 7 bits to contain the max needed range of 10ms)
+    // TODO figure out what this does
+    uint8_t time_offset:8;
+
+    bool standby:1;
+    bool eject_sd_card:1;
+    uint8_t unused:6;
+
+    uint8_t shot_power:8;
+    uint8_t dribbler:8;
+    bool force_kick:1;
+    bool is_chip:1;
+    bool charge:1;
+
+    int16_t detection_pos_x:11;
+    int16_t detection_pos_y:11;
+    int16_t detection_phi:9;
+
+    TrajectoryType2025 traj_type:6;
+    Trajectory2025 traj;
 } __attribute__ ((packed)) RegularCommandPayload2025;
+
 
 typedef enum {
     READ_ID_COMMAND,
@@ -94,29 +140,65 @@ typedef struct {
 
 // ======== Response (Robot -> PC) - START ========
 
+typedef struct {
+    bool error:1;
+    bool overheated:1;
+    bool encoder_error:1;
+    uint8_t unused:5;
+} __attribute__ ((packed)) MotorStatusFlags2025;
+
+typedef struct {
+    bool error:1;
+    bool break_beam_error:1;
+    uint8_t unused:6;
+} __attribute__ ((packed)) KickerStatusFlags2025;
+
+typedef struct {
+    bool error:1;
+    uint8_t unused:7;
+} __attribute__ ((packed)) IMUStatusFlags2025;
+
+typedef struct {
+    bool error:1;
+    bool mounted:1;
+    bool full:1;
+    uint8_t unused:5;
+} __attribute__ ((packed)) SDStatusFlags2025;
+
 /**
  * @brief Structure for status response from robot.
  */
 typedef struct {
-    uint8_t ball_detected:1;
-    uint8_t cap_charged:1;
-    uint8_t packet_loss:7;          // Packet loss in percent
-    uint8_t battery:7;              // Battery level in percent
-    // Error state
-    uint8_t motor_1_error:1;
-    uint8_t motor_2_error:1;
-    uint8_t motor_3_error:1;
-    uint8_t motor_4_error:1;
-    uint8_t dribler_error:1;
-    uint8_t kicker_error:1;
-    uint8_t kicker_break_beam_error:1;
-    uint8_t motor_encoder_error:1;
-    uint8_t main_sensor_error:1;
-    uint8_t temperature:7;          // Temperature in degrees Celsius
-    // Measured velocity
-    int16_t v_x;                    // Sideways velocity in mm/s
-    int16_t v_y;                    // Forward velocity in mm/s
-    int16_t omega;                  // Angular velocity in mrad/s
+    uint8_t battery;
+    uint8_t packet_loss;
+
+    MotorStatusFlags2025 motor1_status;
+    MotorStatusFlags2025 motor2_status;
+    MotorStatusFlags2025 motor3_status;
+    MotorStatusFlags2025 motor4_status;
+    MotorStatusFlags2025 dribbler_status;
+    KickerStatusFlags2025 kicker_status;
+    IMUStatusFlags2025 imu_status;
+    SDStatusFlags2025 sd_status;
+
+    uint8_t main_board_id;
+    uint8_t kicker_board_id;
+
+    uint8_t motor1_load_torque;
+    uint8_t motor2_load_torque;
+    uint8_t motor3_load_torque;
+    uint8_t motor4_load_torque;
+    uint8_t dribbler_load_torque;
+
+    uint16_t measured_pos_x:14;
+    uint16_t measured_pos_y:14;
+    uint16_t measured_phi:14;
+    uint16_t measured_vel_x:14;
+    uint16_t measured_vel_y:14;
+    uint16_t measured_omega:14;
+
+    bool power_enabled:1;
+    bool ball_detected:1;
 } __attribute__ ((packed)) RegularResponsePayload2025;
 
 typedef enum {

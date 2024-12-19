@@ -19,16 +19,15 @@
 # ***************************************************************************
 
 add_library(firmware-interface INTERFACE)
-
-target_include_directories(firmware-interface
-    INTERFACE include
-)
 add_library(firmware::interface ALIAS firmware-interface)
 
+target_include_directories(firmware-interface INTERFACE include)
 target_sources(firmware-interface INTERFACE
     ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2025.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2025conversion.h
     ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommandpasta.h
     ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2014.h
     ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand.h
     ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/transceiver2012.h
+    ${CMAKE_CURRENT_LIST_DIR}/radiocommand2025conversion.c
 )

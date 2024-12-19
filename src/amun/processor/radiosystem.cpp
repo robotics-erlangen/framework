@@ -22,6 +22,7 @@
 #include "core/timer.h"
 #include "firmware-interface/radiocommand.h"
 #include "firmware-interface/radiocommand2014.h"
+#include "firmware-interface/radiocommand2025.h"
 #include "firmware-interface/radiocommandpasta.h"
 #include "radiosystem.h"
 #include "transceiverlayer.h"
@@ -44,8 +45,11 @@ using namespace Radio;
 
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet of size 23");
+static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet of size 26");
 static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet of size 10");
+static_assert(sizeof(RadioCommand2025) == 36, "Expected radio command packet of size 36");
+static_assert(sizeof(RadioResponse2025) == 29, "Expected radio response packet of size 29");
+
 
 static Radio::Generation uintToGeneration(uint pbGeneration) {
     switch (pbGeneration) {
