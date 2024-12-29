@@ -47,7 +47,7 @@ static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of 
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
 static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet of size 26");
 static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommand2025) == 36, "Expected radio command packet of size 36");
+static_assert(sizeof(RadioCommand2025) == 28, "Expected radio command packet of size 28");
 static_assert(sizeof(RadioResponse2025) == 29, "Expected radio response packet of size 29");
 
 

@@ -4,19 +4,17 @@
 #include <stdint.h>
 #include <stddef.h>
 
-// =========== Both directions - Start ===========
+#define DATAGRAM_CHUNK_SIZE sizeof(RegularCommandPayload2025) - 1
+#define MAX_CHUNKS_PER_DATAGRAM 20
 
-/**
- * @brief Common header for all radio packets.
+/*
+ * =============
+ * = DATAGRAMS =
+ * =============
  */
-typedef struct {
-    uint8_t counter:6;      // Overflowing packet counter to determine packet loss
-    uint8_t acknum:1;       // The seqnum of the last recieved packet
-    bool datagram:1;
-} __attribute__ ((packed)) RadioPacketHeader2025;
 
 typedef struct {
-    /*float kcoupling_val1;
+    float kcoupling_val1;
     float kcoupling_val2;
     float kcoupling_val3;
     float kcoupling_val4;
@@ -32,11 +30,46 @@ typedef struct {
     float velocity_coupling_phi;
     uint8_t ir_param;
     float max_accel;
-    float pfusch_faktor;*/
+    float pfusch_faktor;
     float mass_factor;
-} ConfigParams;
+} ConfigParamsDatagram;
 
-// ============ Both directions - End ============
+typedef enum {
+    READ_ID_COMMAND,
+    READ_CONFIG_COMMAND,
+    WRITE_CONFIG_COMMAND
+} CommandDatagramType2025;
+
+static uint8_t COMMAND_DATAGRAM_SIZES[3] = {
+    0,                              // READ_ID_COMMAND
+    0,                              // READ_CONFIG_COMMAND
+    sizeof(ConfigParamsDatagram),   // WRITE_CONFIG_COMMAND
+};
+
+typedef enum {
+    ID_RESPONSE,
+    CONFIG_RESPONSE,
+} ResponseDatagramType2025;
+
+static uint8_t RESPONSE_DATAGRAM_SIZES[3] = {
+    sizeof(uint8_t),                // ID_RESPONSE
+    sizeof(ConfigParamsDatagram),   // CONFIG_RESPONSE
+};
+
+/*
+ * ===================
+ * = Normal Protocol =
+ * ===================
+ */
+
+/**
+ * @brief Common header for all radio packets.
+ */
+typedef struct {
+    uint8_t counter:6; // Overflowing packet counter to determine packet loss
+    uint8_t acknum:1; // The seqnum of the last recieved packet
+    bool datagram:1;
+} __attribute__ ((packed)) RadioPacketHeader2025;
 
 // ======== Command (PC -> Robot) - Start ========
 
@@ -68,7 +101,7 @@ typedef union {
 
         uint16_t a_max:8;
         uint16_t v_max:8;
-    } trajectory_path;
+    } __attribute__ ((packed)) trajectory_path;
     struct {
         int16_t x_a_0:11;
         int16_t x_a_1:11;
@@ -92,7 +125,7 @@ typedef union {
  */
 typedef struct {
     // TODO figure out what this does
-    uint8_t time_offset:8;
+    uint8_t time_offset:8; // TODO: 7 bit would be enough
 
     bool standby:1;
     bool eject_sd_card:1;
@@ -112,20 +145,10 @@ typedef struct {
     Trajectory2025 traj;
 } __attribute__ ((packed)) RegularCommandPayload2025;
 
-
-typedef enum {
-    READ_ID_COMMAND,
-    READ_CONFIG_COMMAND,
-    WRITE_CONFIG_COMMAND
-} DatagramCommandType2025;
-
 typedef struct {
-    uint8_t seqnum:1;                   // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
-    DatagramCommandType2025 data_type:7;    // Which union variant is used
-    union {
-        ConfigParams config;
-        // PLACEHOLDER: no READ_CONFIG_COMMAND params are here because the cmd contains no data
-    } data;
+    uint8_t seqnum:1;                           // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
+    CommandDatagramType2025 datatagram_type:7;  // TODO: Comment this
+    uint8_t data_chunk[DATAGRAM_CHUNK_SIZE];
 } __attribute__ ((packed)) DatagramCommandPayload2025;
 
 typedef struct {
@@ -201,18 +224,10 @@ typedef struct {
     bool ball_detected:1;
 } __attribute__ ((packed)) RegularResponsePayload2025;
 
-typedef enum {
-    ID_RESPONSE,
-    CONFIG_RESPONSE
-} DatagramResponseType2025;
-
 typedef struct {
     uint8_t seqnum:1;                   // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
-    DatagramResponseType2025 data_type:7;   // Which union variant to use
-    union {
-        uint8_t id;
-        ConfigParams config;
-    } data;
+    ResponseDatagramType2025 datatagram_type:7; // TODO: Comment this
+    uint8_t data_chunk[DATAGRAM_CHUNK_SIZE];
 } __attribute__ ((packed)) DatagramResponsePayload2025;
 
 /**
