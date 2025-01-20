@@ -96,6 +96,12 @@ message SpeedVector
     optional float omega = 3;
 };
 
+message RobotDetection {
+    optional float x = 1;
+    optional float y = 2;
+    optional float phi = 3;
+};
+
 message Command
 {
     enum KickStyle
@@ -129,6 +135,7 @@ message Command
     optional SpeedVector output0 = 20;
     optional SpeedVector output1 = 21;
     optional SpeedVector output2 = 22;
+    optional RobotDetection last_detection = 26;
 }
 
 message RadioCommand

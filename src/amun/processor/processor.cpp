@@ -27,6 +27,8 @@
 #include "referee.h"
 #include "core/timer.h"
 #include "core/configuration.h"
+#include "core/coordinates.h"
+#include "core/teamedrobotidmap.h"
 #include "gamecontroller/internalgamecontroller.h"
 #include "tracking/latency.h"
 #include "tracking/tracker.h"
@@ -135,6 +137,7 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
     m_gameController(new InternalGameController(timer)),
+    m_lastDetection(robot::RobotDetection{}),
     m_transceiverEnabled(isReplay)
 {
     connect(m_worldParameters.get(), &WorldParameters::cameraUpdated, m_tracker.get(), &Tracker::updateCamera);
@@ -548,6 +551,10 @@ void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, con
         command.set_cur_v_s(localPos.v_s);
         command.set_cur_v_f(localPos.v_f);
         command.set_cur_omega(localPos.omega);
+
+        uint8_t id = currentRadioRobot->id();
+        bool isBlue = radioCommand->is_blue();
+        command.mutable_last_detection()->CopyFrom(m_lastDetection[TeamedRobotID(isBlue, id)]);
     }
 }
 
@@ -582,6 +589,26 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
         m_tracker->queuePacket(detection, time);
         m_speedTracker->queuePacket(detection, time);
         m_simpleTracker->queuePacket(detection, time);
+
+        for (TeamColor color : { YELLOW, BLUE }) {
+            auto &by_id = m_lastDetection[color];
+            const auto &robots = color == YELLOW ? detection.robots_yellow() : detection.robots_blue();
+
+            for (const SSL_DetectionRobot &robot : robots) {
+                if (robot.has_x() && robot.has_y() && robot.has_orientation()) {
+                    robot::RobotDetection &detection = by_id[robot.robot_id()];
+
+                    coordinates::fromVision(robot, detection);
+                    detection.set_phi(coordinates::fromVisionRotation(robot.orientation()));
+
+                    if (color == BLUE) {
+                        detection.set_x(-detection.x());
+                        detection.set_y(-detection.y());
+                        detection.set_phi(detection.phi() + std::numbers::pi);
+                    }
+                }
+            }
+        }
     }
 }
 

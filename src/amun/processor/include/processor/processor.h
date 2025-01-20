@@ -25,6 +25,7 @@
 #include "protobuf/robotcommand.h"
 #include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include "protobuf/status.h"
+#include "core/teamedrobotidmap.h"
 #include <QMap>
 #include <QPair>
 #include <QObject>
@@ -128,6 +129,9 @@ private:
     bool m_lastFlipped;
     InternalGameController *m_gameController;
     QThread *m_gameControllerThread;
+
+    // in team coordinates of the respective team color
+    TeamedRobotIDMap<robot::RobotDetection> m_lastDetection;
 
     /** \brief Dynamic value to add to the statically calculated radio command
      * delay (which models the time it takes for radio commands to reach the
