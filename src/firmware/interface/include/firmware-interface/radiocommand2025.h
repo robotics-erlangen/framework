@@ -62,6 +62,9 @@ static uint8_t RESPONSE_DATAGRAM_SIZES[3] = {
  * ===================
  */
 
+#define HBC_MAX_PACKET_SIZE 29
+
+
 /**
  * @brief Common header for all radio packets.
  */

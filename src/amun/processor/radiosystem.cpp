@@ -24,6 +24,7 @@
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommand2025.h"
 #include "firmware-interface/radiocommandpasta.h"
+#include "firmware-interface/radiocommand2025conversion.h"
 #include "radiosystem.h"
 #include "transceiverlayer.h"
 #include <QByteArray>
@@ -32,6 +33,7 @@
 #include <QtGlobal>
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <numbers>
 
 #ifdef USB_FOUND
@@ -43,12 +45,12 @@
 
 using namespace Radio;
 
-static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
-static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet of size 26");
-static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet of size 10");
-static_assert(sizeof(RadioCommand2025) == 28, "Expected radio command packet of size 28");
-static_assert(sizeof(RadioResponse2025) == 29, "Expected radio response packet of size 29");
+static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command 2014 packet of size 23");
+static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response 2014 packet of size 10");
+static_assert(sizeof(RadioCommandPasta) == 26, "Expected radio command packet pasta of size 26");
+static_assert(sizeof(RadioResponsePasta) == 10, "Expected radio response packet pasta of size 10");
+static_assert(sizeof(RadioCommand2025) <= HBC_MAX_PACKET_SIZE, "Expected radio command packet of size HBC_MAX_PACKET_SIZE");
+static_assert(sizeof(RadioResponse2025) <= HBC_MAX_PACKET_SIZE, "Expected radio response packet of size HBC_MAX_PACKET_SIZE");
 
 
 static Radio::Generation uintToGeneration(uint pbGeneration) {
@@ -617,6 +619,98 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
     }
 }
 
+void RadioSystem::addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
+{
+    // copy command
+    RadioCommand2025 data;
+    data.header.counter = packetCounter;
+    data.header.acknum = 0; // TODO
+    data.header.datagram = false;
+
+    robot::RobotDetection lastDetection = command.last_detection();
+    RadioCommand2025Common common = {
+        // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
+        .time_offset = fminf(2000.0f, processingDelay / 1000.0f), // TODO
+
+        .standby = command.standby(),
+        .eject_sd_card = command.eject_sdcard(),
+
+        .shot_power = command.kick_power(),
+        .dribbler = command.dribbler(),
+        .force_kick = command.force_kick(),
+        .is_chip = command.kick_style() == robot::Command_KickStyle_Chip,
+        .charge = charge,
+
+        .detection = {
+            .x = lastDetection.has_x() ? lastDetection.x() : 0,
+            .y = lastDetection.has_y() ? lastDetection.y() : 0,
+            .angle = lastDetection.has_phi() ? normalizeAngle(lastDetection.phi()) : 0,
+        },
+    };
+    write_common(&common, &data.payload.regular);
+
+    // TODO
+    if (true) {
+        RadioCommand2025TrajectoryPath trajectoryPath = {
+            .start_pos = {
+                .x = 0,
+                .y = 0,
+                .angle = 0,
+            },
+            .start_vel = {
+                .x = 0,
+                .y = 0,
+                .angle = 0,
+            },
+            .end_vel = {
+                .x = 0,
+                .y = 0,
+                .angle = 0,
+            },
+
+            .alpha = 0,
+            .t = 0,
+            .a_max = 0,
+            .v_max = 0,
+        };
+        write_trajectory_path(&trajectoryPath, &data.payload.regular);
+    } else if (command.has_controller() && command.controller().spline_size() > 0) {
+        robot::Spline spline0 = command.controller().spline(0);
+        RadioCommand2025Spline spline = {
+            .a_0 = {
+                .x = spline0.x().a0(),
+                .y = spline0.y().a0(),
+                .angle = spline0.phi().a0(),
+            },
+            .a_1 = {
+                .x = spline0.x().a1(),
+                .y = spline0.y().a1(),
+                .angle = spline0.phi().a1(),
+            },
+            .a_2 {
+                .x = spline0.x().a2(),
+                .y = spline0.y().a2(),
+                .angle = spline0.phi().a2(),
+            },
+            .a_3 {
+                .x = spline0.x().a3(),
+                .y = spline0.y().a3(),
+                .angle = spline0.phi().a3(),
+            },
+        };
+        write_spline(&spline, &data.payload.regular);
+    } else {
+        // TODO panic?
+    }
+
+    for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
+        transceiver->addSendCommand(
+            Address { Unicast, Generation::GenPasta, id },
+            sizeof(RadioCommand2025),
+            reinterpret_cast<const char *>(&data), sizeof(data));
+    }
+}
+
 void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
     if (!anyTransceiverPresent() || !ensureOpen()) {
@@ -657,7 +751,9 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
             if (it.key() == Radio::Generation::Gen2014) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
             } else if (it.key() == Radio::Generation::GenPasta) {
-                addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
+                // TODO
+                //addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
+                addRobot2025Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
             }
         }
     }
