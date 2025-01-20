@@ -552,7 +552,7 @@ static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_
     return nearestRobot;
 }
 
-void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiveTime, qint64 visionProcessingDelay)
+void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, qint64 visionProcessingDelay)
 {
     const qint64 captureTime = frame.t_capture() * 1E9;
     const quint32 cameraId = frame.camera_id();
@@ -561,7 +561,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiv
         return;
     }
 
-    const QList<RobotFilter*> bestRobots = getBestRobots(receiveTime, frame.camera_id());
+    const QList<RobotFilter*> bestRobots = getBestRobots(sourceTime, frame.camera_id());
 
     std::vector<VisionFrame> ballFrames;
     ballFrames.reserve(frame.balls_size());
@@ -581,7 +581,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiv
 
         if (nearCount <= MAX_NEAR_COUNT) {
             const RobotInfo robotInfo = nearestRobotInfo(bestRobots, frame.balls(i));
-            ballFrames.push_back(VisionFrame(frame.balls(i), receiveTime, cameraId, robotInfo, visionProcessingDelay, captureTime));
+            ballFrames.push_back(VisionFrame(frame.balls(i), sourceTime, cameraId, robotInfo, visionProcessingDelay, captureTime));
         }
     }
 
@@ -593,7 +593,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiv
     std::vector<bool> acceptingFilterWithCamId(ballFrames.size(), false);
     std::vector<BallTracker*> acceptingFilterWithOtherCamId(ballFrames.size(), nullptr);
     for (BallTracker *filter : m_ballFilter) {
-        filter->update(receiveTime);
+        filter->update(sourceTime);
 
         // from a given vision packet, each filter can only accept one detection,
         // since it is not possible to see the true ball multiple times
@@ -633,7 +633,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiv
     }
 }
 
-void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId,
+void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId,
                          qint64 visionProcessingDelay, bool teamIsYellow)
 {
     if (!robot.has_robot_id()) {
@@ -657,12 +657,12 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
 
     QList<RobotFilter*>& list = robotMap[robot.robot_id()];
     for (RobotFilter *filter : list) {
-        filter->update(receiveTime);
+        filter->update(sourceTime);
         const float dist = filter->distanceTo(robot);
         if (dist > MAX_DISTANCE) {
             continue;
         }
-        const bool isYoung = receiveTime - filter->lastPrimaryTime() > PRIMARY_TIMEOUT;
+        const bool isYoung = sourceTime - filter->lastPrimaryTime() > PRIMARY_TIMEOUT;
         if (static_cast<qint32>(filter->primaryCamera()) != cameraId && isYoung) {
             continue;
         }
@@ -679,7 +679,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     }
 
     if (!totalClosest) {
-        totalClosest = new RobotFilter(robot, receiveTime, teamIsYellow);
+        totalClosest = new RobotFilter(robot, sourceTime, teamIsYellow);
         list.append(totalClosest);
         nearestFilterByCamera[cameraId] = {totalClosestDist, totalClosest};
     }
@@ -694,7 +694,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
 
     for (const auto &[id, data] : nearestFilterByCamera) {
         RobotFilter *filter = data.second;
-        filter->addVisionFrame(cameraId, robot, receiveTime, visionProcessingDelay, id == cameraId && createOwnCameraFilter);
+        filter->addVisionFrame(cameraId, robot, sourceTime, visionProcessingDelay, id == cameraId && createOwnCameraFilter);
     }
 }
 

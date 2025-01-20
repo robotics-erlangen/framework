@@ -78,8 +78,8 @@ private:
     void invalidateRobots(RobotMap &map, qint64 currentTime);
 
     QList<RobotFilter*> getBestRobots(qint64 currentTime, int desiredCamera);
-    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 receiveTime, qint64 visionProcessingDelay);
-    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay,
+    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, qint64 visionProcessingDelay);
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId, qint64 visionProcessingDelay,
                     bool teamIsYellow);
 
     BallTracker* bestBallFilter();
