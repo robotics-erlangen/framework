@@ -33,6 +33,7 @@ add_library(core STATIC
     include/core/coordinates.h
     include/core/configuration.h
     include/core/sslprotocols.h
+    include/core/teamedrobotidmap.h
 
     fieldtransform.cpp
     rng.cpp
@@ -40,6 +41,7 @@ add_library(core STATIC
     protobuffilesaver.cpp
     protobuffilereader.cpp
     protobufhelper.cpp
+    teamedrobotidmap.cpp
 )
 target_link_libraries(core
     PUBLIC Qt6::Core
