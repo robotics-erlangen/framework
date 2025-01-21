@@ -126,7 +126,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_networkThread->setObjectName("Network Thread");
 
     m_simulatorThread = new QThread(this);
-    m_networkThread->setObjectName("Simulator Thread");
+    m_simulatorThread->setObjectName("Simulator Thread");
     for (int i = 0;i<5;i++) {
         const auto name = [i](){
           switch(i) {
