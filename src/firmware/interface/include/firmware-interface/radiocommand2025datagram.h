@@ -9,6 +9,11 @@
 #define DATAGRAM_CHUNK_SIZE sizeof(RegularCommandPayload2025) - 1
 #define MAX_CHUNKS_PER_DATAGRAM 20
 
+/*
+ * =======================================================================================
+ * = IMPORTANT: Any changes here must also update the datagram sizes array in datagram.c =
+ * =======================================================================================
+ */
 
 typedef struct {
     float kcoupling_val1;
@@ -37,21 +42,10 @@ typedef enum {
     WRITE_CONFIG_COMMAND
 } CommandDatagramType2025;
 
-static uint8_t COMMAND_DATAGRAM_SIZES[3] = {
-    0,                              // READ_ID_COMMAND
-    0,                              // READ_CONFIG_COMMAND
-    sizeof(ConfigParamsDatagram),   // WRITE_CONFIG_COMMAND
-};
-
 typedef enum {
     ID_RESPONSE,
     CONFIG_RESPONSE,
 } ResponseDatagramType2025;
-
-static uint8_t RESPONSE_DATAGRAM_SIZES[3] = {
-    sizeof(uint8_t),                // ID_RESPONSE
-    sizeof(ConfigParamsDatagram),   // CONFIG_RESPONSE
-};
 
 typedef struct {
     uint8_t seqnum:1; // Alternating sequence number. Used to deduplicate packets on the recieving side (Can happen when the ack is lost)
