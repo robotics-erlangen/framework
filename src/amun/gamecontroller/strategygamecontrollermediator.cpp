@@ -32,18 +32,12 @@ StrategyGameControllerMediator::StrategyGameControllerMediator(InternalGameContr
     m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 {
     connect(this, &StrategyGameControllerMediator::gotMessageForInternalGameController, internalGameController, &InternalGameController::handleGameEvent);
-    connect(internalGameController, &InternalGameController::gotControllerReply, this, &StrategyGameControllerMediator::handleInternalGameControllerReply);
 }
 
 StrategyGameControllerMediator::StrategyGameControllerMediator(bool isAutoref) :
     m_isAutoref(isAutoref),
     m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
 { }
-
-void StrategyGameControllerMediator::handleInternalGameControllerReply(const gameController::ControllerReply &reply)
-{
-    m_internalGameControllerReplies.push_back(reply);
-}
 
 void StrategyGameControllerMediator::switchInternalGameController(bool isInternal)
 {
