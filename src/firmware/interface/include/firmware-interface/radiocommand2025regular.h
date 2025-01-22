@@ -5,6 +5,32 @@
 #include <stddef.h>
 
 
+#define POS_BITS 11
+#define VEL_BITS 12
+#define ACC_BITS 13
+#define JERK_BITS 15
+
+#define ANGLE_BITS 9
+#define ANGLE_VEL_BITS 10
+#define ANGLE_ACC_BITS 14
+#define ANGLE_JERK_BITS 17
+
+#define TRAJECTORY_PATH_ALPHA_BITS 13
+#define TRAJECTORY_PATH_T_BITS 15
+
+#define TIME_OFFSET_BITS 8
+
+#define SHOT_POWER_BITS 8
+#define DRIBBLER_BITS 8
+
+#define LOAD_TORQUE_BITS 8
+
+#define MEASURED_POS_BITS 14
+#define MEASURED_VEL_BITS 15
+#define MEASURED_ANGLE_BITS 14
+#define MEASURED_ANGLE_VEL_BITS 14
+
+
 typedef enum {
     TRAJECTORY_PATH = 0,
     SPLINE = 1,
@@ -12,43 +38,39 @@ typedef enum {
 
 typedef union {
     struct {
-        int16_t start_pos_x:10;
-        int16_t start_pos_y:10;
-        int16_t start_phi:9;
+        int16_t start_pos_x:POS_BITS;
+        int16_t start_pos_y:POS_BITS;
+        int16_t start_phi:ANGLE_BITS;
 
-        int16_t start_vel_x:8;
-        int16_t start_vel_y:8;
-        int16_t start_omega:10;
+        int16_t start_vel_x:VEL_BITS;
+        int16_t start_vel_y:VEL_BITS;
+        int16_t start_omega:ANGLE_VEL_BITS;
 
-        int16_t end_pos_x:10;
-        int16_t end_pos_y:10;
-        int16_t end_phi:9;
+        int16_t end_vel_x:VEL_BITS;
+        int16_t end_vel_y:VEL_BITS;
+        int16_t end_omega:ANGLE_VEL_BITS;
 
-        int16_t end_vel_x:8;
-        int16_t end_vel_y:8;
-        int16_t end_omega:10;
+        int16_t alpha:TRAJECTORY_PATH_ALPHA_BITS;
+        uint16_t t:TRAJECTORY_PATH_T_BITS;
 
-        int16_t alpha:9;
-        uint16_t t:9;
-
-        uint16_t a_max:8;
-        uint16_t v_max:8;
+        uint16_t a_max:ACC_BITS;
+        uint16_t v_max:VEL_BITS;
     } __attribute__ ((packed)) trajectory_path;
     struct {
-        int16_t x_a_0:11;
-        int16_t x_a_1:11;
-        int16_t x_a_2:11;
-        int16_t x_a_3:12;
+        int32_t x_a_0:POS_BITS;
+        int32_t x_a_1:VEL_BITS;
+        int32_t x_a_2:ACC_BITS;
+        int32_t x_a_3:JERK_BITS;
 
-        int16_t y_a_0:11;
-        int16_t y_a_1:11;
-        int16_t y_a_2:11;
-        int16_t y_a_3:12;
+        int32_t y_a_0:POS_BITS;
+        int32_t y_a_1:VEL_BITS;
+        int32_t y_a_2:ACC_BITS;
+        int32_t y_a_3:JERK_BITS;
 
-        int16_t phi_a_0:11;
-        int16_t phi_a_1:11;
-        int16_t phi_a_2:12;
-        int16_t phi_a_3:14;
+        int32_t phi_a_0:ANGLE_BITS;
+        int32_t phi_a_1:ANGLE_VEL_BITS;
+        int32_t phi_a_2:ANGLE_ACC_BITS;
+        int32_t phi_a_3:ANGLE_JERK_BITS;
     } __attribute__ ((packed)) spline;
 } Trajectory2025;
 
@@ -56,25 +78,27 @@ typedef union {
  * @brief Structure for robot control commands (without header)
  */
 typedef struct {
-    int8_t time_offset:8; // Radiosystem processing delay. Unit: 1/10 ms = 100 microseconds (Only needs 7 bits to contain the max needed range of 10ms)
+    uint8_t time_offset:TIME_OFFSET_BITS; // Radiosystem processing delay
+
+    uint8_t shot_power:SHOT_POWER_BITS; // 0: Disable kicker, 1-255: Enable kicker with set power. Conversion from value to shot distance in meters: max_chip_dist=5; max_flat_dist=10; if chip { shot_power / 255 * max_chip_dist } else { shot_power / 255 * max_flat_dist }
+    uint8_t dribbler:DRIBBLER_BITS; // -100 to 100, percentage of max speed
+    bool force_kick:1; // 0: Kick on ir detection, 1: Force kick now
+    bool is_chip:1; // 0: Flat kick, 1: Chip
+    bool charge:1; // 0: Discharge kick capacitors, 1: Charge kick capacitors
 
     bool standby:1; // 0: active, 1: standby
     bool eject_sd_card:1; // 0: nothing, 1: eject SD card
-    uint8_t unused:6;
 
-    uint8_t shot_power:8; // 0: Disable kicker, 1-255: Enable kicker with set power. Conversion from value to shot distance in meters: max_chip_dist=5; max_flat_dist=10; if chip { shot_power / 255 * max_chip_dist } else { shot_power / 255 * max_flat_dist }
-    uint8_t dribbler:8; // -100 to 100, percentage of max speed
-    bool force_kick:1; // 0: Kick on ir detection, 1: Force kick now
-    bool is_chip:1; // 0: Flat kick, 1: Chip
-    bool charge:1; // 0: Discharge kick/chip capacitors, 1: Charge kick/chip capacitors
+    int16_t detection_pos_x:POS_BITS; // Current x position, as detected by the vision, without any further processing
+    int16_t detection_pos_y:POS_BITS; // Current y position, as detected by the vision, without any further processing
+    int16_t detection_phi:ANGLE_BITS; // Current orientation of the robot, as detected by the vision, without any further processing
 
-    int16_t detection_pos_x:11; // Current x position, as detected by the vision
-    int16_t detection_pos_y:11; // Current y position, as detected by the vision
-    int16_t detection_phi:9; // Current angular velocity in mrad/s, as detected by the vision
+    uint8_t unused:8;
 
-    TrajectoryType2025 traj_type:6;
+    TrajectoryType2025 traj_type:4;
     Trajectory2025 traj;
 } __attribute__ ((packed)) RegularCommandPayload2025;
+
 
 typedef struct {
     bool error:1;
@@ -120,18 +144,18 @@ typedef struct {
     uint8_t main_board_id;
     uint8_t kicker_board_id;
 
-    uint8_t motor1_load_torque;
-    uint8_t motor2_load_torque;
-    uint8_t motor3_load_torque;
-    uint8_t motor4_load_torque;
-    uint8_t dribbler_load_torque;
+    uint8_t motor1_load_torque:LOAD_TORQUE_BITS;
+    uint8_t motor2_load_torque:LOAD_TORQUE_BITS;
+    uint8_t motor3_load_torque:LOAD_TORQUE_BITS;
+    uint8_t motor4_load_torque:LOAD_TORQUE_BITS;
+    uint8_t dribbler_load_torque:LOAD_TORQUE_BITS;
 
-    uint16_t measured_pos_x:14;
-    uint16_t measured_pos_y:14;
-    uint16_t measured_phi:14;
-    uint16_t measured_vel_x:14;
-    uint16_t measured_vel_y:14;
-    uint16_t measured_omega:14;
+    uint16_t measured_pos_x:MEASURED_POS_BITS;
+    uint16_t measured_pos_y:MEASURED_POS_BITS;
+    uint16_t measured_phi:MEASURED_ANGLE_BITS;
+    uint16_t measured_vel_x:MEASURED_VEL_BITS;
+    uint16_t measured_vel_y:MEASURED_VEL_BITS;
+    uint16_t measured_omega:MEASURED_ANGLE_VEL_BITS;
 
     bool power_enabled:1;
     bool ball_detected:1;

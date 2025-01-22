@@ -58,7 +58,7 @@ RadioCommand2025TrajectoryPath static randomTrajectoryPath(RNG &rng) {
         .end_vel = randomState(rng, VEL_MAX, ANGLE_VEL_MAX),
 
         .alpha = rng.uniformFloat(-ANGLE_MAX, ANGLE_MAX),
-        .t = rng.uniformFloat(0, TIME_MAX),
+        .t = rng.uniformFloat(0, TRAJECTORY_PATH_T_MAX),
         .a_max = rng.uniformFloat(0, ACC_MAX),
         .v_max = rng.uniformFloat(0, VEL_MAX),
     };
@@ -158,7 +158,7 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Traject
 #define ASSERT_SPLINE_EQ(a, b) ASSERT_PRED2(splineEq, a, b)
 static bool splineEq(const RadioCommand2025Spline &a, const RadioCommand2025Spline &b) {
     return stateEq(a.a_0, b.a_0, 1e-2, 5e-2)
-        && stateEq(a.a_1, b.a_1, 1e-2, 8)
+        && stateEq(a.a_1, b.a_1, 1e-2, 15)
         && stateEq(a.a_2, b.a_2, 1e-1, 2)
         && stateEq(a.a_3, b.a_3, 1e-1, 5);
 }

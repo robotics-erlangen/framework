@@ -19,7 +19,7 @@
 #define ANGLE_ACC_MAX 15000.0f
 #define ANGLE_JERK_MAX 400000.0f
 
-#define TIME_MAX 10.0f
+#define TRAJECTORY_PATH_T_MAX 40.0f
 
 
 typedef struct {
