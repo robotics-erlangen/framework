@@ -1,5 +1,6 @@
 #pragma once
 
+#include "radiocommand.h"
 #include "radiocommand2025regular.h"
 #include "radiocommand2025datagram.h"
 #include <stdbool.h>
@@ -30,6 +31,9 @@ typedef struct {
     } payload;
 } RadioCommand2025;
 
+STATIC_ASSERT(sizeof(RadioCommand2025) <= HBC_MAX_PACKET_SIZE, sizeof_RadioCommand2025_is_not_HBC_MAX_PACKET_SIZE);
+
+
 /**
  * @brief Main structure for radio response.
  */
@@ -40,3 +44,5 @@ typedef struct {
         DatagramResponsePayload2025 datagram;
     } payload;
 } RadioResponse2025;
+
+STATIC_ASSERT(sizeof(RadioResponse2025) <= HBC_MAX_PACKET_SIZE, sizeof_RadioResponse2025_is_not_HBC_MAX_PACKET_SIZE);
