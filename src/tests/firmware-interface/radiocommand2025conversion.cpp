@@ -23,6 +23,12 @@
 #include "util.h"
 #include "firmware-interface/radiocommand2025conversion.h"
 
+
+// the maximum absolute error is half the resolution plus a little extra for floating point inaccuracies
+#define ABS_ERROR(min, max, bits) (RESOLUTION(min, max, bits) / 2 * 1.005f)
+#define RESOLUTION(min, max, bits) (((max) - (min)) / (1 << (bits)))
+
+
 bool static randomBool(RNG &rng) {
     return rng.uniform() >= 0.5;
 }
@@ -102,17 +108,17 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025State &
 
 #define ASSERT_COMMON_EQ(a, b) ASSERT_PRED2(commonEq, a, b)
 static bool commonEq(const RadioCommand2025Common &a, const RadioCommand2025Common &b) {
-    return approxEq(a.time_offset, b.time_offset, 0, 1e-2)
+    return approxEq(a.time_offset, b.time_offset, 0, ABS_ERROR(0, TIME_OFFSET_MAX, TIME_OFFSET_BITS))
         && a.standby == b.standby
         && a.eject_sd_card == b.eject_sd_card
 
-        && approxEq(a.shot_power, b.shot_power, 0, 5e-2)
-        && approxEq(a.dribbler, b.dribbler, 0, 5e-2)
+        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, SHOT_POWER_MAX, SHOT_POWER_BITS))
+        && approxEq(a.dribbler, b.dribbler, 0, ABS_ERROR(-DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS))
         && a.force_kick == b.force_kick
         && a.is_chip == b.is_chip
         && a.charge == b.charge
 
-        && stateEq(a.detection, b.detection, 1e-2, 2e-2);
+        && stateEq(a.detection, b.detection, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS));
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common &a) {
@@ -133,14 +139,14 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common 
 
 #define ASSERT_TRAJECTORY_PATH_EQ(a, b) ASSERT_PRED2(trajectoryPathEq, a, b)
 static bool trajectoryPathEq(const RadioCommand2025TrajectoryPath &a, const RadioCommand2025TrajectoryPath &b) {
-    return stateEq(a.start_pos, b.start_pos, 1e-2, 1e-2)
-        && stateEq(a.start_vel, b.start_vel, 1e-1, 15.0)
-        && stateEq(a.end_vel, b.end_vel, 1e-1, 15.0)
+    return stateEq(a.start_pos, b.start_pos, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && stateEq(a.start_vel, b.start_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
+        && stateEq(a.end_vel, b.end_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
 
-        && approxEq(a.alpha, b.alpha, 0, 1e-2)
-        && approxEq(a.t, b.t, 0, 1e-2)
-        && approxEq(a.a_max, b.a_max, 0, 3e-2)
-        && approxEq(a.v_max, b.v_max, 0, 2e-2);
+        && approxEq(a.alpha, b.alpha, 0, ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, TRAJECTORY_PATH_ALPHA_BITS))
+        && approxEq(a.t, b.t, 0, ABS_ERROR(0, TRAJECTORY_PATH_T_MAX, TRAJECTORY_PATH_T_BITS))
+        && approxEq(a.a_max, b.a_max, 0, ABS_ERROR(0, ACC_MAX, ACC_BITS))
+        && approxEq(a.v_max, b.v_max, 0, ABS_ERROR(0, VEL_MAX, VEL_BITS));
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025TrajectoryPath &a) {
@@ -157,14 +163,14 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Traject
 
 #define ASSERT_SPLINE_EQ(a, b) ASSERT_PRED2(splineEq, a, b)
 static bool splineEq(const RadioCommand2025Spline &a, const RadioCommand2025Spline &b) {
-    return stateEq(a.a_0, b.a_0, 1e-2, 5e-2)
-        && stateEq(a.a_1, b.a_1, 1e-2, 15)
-        && stateEq(a.a_2, b.a_2, 1e-1, 2)
-        && stateEq(a.a_3, b.a_3, 1e-1, 5);
+    return stateEq(a.a_0, b.a_0, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && stateEq(a.a_1, b.a_1, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
+        && stateEq(a.a_2, b.a_2, ABS_ERROR(0, ACC_MAX, ACC_BITS), ABS_ERROR(0, ANGLE_ACC_MAX, ANGLE_ACC_BITS))
+        && stateEq(a.a_3, b.a_3, ABS_ERROR(0, JERK_MAX, JERK_BITS), ABS_ERROR(0, ANGLE_JERK_MAX, ANGLE_JERK_BITS));
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Spline &a) {
-    return out << "RadioCommand2025TrajectoryPath { "
+    return out << "RadioCommand2025Spline { "
         << ".a_0=" << a.a_0 << ", "
         << ".a_1=" << a.a_1 << ", "
         << ".a_2=" << a.a_2 << ", "

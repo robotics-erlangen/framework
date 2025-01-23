@@ -2,7 +2,6 @@
 
 #include "radiocommand2025.h"
 #include <assert.h>
-#include <math.h>
 
 
 #define TIME_OFFSET_MAX 0.01f
@@ -14,7 +13,7 @@
 #define VEL_MAX 6.0f
 #define ACC_MAX 15.0f
 #define JERK_MAX 100.0f
-#define ANGLE_MAX M_PI
+#define ANGLE_MAX 3.14159265358979323846f
 #define ANGLE_VEL_MAX 15000.0f
 #define ANGLE_ACC_MAX 15000.0f
 #define ANGLE_JERK_MAX 400000.0f

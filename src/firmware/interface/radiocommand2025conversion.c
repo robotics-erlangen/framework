@@ -10,11 +10,23 @@ static int32_t max(int32_t a, int32_t b) {
     return (a > b) ? a : b;
 }
 
+static float normalize_angle(float angle) {
+    // normalizes to [-pi, pi)
+
+    while (angle < -ANGLE_MAX) {
+        angle += 2 * ANGLE_MAX;
+    }
+    while (angle >= ANGLE_MAX) {
+        angle -= 2 * ANGLE_MAX;
+    }
+    return angle;
+}
+
 static int32_t map_to_interval(float x, float x_min, float x_max, int32_t y_min, int32_t y_max) {
     // min and max are inclusive
 
-    x = fmax(fmin(x_max, x), x_min);
-    int32_t y = round(y_min + (y_max - y_min) * (x - x_min) / (x_max - x_min));
+    x = fmaxf(fminf(x_max, x), x_min);
+    int32_t y = roundf(y_min + (y_max - y_min) * (x - x_min) / (x_max - x_min));
     return max(min(y_max, y), y_min);
 }
 
@@ -35,7 +47,7 @@ static float map_from_interval(int32_t y, int32_t y_min, int32_t y_max, float x_
 
     y = max(min(y_max, y), y_min);
     float x = x_min + (x_max - x_min) * (float)(y - y_min) / (float)(y_max - y_min);
-    return fmax(fmin(x_max, x), x_min);
+    return fmaxf(fminf(x_max, x), x_min);
 }
 
 static float map_from_signed(int32_t y, uint32_t bits, float x_min, float x_max) {
@@ -63,7 +75,7 @@ void write_common(const RadioCommand2025Common *common, RegularCommandPayload202
 
     cmd->detection_pos_x = map_to_signed(common->detection.x, -POS_MAX, POS_MAX, POS_BITS);
     cmd->detection_pos_y = map_to_signed(common->detection.y, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->detection_phi = map_to_signed(common->detection.angle, -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->detection_phi = map_to_signed(normalize_angle(common->detection.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
 }
 
 void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025 *cmd) {
@@ -87,7 +99,7 @@ void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCo
 
     cmd->traj.trajectory_path.start_pos_x = map_to_signed(traj->start_pos.x, -POS_MAX, POS_MAX, POS_BITS);
     cmd->traj.trajectory_path.start_pos_y = map_to_signed(traj->start_pos.y, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->traj.trajectory_path.start_phi = map_to_signed(traj->start_pos.angle, -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->traj.trajectory_path.start_phi = map_to_signed(normalize_angle(traj->start_pos.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
 
     cmd->traj.trajectory_path.start_vel_x = map_to_signed(traj->start_vel.x, -VEL_MAX, VEL_MAX, VEL_BITS);
     cmd->traj.trajectory_path.start_vel_y = map_to_signed(traj->start_vel.y, -VEL_MAX, VEL_MAX, VEL_BITS);
@@ -97,7 +109,7 @@ void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCo
     cmd->traj.trajectory_path.end_vel_y = map_to_signed(traj->end_vel.y, -VEL_MAX, VEL_MAX, VEL_BITS);
     cmd->traj.trajectory_path.end_omega = map_to_signed(traj->end_vel.angle, -ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS);
 
-    cmd->traj.trajectory_path.alpha = map_to_signed(traj->alpha, -ANGLE_MAX, ANGLE_MAX, TRAJECTORY_PATH_ALPHA_BITS);
+    cmd->traj.trajectory_path.alpha = map_to_signed(normalize_angle(traj->alpha), -ANGLE_MAX, ANGLE_MAX, TRAJECTORY_PATH_ALPHA_BITS);
     cmd->traj.trajectory_path.t = map_to_unsigned(traj->t, 0, TRAJECTORY_PATH_T_MAX, TRAJECTORY_PATH_T_BITS);
     cmd->traj.trajectory_path.a_max = map_to_unsigned(traj->a_max, 0, ACC_MAX, ACC_BITS);
     cmd->traj.trajectory_path.v_max = map_to_unsigned(traj->v_max, 0, VEL_MAX, VEL_BITS);
@@ -132,7 +144,7 @@ void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload202
 
     cmd->traj.spline.x_a_0 = map_to_signed(spline->a_0.x, -POS_MAX, POS_MAX, POS_BITS);
     cmd->traj.spline.y_a_0 = map_to_signed(spline->a_0.y, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->traj.spline.phi_a_0 = map_to_signed(spline->a_0.angle, -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->traj.spline.phi_a_0 = map_to_signed(normalize_angle(spline->a_0.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
 
     cmd->traj.spline.x_a_1 = map_to_signed(spline->a_1.x, -VEL_MAX, VEL_MAX, VEL_BITS);
     cmd->traj.spline.y_a_1 = map_to_signed(spline->a_1.y, -VEL_MAX, VEL_MAX, VEL_BITS);
