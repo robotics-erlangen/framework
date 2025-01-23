@@ -238,6 +238,47 @@ QString Processor::ballModelConfigFile(bool isSimulator)
     }
 }
 
+/*! \brief Try to infer the current division.
+ *
+ * We do not receive the division explicitly as a message. However we can try
+ * to infer it either from the number of robots or the field size.
+ */
+static world::Geometry::Division tryInferDivision(const ::SSL_Referee_TeamInfo &teamInfo, const world::Geometry &geometry, const world::DivisionDimensions &divisionDimensions)
+{
+    // prefer to use the implicit division sent by the SSL_Referee and compute
+    // it using the field sizes defined in the rules as a fall back
+    if (teamInfo.has_max_allowed_bots()) {
+        const auto currentMaxAllowedRobots = teamInfo.max_allowed_bots();
+        const auto currentNumberOfYellowCards = teamInfo.yellow_card_times().size();
+        const auto numberOfRedCards = teamInfo.red_cards();
+        const auto maxAllowedRobots = currentMaxAllowedRobots + currentNumberOfYellowCards + numberOfRedCards;
+        if (maxAllowedRobots == 6) {
+            return world::Geometry_Division_B;
+        } else {
+            return world::Geometry_Division_A;
+        }
+    }
+
+    if (std::abs(divisionDimensions.field_height_b() - geometry.field_height()) <= divisionDimensions.field_height_b() * 0.1
+            && std::abs(divisionDimensions.field_width_b() - geometry.field_width()) <= divisionDimensions.field_width_b() * 0.1) {
+        return world::Geometry_Division_B;
+    }
+
+    if (std::abs(divisionDimensions.field_height_a() - geometry.field_height()) > divisionDimensions.field_height_a() * 0.1
+            && std::abs(divisionDimensions.field_width_a() - geometry.field_width()) > divisionDimensions.field_width_a() * 0.1) {
+        std::cerr << "Error, field size doesn't match either division. "
+            << "Dimensions in config/division-dimensions.txt are:"
+            << "\nDivision A: width:" << divisionDimensions.field_width_a()
+            << " height: " << divisionDimensions.field_height_a()
+            << "\nDivision B: width:" << divisionDimensions.field_width_b()
+            << " height: " << divisionDimensions.field_height_b()
+            << "\nDefaulting to division A rules."
+            << std::endl;
+    }
+
+    return world::Geometry_Division_A;
+}
+
 void Processor::process(qint64 overwriteTime)
 {
     const qint64 tracker_start = Timer::systemTime();
@@ -279,44 +320,13 @@ void Processor::process(qint64 overwriteTime)
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
     status->mutable_game_state()->set_is_real_game_running(m_referee->isGameRunning());
 
-    // we do not receive the division explicitly as a message and also not explicitly the maximum number of robots,
-    // but since we know how many robots we are currently allowed to have on the field and how many cards we have
-    // we can compute the maximum number of robots and with that information assume the division
-    const auto teamInfo = status->game_state().blue();
-    std::optional<world::Geometry::Division> division;
-    if (teamInfo.has_max_allowed_bots()) {
-        const auto currentMaxAllowedRobots = teamInfo.max_allowed_bots();
-        const auto currentNumberOfYellowCards = teamInfo.yellow_card_times().size();
-        const auto numberOfRedCards = teamInfo.red_cards();
-        const auto maxAllowedRobots = currentMaxAllowedRobots + currentNumberOfYellowCards + numberOfRedCards;
-        if (maxAllowedRobots == 6) {
-            division.emplace(world::Geometry_Division_B);
-        } else {
-           division.emplace(world::Geometry_Division_A);
-        }
-    }
-
     if (status->has_geometry()) {
         world::Geometry* geometry = status->mutable_geometry();
 
         geometry->mutable_ball_model()->CopyFrom(m_ballModel);
         m_ballModelUpdated = false;
 
-        // prefer to use the implicit division sent by the SSL_Referee and compute it using the field sizes defined in the rules as a fall back
-        if (division.has_value()) {
-            geometry->set_division(division.value());
-        } else {
-            if (std::abs(m_divisionDimensions.field_height_b() - geometry->field_height()) <= m_divisionDimensions.field_height_b() * 0.1
-                    && std::abs(m_divisionDimensions.field_width_b() - geometry->field_width()) <= m_divisionDimensions.field_width_b() * 0.1) {
-                geometry->set_division(world::Geometry_Division_B);
-            } else {
-                if (std::abs(m_divisionDimensions.field_height_a() - geometry->field_height()) > m_divisionDimensions.field_height_a() * 0.1
-                        && std::abs(m_divisionDimensions.field_width_a() - geometry->field_width()) > m_divisionDimensions.field_width_a() * 0.1) {
-                    std::cerr << "Error, field size doesn't match either division. Dimensions in config/division-dimensions.txt are:\nDivision A: width:"<< m_divisionDimensions.field_width_a() << " height: " << m_divisionDimensions.field_height_a() << "\nDivision B: width:" << m_divisionDimensions.field_width_b() << " height: " << m_divisionDimensions.field_height_b() << "\nDefaulting to division A rules." << std::endl;
-                }
-                geometry->set_division(world::Geometry_Division_A);
-            }
-        }
+        geometry->set_division(tryInferDivision(status->game_state().blue(), *geometry, m_divisionDimensions));
     }
 
     // add radio responses from robots and mixed team data
