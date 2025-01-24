@@ -197,14 +197,6 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     if (simplePredictionStatus->world_state().has_ball()) {
         status->mutable_world_state()->mutable_simple_tracking_ball()->CopyFrom(simplePredictionStatus->world_state().ball());
     }
-    if (!m_extraVision.empty()) {
-        for(const QByteArray& data : m_extraVision) {
-            status->mutable_world_state()->add_reality()->ParseFromArray(data.data(), data.size());
-        }
-        if (resetRaw) {
-            m_extraVision.clear();
-        }
-    }
 
     // Ensure we are not overwriting the radio command delay if it was set by
     // the tracking
@@ -415,6 +407,10 @@ void Processor::injectExtraData(Status &status)
     if (m_mixedTeamInfoSet) {
         *(status->mutable_world_state()->mutable_mixed_team_info()) = m_mixedTeamInfo;
     }
+
+    for(const QByteArray& data : m_extraVision) {
+        status->mutable_world_state()->add_reality()->ParseFromArray(data.data(), data.size());
+    }
 }
 
 void Processor::clearExtraData() {
@@ -422,6 +418,8 @@ void Processor::clearExtraData() {
 
     m_mixedTeamInfo.Clear();
     m_mixedTeamInfoSet = false;
+
+    m_extraVision.clear();
 }
 
 void Processor::injectUserControl(Status &status, bool isBlue)
