@@ -94,6 +94,7 @@ private:
     void handleControl(Team &team, const amun::CommandControl &control);
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
     void injectExtraData(Status &status);
+    void clearExtraData();
     void injectUserControl(Status &status, bool isBlue);
     Status assembleStatus(qint64 time, bool resetRaw);
     world::WorldSource currentWorldSource() const;

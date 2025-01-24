@@ -373,10 +373,10 @@ void Processor::process(qint64 overwriteTime)
     strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
     injectExtraData(strategyStatus);
+
     // remove responses after injecting to avoid sending them a second time
-    m_responses.clear();
-    m_mixedTeamInfo.Clear();
-    m_mixedTeamInfoSet = false;
+    clearExtraData();
+
     // copy to other status message
     strategyStatus->mutable_user_input_yellow()->CopyFrom(status->user_input_yellow());
     strategyStatus->mutable_user_input_blue()->CopyFrom(status->user_input_blue());
@@ -411,9 +411,17 @@ void Processor::injectExtraData(Status &status)
         robot::RadioResponse *rr = status->mutable_world_state()->add_radio_response();
         rr->CopyFrom(response);
     }
+
     if (m_mixedTeamInfoSet) {
         *(status->mutable_world_state()->mutable_mixed_team_info()) = m_mixedTeamInfo;
     }
+}
+
+void Processor::clearExtraData() {
+    m_responses.clear();
+
+    m_mixedTeamInfo.Clear();
+    m_mixedTeamInfoSet = false;
 }
 
 void Processor::injectUserControl(Status &status, bool isBlue)
