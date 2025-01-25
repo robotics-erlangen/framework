@@ -20,6 +20,7 @@
 
 add_executable(cpptests
     core/areaofinterest.cpp
+    core/fieldtransform.cpp
     core/vector.cpp
     core/rng.cpp
     core/run_out_of_scope.cpp

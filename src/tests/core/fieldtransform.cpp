@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2025 Andreas Wendler, Paul Bergmann                         *
+ *   Copyright 2025 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,44 +18,20 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef FIELDTRANSFORM_H
-#define FIELDTRANSFORM_H
-
-#include <array>
+#include "core/fieldtransform.h"
+#include "gtest/gtest.h"
 #include <QPointF>
 
-/*! \brief Transforms (scaling, translation) for the field.
- */
-class FieldTransform
-{
-public:
-    /*! \brief Constructs an identity transform.
-     */
-    FieldTransform();
+TEST(FieldTransform, ConstructorUniform) {
+    FieldTransform t;
 
-    /*! \brief Sets whether both axis should be flipped in addition to the
-     * transformation.
-     *
-     * \param flip Whether to flip the axes.
-     */
-    void setFlip(bool flip);
-    void setTransform(const std::array<float, 6> &values);
-    void resetTransform();
-    float applyPosX(float x, float y) const;
-    float applyPosY(float x, float y) const;
-    QPointF applyPosition(const QPointF &pos) const;
-    float applySpeedX(float x, float y) const;
-    float applySpeedY(float x, float y) const;
-    float applyAngle(float angle) const;
-    float applyInverseX(float x, float y) const;
-    float applyInverseY(float x, float y) const;
-    QPointF applyInversePosition(const QPointF &pos) const;
-
-private:
-    bool m_lastFlipped;
-    bool m_hasTransform;
-    std::array<float, 6> m_transform;
-    float m_flipFactor;
-};
-
-#endif // FIELDTRANSFORM_H
+    ASSERT_EQ(t.applyPosX(1.0f, 2.0f), 1.0f);
+    ASSERT_EQ(t.applyPosY(1.0f, 2.0f), 2.0f);
+    ASSERT_EQ(t.applyPosition(QPointF(1.0f, 2.0f)), QPointF(1.0f, 2.0f));
+    ASSERT_EQ(t.applySpeedX(1.0f, 2.0f), 1.0f);
+    ASSERT_EQ(t.applySpeedY(1.0f, 2.0f), 2.0f);
+    ASSERT_EQ(t.applyAngle(1.0f), 1.0f);
+    ASSERT_EQ(t.applyInverseX(1.0f, 2.0f), 1.0f);
+    ASSERT_EQ(t.applyInverseY(1.0f, 2.0f), 2.0f);
+    ASSERT_EQ(t.applyInversePosition(QPointF(1.0f, 2.0f)), QPointF(1.0f, 2.0f));
+}
