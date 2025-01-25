@@ -21,6 +21,7 @@
 #ifndef TRACKER_H
 #define TRACKER_H
 
+#include "core/areaofinterest.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/status.h"
 #include "protobuf/world.pb.h"
@@ -116,10 +117,7 @@ private:
     RobotMap m_robotFilterBlue;
 
     bool m_aoiEnabled;
-    float m_aoi_x1;
-    float m_aoi_y1;
-    float m_aoi_x2;
-    float m_aoi_y2;
+    AreaOfInterest m_aoi;
 
     QList<QString> m_errorMessages;
     QList<std::pair<SSL_WrapperPacket, qint64>> m_detectionWrappers;

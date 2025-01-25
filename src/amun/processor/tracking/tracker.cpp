@@ -39,10 +39,6 @@ Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
     m_numSlowVisionFrames(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
-    m_aoi_x1(0.0f),
-    m_aoi_y1(0.0f),
-    m_aoi_x2(0.0f),
-    m_aoi_y2(0.0f),
     m_fieldTransform(new FieldTransform),
     m_robotsOnly(robotsOnly),
     m_resetTimeout(isSpeedTracker ? .1E9 : .5E9),
@@ -56,15 +52,6 @@ Tracker::~Tracker()
 {
     reset();
     delete m_cameraInfo;
-}
-
-static bool isInAOI(float detectionX, float detectionY, const FieldTransform &transform, float x1, float y1, float x2, float y2)
-{
-    float x = -detectionY / 1000.0f;
-    float y = detectionX / 1000.0f;
-    float xn = transform.applyPosX(x, y);
-    float yn = transform.applyPosY(x, y);
-    return (xn > x1 && xn < x2 && yn > y1 && yn < y2);
 }
 
 void Tracker::reset()
@@ -354,10 +341,10 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 
     if (m_aoiEnabled) {
         world::TrackingAOI *aoi = worldState->mutable_tracking_aoi();
-        aoi->set_x1(m_aoi_x1);
-        aoi->set_y1(m_aoi_y1);
-        aoi->set_x2(m_aoi_x2);
-        aoi->set_y2(m_aoi_y2);
+        aoi->set_x1(m_aoi.x1());
+        aoi->set_y1(m_aoi.y1());
+        aoi->set_x2(m_aoi.x2());
+        aoi->set_y2(m_aoi.y2());
     }
 
     amun::DebugValues *debug = nullptr;
@@ -567,7 +554,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 source
     ballFrames.reserve(frame.balls_size());
     for (int i = 0; i < frame.balls_size(); i++) {
 
-        if (m_aoiEnabled && !isInAOI(frame.balls(i).x(), frame.balls(i).y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+        if (m_aoiEnabled && !m_aoi.containsVision({ frame.balls(i).x(), frame.balls(i).y() }, *m_fieldTransform)) {
             continue;
         }
 
@@ -640,7 +627,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
         return;
     }
 
-    if (m_aoiEnabled && !isInAOI(robot.x(), robot.y() , *m_fieldTransform, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
+    if (m_aoiEnabled && !m_aoi.containsVision({ robot.x(), robot.y() }, *m_fieldTransform)) {
         return;
     }
 
@@ -728,10 +715,12 @@ void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
     }
 
     if (command.has_aoi()) {
-        m_aoi_x1 = command.aoi().x1();
-        m_aoi_y1 = command.aoi().y1();
-        m_aoi_x2 = command.aoi().x2();
-        m_aoi_y2 = command.aoi().y2();
+        m_aoi = AreaOfInterest {
+            command.aoi().x1(),
+            command.aoi().y1(),
+            command.aoi().x2(),
+            command.aoi().y2()
+        };
     }
 
     if (command.has_vision_transmission_delay()) {
