@@ -97,10 +97,7 @@ void Tracker::process(qint64 currentTime)
     invalidateRobots(m_robotFilterBlue, currentTime);
 
     for (const Packet &p : m_visionPackets) {
-        SSL_WrapperPacket wrapper;
-        if (!wrapper.ParseFromArray(p.data.data(), p.data.size())) {
-            continue;
-        }
+        const auto &wrapper = p.wrapper;
 
         if (wrapper.has_geometry() && !m_robotsOnly) {
             convertFromSSlGeometry(wrapper.geometry().field(), m_geometry);
@@ -685,9 +682,9 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     }
 }
 
-void Tracker::queuePacket(const QByteArray &packet, qint64 time, QString sender)
+void Tracker::queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender)
 {
-    m_visionPackets.append(Packet(packet, time, sender));
+    m_visionPackets.append(Packet(wrapper, time, sender));
     m_hasVisionData = true;
 }
 

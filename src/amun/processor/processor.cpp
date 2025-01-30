@@ -22,6 +22,7 @@
 #include "commandevaluator.h"
 #include "coordinatehelper.h"
 #include "processor.h"
+#include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/world.pb.h"
 #include "referee.h"
 #include "core/timer.h"
@@ -503,9 +504,14 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/, QSt
 
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString sender)
 {
-    m_tracker->queuePacket(data, time, sender);
-    m_speedTracker->queuePacket(data, time, sender);
-    m_simpleTracker->queuePacket(data, time, sender);
+    SSL_WrapperPacket wrapper;
+    if (!wrapper.ParseFromArray(data.data(), data.size())) {
+        return;
+    }
+
+    m_tracker->queuePacket(wrapper, time, sender);
+    m_speedTracker->queuePacket(wrapper, time, sender);
+    m_simpleTracker->queuePacket(wrapper, time, sender);
 }
 
 void Processor::handleSimulatorExtraVision(const QByteArray &data)

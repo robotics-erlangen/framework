@@ -132,7 +132,10 @@ int main(int argc, char* argv[])
                 //std::cerr << "enque packet" << counter << "(" << (counter-first_frame) << ")" <<std::endl;
                 // collect all packets until current system time
                 if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
-                    tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
+                    SSL_WrapperPacket wrapper;
+                    if (wrapper.ParseFromArray(visionFrame.data(), visionFrame.size())) {
+                        tracker.queuePacket(wrapper, receiveTimeNanos, "logfile");
+                    }
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                     ref.handlePacket(visionFrame, SENDER_NAME_FOR_REFEREE);
                     if (ref.getFlipped() != lastFlipped) {

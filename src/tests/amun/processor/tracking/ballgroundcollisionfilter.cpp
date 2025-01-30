@@ -133,11 +133,8 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
                                                        [&](const auto &det) { return det.first == wrapper.detection().camera_id(); }), m_ballDetectionsToAdd.end());
         }
 
-        QByteArray recodedData(wrapper.ByteSize(), 0);
-        wrapper.SerializeToArray(recodedData.data(), recodedData.size());
-
         // TODO: add radio commands to tracker
-        m_tracker.queuePacket(recodedData, time, sender);
+        m_tracker.queuePacket(wrapper, time, sender);
         if (time - m_lastTrackingTime > 10000000) { // 10 ms
             // TODO: to better mimick the behavior of the real tracker, use a time offset here (and at the worldState query)
             m_tracker.process(time);

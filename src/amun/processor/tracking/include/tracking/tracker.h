@@ -23,6 +23,7 @@
 
 #include "core/areaofinterest.h"
 #include "protobuf/command.pb.h"
+#include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/status.h"
 #include "protobuf/world.pb.h"
 #include <QMap>
@@ -46,8 +47,8 @@ class Tracker
 private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
     struct Packet {
-        Packet(const QByteArray &data, qint64 time, QString sender) : data(data), time(time), sender(sender) {}
-        QByteArray data;
+        Packet(const SSL_WrapperPacket &wrapper, qint64 time, QString sender) : wrapper(wrapper), time(time), sender(sender) {}
+        SSL_WrapperPacket wrapper;
         qint64 time;
         QString sender;
     };
@@ -63,7 +64,7 @@ public:
     Status worldState(qint64 currentTime, bool resetRaw);
 
     void setFlip(bool flip);
-    void queuePacket(const QByteArray &packet, qint64 time, QString sender);
+    void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();
