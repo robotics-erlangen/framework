@@ -29,6 +29,7 @@
 #include "core/configuration.h"
 #include "gamecontroller/internalgamecontroller.h"
 #include "tracking/tracker.h"
+#include "tracking/worldparameters.h"
 #include "config/config.h"
 #include <cmath>
 #include <QTimer>
@@ -124,16 +125,23 @@ const int Processor::FREQUENCY(100);
  */
 Processor::Processor(const Timer *timer, bool isReplay) :
     m_timer(timer),
-    m_tracker(new Tracker(false, false)),
-    m_speedTracker(new Tracker(true, true)),
-    m_simpleTracker(new Tracker(false, false)),
+    m_worldParameters(new WorldParameters { m_simulatorEnabled, isReplay }),
+    m_tracker(new Tracker(false, false, m_worldParameters.get())),
+    m_speedTracker(new Tracker(true, true, m_worldParameters.get())),
+    m_simpleTracker(new Tracker(false, false, m_worldParameters.get())),
     m_mixedTeamInfoSet(false),
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
     m_gameController(new InternalGameController(timer)),
-    m_transceiverEnabled(isReplay),
-    m_saveBallModel(!isReplay)
+    m_transceiverEnabled(isReplay)
 {
+    connect(m_worldParameters.get(), &WorldParameters::cameraUpdated, m_tracker.get(), &Tracker::updateCamera);
+    connect(m_worldParameters.get(), &WorldParameters::cameraUpdated, m_simpleTracker.get(), &Tracker::updateCamera);
+
+    connect(m_worldParameters.get(), &WorldParameters::ballModelUpdated, m_tracker.get(), &Tracker::setBallModel);
+    connect(m_worldParameters.get(), &WorldParameters::ballModelUpdated, m_simpleTracker.get(), &Tracker::setBallModel);
+    connect(m_worldParameters.get(), &WorldParameters::ballModelUpdated, m_speedTracker.get(), &Tracker::setBallModel);
+
     // keep two separate referee states
     m_referee = new Referee();
     m_refereeInternal = new Referee();
@@ -165,9 +173,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 
     loadConfiguration("division-dimensions", &m_divisionDimensions, false);
-
-    loadConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel, false);
-    m_ballModelUpdated = true;
 }
 
 /*!
@@ -187,11 +192,12 @@ Processor::~Processor()
 
 Status Processor::assembleStatus(qint64 time, bool resetRaw)
 {
-    if (m_ballModelUpdated) {
-        // TODO: handle geometry entirely in processor?
-        m_tracker->setGeometryUpdated();
-    }
     Status status = m_tracker->worldState(time, resetRaw);
+
+    if (auto geometry = m_worldParameters->getGeometryUpdate(); geometry) {
+        status->mutable_geometry()->Swap(&*geometry);
+    }
+
     Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
     status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
     status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionStatus->world_state().yellow());
@@ -216,13 +222,22 @@ void Processor::injectAndClearDebugValues(qint64 currentTime, Status &status)
     amun::DebugValues debug;
     debug.set_source(amun::Tracking);
 
-    if (m_tracker->injectDebugValues(currentTime, &debug)) {
+    // Inject all prior to the if, instead of in the condition, to prevent
+    // short circuiting
+    const bool anyHasDebug[] = {
+        m_tracker->injectDebugValues(currentTime, &debug),
+        m_worldParameters->injectDebugValues(currentTime, &debug),
+    };
+
+    if (std::any_of(std::begin(anyHasDebug), std::end(anyHasDebug), [](bool b) { return b; })) {
         status->add_debug()->Swap(&debug);
     }
 
     m_tracker->clearDebugValues();
     m_speedTracker->clearDebugValues();
     m_simpleTracker->clearDebugValues();
+
+    m_worldParameters->clearDebugData();
 }
 
 world::WorldSource Processor::currentWorldSource() const
@@ -233,15 +248,6 @@ world::WorldSource Processor::currentWorldSource() const
         return world::WorldSource::INTERNAL_SIMULATION;
     } else {
         return world::WorldSource::EXTERNAL_SIMULATION;
-    }
-}
-
-QString Processor::ballModelConfigFile(bool isSimulator)
-{
-    if (isSimulator) {
-        return "field-properties/simulator";
-    } else{
-        return "field-properties/field";
     }
 }
 
@@ -320,9 +326,9 @@ void Processor::process(qint64 overwriteTime)
     activeReferee->process(status->world_state());
     if (activeReferee->getFlipped() != m_lastFlipped) {
         m_lastFlipped = activeReferee->getFlipped();
-        m_tracker->setFlip(m_lastFlipped);
-        m_speedTracker->setFlip(m_lastFlipped);
-        m_simpleTracker->setFlip(m_lastFlipped);
+
+        m_worldParameters->setFlip(m_lastFlipped);
+
         emit setFlipped(m_lastFlipped);
     }
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
@@ -330,9 +336,6 @@ void Processor::process(qint64 overwriteTime)
 
     if (status->has_geometry()) {
         world::Geometry* geometry = status->mutable_geometry();
-
-        geometry->mutable_ball_model()->CopyFrom(m_ballModel);
-        m_ballModelUpdated = false;
 
         geometry->set_division(tryInferDivision(status->game_state().blue(), *geometry, m_divisionDimensions));
     }
@@ -398,7 +401,7 @@ void Processor::process(qint64 overwriteTime)
         emit sendRadioCommands(radio_commands_prio, currentTime);
     }
 
-    m_tracker->finishProcessing();
+    m_worldParameters->finishProcessing();
 }
 
 const world::Robot* Processor::getWorldRobot(const RobotList &robots, uint id) {
@@ -524,6 +527,10 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
         return;
     }
 
+    if (wrapper.has_geometry()) {
+        m_worldParameters->handleVisionGeometry(wrapper.geometry(), sender);
+    }
+
     m_tracker->queuePacket(wrapper, time, sender);
     m_speedTracker->queuePacket(wrapper, time, sender);
     m_simpleTracker->queuePacket(wrapper, time, sender);
@@ -565,7 +572,6 @@ void Processor::setTeam(const robot::Team &t, Team &team)
 void Processor::handleCommand(const Command &command)
 {
     bool teamsChanged = false;
-    bool simulatorEnabledBefore = m_simulatorEnabled;
 
     if (command->has_set_team_blue()) {
         setTeam(command->set_team_blue(), m_blueTeam);
@@ -602,9 +608,11 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_tracking()) {
         const qint64 currentTime = m_timer->currentTime();
+
         m_tracker->handleCommand(command->tracking(), currentTime);
         m_speedTracker->handleCommand(command->tracking(), currentTime);
         m_simpleTracker->handleCommand(command->tracking(), currentTime);
+
         if (command->tracking().has_radio_command_delay()) {
             m_trackingRadioCommandDelay = command->tracking().radio_command_delay();
         }
@@ -622,21 +630,8 @@ void Processor::handleCommand(const Command &command)
         }
     }
 
-    if (command->has_tracking() && command->tracking().has_ball_model()) {
-        m_ballModel.CopyFrom(command->tracking().ball_model());
-        if (m_saveBallModel) {
-            saveConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel);
-        }
-        m_ballModelUpdated = true;
-    }
-    if (simulatorEnabledBefore != m_simulatorEnabled) {
-        loadConfiguration(ballModelConfigFile(m_simulatorEnabled), &m_ballModel, false);
-        m_ballModelUpdated = true;
-    }
-    if (m_ballModelUpdated) {
-        m_tracker->setBallModel(m_ballModel);
-        m_speedTracker->setBallModel(m_ballModel);
-        m_simpleTracker->setBallModel(m_ballModel);
+    if (command->has_tracking()) {
+        m_worldParameters->handleCommand(command->tracking(), m_simulatorEnabled);
     }
 }
 
@@ -645,6 +640,8 @@ void Processor::resetTracking()
     m_tracker->reset();
     m_speedTracker->reset();
     m_simpleTracker->reset();
+
+    m_worldParameters->reset();
 }
 
 void Processor::handleControl(Team &team, const amun::CommandControl &control)

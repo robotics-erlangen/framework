@@ -25,6 +25,7 @@
 #include "protobuf/ssl_wrapper.pb.h"
 
 #include "tracking/tracker.h"
+#include "tracking/worldparameters.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
 #include "strategy/script/compilerregistry.h"
@@ -79,7 +80,8 @@ int main(int argc, char* argv[])
     qint64 receiveTimeNanos = packet.first;
     VisionLog::MessageType msg_type = packet.second;
 
-    Tracker tracker(false, false);
+    WorldParameters worldParameters { false, true };
+    Tracker tracker(false, false, &worldParameters);
     tracker.reset();
 
     Timer* timer = new Timer;
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                     ref.handlePacket(visionFrame, SENDER_NAME_FOR_REFEREE);
                     if (ref.getFlipped() != lastFlipped) {
-                        tracker.setFlip(ref.getFlipped());
+                        worldParameters.setFlip(ref.getFlipped());
                         lastFlipped = ref.getFlipped();
                     }
                 }

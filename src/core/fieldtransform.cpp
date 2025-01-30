@@ -40,6 +40,11 @@ void FieldTransform::setTransform(const std::array<float, 6> &values)
     m_transform = values;
 }
 
+void FieldTransform::resetTransform()
+{
+    setTransform({1, 0, 0, 1, 0, 0});
+}
+
 float FieldTransform::applyPosX(float x, float y) const
 {
     return m_flipFactor * (m_transform[0] * x + m_transform[1] * y + m_transform[4]);

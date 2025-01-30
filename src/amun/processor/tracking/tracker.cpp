@@ -25,27 +25,24 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/geometry.h"
 #include "core/fieldtransform.h"
+#include "worldparameters.h"
 #include <QDebug>
 #include <limits>
 
-Tracker::Tracker(bool robotsOnly, bool isSpeedTracker) :
+Tracker::Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldParameters) :
     m_cameraInfo(new CameraInfo),
     m_visionTransmissionDelay(0),
     m_timeSinceLastReset(0),
-    m_geometryUpdated(false),
     m_hasVisionData(false),
-    m_virtualFieldEnabled(false),
     m_lastSlowVisionFrame(0),
     m_numSlowVisionFrames(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
-    m_fieldTransform(new FieldTransform),
+    m_worldParameters(m_worldParameters),
     m_robotsOnly(robotsOnly),
     m_resetTimeout(isSpeedTracker ? .1E9 : .5E9),
     m_maxTimeLast(isSpeedTracker ? .2E9 : 1E9)
 {
-    geometrySetDefault(&m_geometry, true);
-    geometrySetDefault(&m_virtualFieldGeometry, true);
 }
 
 Tracker::~Tracker()
@@ -75,13 +72,6 @@ void Tracker::reset()
     m_visionPackets.clear();
     m_cameraInfo->cameraPosition.clear();
     m_cameraInfo->focalLength.clear();
-    m_cameraInfo->cameraSender.clear();
-}
-
-void Tracker::setFlip(bool flip)
-{
-    // used to change goals between blue and yellow
-    m_fieldTransform->setFlip(flip);
 }
 
 void Tracker::process(qint64 currentTime)
@@ -98,14 +88,6 @@ void Tracker::process(qint64 currentTime)
 
     for (const Packet &p : m_visionPackets) {
         const auto &wrapper = p.wrapper;
-
-        if (wrapper.has_geometry() && !m_robotsOnly) {
-            convertFromSSlGeometry(wrapper.geometry().field(), m_geometry);
-            for (int i = 0; i < wrapper.geometry().calib_size(); ++i) {
-                updateCamera(wrapper.geometry().calib(i), p.sender);
-            }
-            m_geometryUpdated = true;
-        }
 
         if (!m_robotsOnly) {
             m_detectionWrappers.append({wrapper, p.time});
@@ -289,7 +271,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
             robot->update(currentTime);
-            robot->get(worldState->add_yellow(), *m_fieldTransform, false);
+            robot->get(worldState->add_yellow(), m_worldParameters->fieldTransform(), false);
             robotInfos.append(robot->getRobotInfo());
         }
     }
@@ -298,7 +280,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
             robot->update(currentTime);
-            robot->get(worldState->add_blue(), *m_fieldTransform, false);
+            robot->get(worldState->add_blue(), m_worldParameters->fieldTransform(), false);
             robotInfos.append(robot->getRobotInfo());
         }
     }
@@ -315,15 +297,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         if (ball != nullptr) {
             ball->update(currentTime);
             const qint64 lastCameraFrameTime = m_lastUpdateTime[ball->primaryCamera()];
-            ball->get(worldState->mutable_ball(), *m_fieldTransform, resetRaw, robotInfos, lastCameraFrameTime);
-        }
-    }
-
-    if (m_geometryUpdated && !m_robotsOnly) {
-        if (m_virtualFieldEnabled) {
-            status->mutable_geometry()->CopyFrom(m_virtualFieldGeometry);
-        } else {
-            status->mutable_geometry()->CopyFrom(m_geometry);
+            ball->get(worldState->mutable_ball(), m_worldParameters->fieldTransform(), resetRaw, robotInfos, lastCameraFrameTime);
         }
     }
 
@@ -376,24 +350,13 @@ void Tracker::clearDebugValues()
     m_errorMessages.clear();
 }
 
-void Tracker::finishProcessing()
-{
-    m_geometryUpdated = false;
-}
-
-void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, QString sender)
+void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, const QString &sender)
 {
     if (!c.has_derived_camera_world_tx() || !c.has_derived_camera_world_ty()
             || !c.has_derived_camera_world_tz()) {
         return;
     }
 
-    auto lastSender = m_cameraInfo->cameraSender.find(c.camera_id());
-    if (lastSender != m_cameraInfo->cameraSender.end() && *lastSender != sender) {
-        m_errorMessages.append(QString("<font color=\"red\">WARNING: </font> camera %1 is being sent\
-                                    from two different vision sources: %2 and %3!").arg(c.camera_id())
-                                   .arg(m_cameraInfo->cameraSender[c.camera_id()]).arg(sender));
-    }
     Eigen::Vector3f cameraPos;
     cameraPos(0) = -c.derived_camera_world_ty() / 1000.f;
     cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
@@ -401,7 +364,6 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, QString sende
 
     m_cameraInfo->cameraPosition[c.camera_id()] = cameraPos;
     m_cameraInfo->focalLength[c.camera_id()] = c.focal_length();
-    m_cameraInfo->cameraSender[c.camera_id()] = sender;
 }
 
 void Tracker::invalidateRobotFilter(QList<RobotFilter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime)
@@ -557,7 +519,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 source
     ballFrames.reserve(frame.balls_size());
     for (int i = 0; i < frame.balls_size(); i++) {
 
-        if (m_aoiEnabled && !m_aoi.containsVision({ frame.balls(i).x(), frame.balls(i).y() }, *m_fieldTransform)) {
+        if (m_aoiEnabled && !m_aoi.containsVision({ frame.balls(i).x(), frame.balls(i).y() }, m_worldParameters->fieldTransform())) {
             continue;
         }
 
@@ -610,7 +572,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 source
                 bt = new BallTracker(*acceptingFilterWithOtherCamId[i], cameraId);
             } else {
                 // create new Ball Filter without initial movement
-                bt = new BallTracker(ballFrames[i], m_cameraInfo, *m_fieldTransform, m_ballModel);
+                bt = new BallTracker(ballFrames[i], m_cameraInfo, m_worldParameters->fieldTransform(), m_ballModel);
             }
             m_ballFilter.append(bt);
             bt->addVisionFrame(ballFrames[i]);
@@ -630,7 +592,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
         return;
     }
 
-    if (m_aoiEnabled && !m_aoi.containsVision({ robot.x(), robot.y() }, *m_fieldTransform)) {
+    if (m_aoiEnabled && !m_aoi.containsVision({ robot.x(), robot.y() }, m_worldParameters->fieldTransform())) {
         return;
     }
 
@@ -733,25 +695,5 @@ void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
     // allows resetting by the strategy
     if (command.reset()) {
         m_timeToReset = time;
-    }
-
-    if (command.has_field_transform()) {
-        const auto &tr = command.field_transform();
-        std::array<float, 6> transform({tr.a11(), tr.a12(), tr.a21(), tr.a22(), tr.offsetx(), tr.offsety()});
-        m_fieldTransform->setTransform(transform);
-    }
-
-    if (command.has_enable_virtual_field()) {
-        m_virtualFieldEnabled = command.enable_virtual_field();
-        // reset transform
-        if (!command.enable_virtual_field()) {
-            m_fieldTransform->setTransform({1, 0, 0, 1, 0, 0});
-        }
-        m_geometryUpdated = true;
-    }
-
-    if (command.has_virtual_geometry()) {
-        m_geometryUpdated = true;
-        m_virtualFieldGeometry.CopyFrom(command.virtual_geometry());
     }
 }

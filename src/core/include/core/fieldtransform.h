@@ -30,6 +30,7 @@ public:
     FieldTransform();
     void setFlip(bool flip);
     void setTransform(const std::array<float, 6> &values);
+    void resetTransform();
     float applyPosX(float x, float y) const;
     float applyPosY(float x, float y) const;
     QPointF applyPosition(const QPointF &pos) const;

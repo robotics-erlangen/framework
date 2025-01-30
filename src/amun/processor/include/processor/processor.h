@@ -37,6 +37,7 @@ class Referee;
 class SpeedTracker;
 class Timer;
 class Tracker;
+class WorldParameters;
 class QTimer;
 class InternalGameController;
 
@@ -99,14 +100,18 @@ private:
     Status assembleStatus(qint64 time, bool resetRaw);
     void injectAndClearDebugValues(qint64 currentTime, Status &status);
     world::WorldSource currentWorldSource() const;
-    static QString ballModelConfigFile(bool isSimulator);
 
     void sendTeams();
+
+    bool m_simulatorEnabled = false;
+    bool m_internalSimulatorEnabled = false;
+    bool m_externalSimulatorEnabled = false;
 
     const Timer *m_timer;
     QTimer* m_trigger;
     Referee *m_referee;
     Referee *m_refereeInternal;
+    std::unique_ptr<WorldParameters> m_worldParameters;
     std::unique_ptr<Tracker> m_tracker;
     std::unique_ptr<Tracker> m_speedTracker;
     std::unique_ptr<Tracker> m_simpleTracker;
@@ -115,9 +120,6 @@ private:
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;
-    bool m_simulatorEnabled = false;
-    bool m_internalSimulatorEnabled = false;
-    bool m_externalSimulatorEnabled = false;
     bool m_lastFlipped;
     InternalGameController *m_gameController;
     QThread *m_gameControllerThread;
@@ -134,9 +136,6 @@ private:
     bool m_transceiverEnabled;
 
     world::DivisionDimensions m_divisionDimensions;
-    world::BallModel m_ballModel;
-    bool m_ballModelUpdated = false;
-    const bool m_saveBallModel;
 };
 
 #endif // PROCESSOR_H

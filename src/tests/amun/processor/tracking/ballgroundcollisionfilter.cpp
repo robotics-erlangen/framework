@@ -32,6 +32,7 @@
 #include "visionlog/visionlogwriter.h"
 #include "seshat/logfilewriter.h"
 #include "tracking/tracker.h"
+#include "tracking/worldparameters.h"
 
 #include <iostream>
 #include <map>
@@ -76,6 +77,7 @@ private:
     camun::simulator::Simulator m_simulator;
     LogFileWriter m_logWriter;
     std::map<std::pair<bool, int>, SSLSimRobotControl> m_robotCommands;
+    WorldParameters m_worldParameters;
     Tracker m_tracker;
     qint64 m_lastTrackingTime = 0;
     QList<QByteArray> m_simulatorTruth;
@@ -87,8 +89,12 @@ private:
 
 SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfigErForce overwriteRealism) :
     m_simulator(&m_timer, createDefaultSetup(), true),
-    m_tracker(false, false)
+    m_worldParameters(true, true),
+    m_tracker(false, false, &m_worldParameters)
 {
+    m_worldParameters.connect(&m_worldParameters, &WorldParameters::cameraUpdated, &m_tracker, &Tracker::updateCamera);
+    m_worldParameters.connect(&m_worldParameters, &WorldParameters::ballModelUpdated, &m_tracker, &Tracker::setBallModel);
+
     m_timer.setScaling(0);
     m_timer.setTime(1234, 0);
     m_simulator.seedPRGN(14986);
@@ -133,16 +139,25 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
                                                        [&](const auto &det) { return det.first == wrapper.detection().camera_id(); }), m_ballDetectionsToAdd.end());
         }
 
+        if (wrapper.has_geometry()) {
+            m_worldParameters.handleVisionGeometry(wrapper.geometry(), sender);
+        }
+
         // TODO: add radio commands to tracker
         m_tracker.queuePacket(wrapper, time, sender);
         if (time - m_lastTrackingTime > 10000000) { // 10 ms
             // TODO: to better mimick the behavior of the real tracker, use a time offset here (and at the worldState query)
             m_tracker.process(time);
-            m_tracker.finishProcessing();
+            m_worldParameters.finishProcessing();
+
             // TODO: use varying worldState times different from the process time
             // TODO: process more often (everey 10 ms as opposed to every 15)
             Status status = m_tracker.worldState(time + predictTimeOffsetMs * 1000000, true);
             status->set_time(time);
+
+            if (auto geometry = m_worldParameters.getGeometryUpdate(); geometry) {
+                status->mutable_geometry()->Swap(&*geometry);
+            }
 
             // TODO: this currently has an offset of one simulator output frame
             for(const QByteArray& data : m_simulatorTruth) {

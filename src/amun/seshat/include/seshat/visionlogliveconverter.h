@@ -24,6 +24,7 @@
 #include "statussource.h"
 #include "processor/referee.h"
 #include "tracking/tracker.h"
+#include "tracking/worldparameters.h"
 
 #include <QObject>
 #include <QString>
@@ -56,6 +57,7 @@ private:
 
 private:
     VisionLogReader *m_logFile;
+    WorldParameters m_worldParameters;
     Referee m_referee;
     Tracker m_tracker;
     // uniform times between the start and end of the logfile

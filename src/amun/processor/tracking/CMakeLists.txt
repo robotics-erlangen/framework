@@ -20,6 +20,7 @@
 
 add_library(tracking STATIC
     include/tracking/tracker.h
+    include/tracking/worldparameters.h
 
     abstractballfilter.h
     balltracker.cpp
@@ -36,10 +37,11 @@ add_library(tracking STATIC
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
+    worldparameters.cpp
 )
 target_link_libraries(tracking
-    PRIVATE shared::core
     PRIVATE lib::eigen
+    PUBLIC shared::core
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
 )

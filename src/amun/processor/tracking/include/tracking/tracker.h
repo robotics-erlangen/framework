@@ -29,6 +29,7 @@
 #include <QMap>
 #include <QPair>
 #include <QByteArray>
+#include <QObject>
 
 class BallTracker;
 class RobotFilter;
@@ -39,11 +40,13 @@ class SSL_GeometryFieldSize;
 class SSL_FieldCircularArc;
 class SSL_FieldLineSegment;
 class SSL_GeometryCameraCalibration;
-class FieldTransform;
+class WorldParameters;
 struct CameraInfo;
 
-class Tracker
+class Tracker : public QObject
 {
+    Q_OBJECT
+
 private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
     struct Packet {
@@ -54,7 +57,7 @@ private:
     };
 
 public:
-    Tracker(bool robotsOnly, bool isSpeedTracker);
+    Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldParameters);
     ~Tracker();
     Tracker(const Tracker&) = delete;
     Tracker& operator=(const Tracker&) = delete;
@@ -65,18 +68,17 @@ public:
     bool injectDebugValues(qint64 currentTime, amun::DebugValues *debug);
     void clearDebugValues();
 
-    void setFlip(bool flip);
     void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();
-    void finishProcessing(); // has to be called after all calls to worldState for one frame
-    void setGeometryUpdated() { m_geometryUpdated = true; }
+    void updateTeam(const robot::Team &team, bool isBlue);
+
+public slots:
     void setBallModel(const world::BallModel &ballModel) { m_ballModel.CopyFrom(ballModel); }
+    void updateCamera(const SSL_GeometryCameraCalibration &c, const QString &sender);
 
 private:
-    void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);
-
     void invalidateRobotFilter(QList<RobotFilter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
     void invalidateBall(qint64 currentTime);
     void invalidateRobots(RobotMap &map, qint64 currentTime);
@@ -98,11 +100,7 @@ private:
     // used to delay the reset, to avoid accepting invalid vision frames that were sent before reset was triggered
     qint64 m_timeToReset = std::numeric_limits<qint64>::max();
 
-    world::Geometry m_geometry;
-    world::Geometry m_virtualFieldGeometry;
-    bool m_geometryUpdated;
     bool m_hasVisionData;
-    bool m_virtualFieldEnabled;
     world::BallModel m_ballModel;
 
     QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
@@ -124,7 +122,7 @@ private:
 
     QList<QString> m_errorMessages;
     QList<std::pair<SSL_WrapperPacket, qint64>> m_detectionWrappers;
-    std::unique_ptr<FieldTransform> m_fieldTransform;
+    WorldParameters *m_worldParameters = nullptr;
 
     // if possible, select robots from this camera
     int m_desiredRobotCamera = -1;

@@ -31,6 +31,8 @@
 #include "processor/networktransceiver.h"
 #include "processor/integrator.h"
 #include "protobuf/geometry.h"
+#include "protobuf/ssl_geometry.pb.h"
+#include "protobuf/world.pb.h"
 #include "simulator/simulator.h"
 #include "strategy/script/debughelper.h"
 #include "strategy/strategyreplayhelper.h"
@@ -98,6 +100,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<camun::simulator::ErrorSource>("ErrorSource");
     qRegisterMetaType<camun::simulator::ErrorSource>("camun::simulator::ErrorSource");
     qRegisterMetaType<amun::CommandReferee>("amun::CommandReferee");
+    qRegisterMetaType<SSL_GeometryCameraCalibration>("SSL_GeometryCameraCalibration");
+    qRegisterMetaType<world::BallModel>("world::BallModel");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
