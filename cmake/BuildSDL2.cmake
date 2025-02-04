@@ -39,14 +39,17 @@ if (UNIX AND NOT APPLE)
         EPHelper_Mark_For_Download(project_sdl2)
 
         externalproject_get_property(project_sdl2 install_dir)
-        add_library(lib::sdl2 UNKNOWN IMPORTED)
         # cmake enforces that the include directory exists
         file(MAKE_DIRECTORY "${install_dir}/include/SDL2")
-        set_target_properties(lib::sdl2 PROPERTIES
+
+        add_library(project_sdl2_import UNKNOWN IMPORTED)
+        set_target_properties(project_sdl2_import PROPERTIES
             IMPORTED_LOCATION "${install_dir}/${LIBSDL_SUBPATH}"
             INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2"
         )
-        add_dependencies(lib::sdl2 project_sdl2)
+
+        EPHelper_Add_Interface_Library(PROJECT project_sdl2 ALIAS lib::sdl2)
+
         set(SDL2_FOUND true)
         set(SDL2_VERSION "2.0.7")
         message(STATUS "Building SDL ${SDL2_VERSION}")
@@ -84,15 +87,18 @@ elseif(MINGW)
     EPHelper_Mark_For_Download(project_sdl2)
 
     externalproject_get_property(project_sdl2 install_dir)
-    add_library(lib::sdl2 UNKNOWN IMPORTED)
     # cmake enforces that the include directory exists
     file(MAKE_DIRECTORY "${install_dir}/include/SDL2")
-    set_target_properties(lib::sdl2 PROPERTIES
+
+    add_library(project_sdl2_import UNKNOWN IMPORTED)
+    set_target_properties(project_sdl2_import PROPERTIES
         IMPORTED_LOCATION "${install_dir}/${LIBSDL_SUBPATH}"
         INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBSDL_LIBSUBPATH}"
         INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2"
     )
-    add_dependencies(lib::sdl2 project_sdl2)
+
+    EPHelper_Add_Interface_Library(PROJECT project_sdl2 ALIAS lib::sdl2)
+
     set(SDL2_FOUND true)
     set(SDL2_VERSION "2.0.7")
     message(STATUS "Building ${SDL2_VERSION}")

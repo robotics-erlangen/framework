@@ -59,19 +59,23 @@ ExternalProject_Add(project_bullet
 EPHelper_Add_Cleanup(project_bullet bin include lib share)
 EPHelper_Add_Clobber(project_bullet ${BULLET_PATCH_FILE})
 EPHelper_Mark_For_Download(project_bullet)
+ 
+set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
 
 externalproject_get_property(project_bullet install_dir)
-set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
-add_library(lib::bullet STATIC IMPORTED)
-add_dependencies(lib::bullet project_bullet)
-# cmake enforces that the include directory exists
+# cmake requires that the include directory exists
 file(MAKE_DIRECTORY "${install_dir}/include/bullet")
-set_property(TARGET lib::bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/bullet")
-# just select a library
-set_property(TARGET lib::bullet PROPERTY IMPORTED_LOCATION
-    "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+
+add_library(project_bullet_import STATIC IMPORTED)
+set_target_properties(project_bullet_import PROPERTIES
+    # just select a library
+    IMPORTED_LOCATION "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/bullet"
 )
-set_property(TARGET lib::bullet PROPERTY INTERFACE_LINK_LIBRARIES
-    "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
+set_property(TARGET project_bullet_import PROPERTY
+    INTERFACE_LINK_LIBRARIES
+        "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
+
+EPHelper_Add_Interface_Library(PROJECT project_bullet ALIAS lib::bullet)

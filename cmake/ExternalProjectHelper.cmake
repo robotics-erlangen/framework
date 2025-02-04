@@ -69,3 +69,18 @@ function(EPHelper_Mark_For_Download target)
     endif()
     add_dependencies(download ${target}-download)
 endfunction(EPHelper_Mark_For_Download)
+
+# Add an interface library, aliased to ALIAS to ensure the external project is
+# built when linking against it
+#
+# An imported library ${PROJECT}_import must be created by the caller prior to
+# calling this function
+function(EPHelper_Add_Interface_Library)
+    cmake_parse_arguments(PARSE_ARGV 0 arg "" "PROJECT;ALIAS" "")
+
+    add_library(${arg_PROJECT}_interface INTERFACE)
+    add_dependencies(${arg_PROJECT}_interface ${arg_PROJECT})
+    target_link_libraries(${arg_PROJECT}_interface INTERFACE ${arg_PROJECT}_import)
+
+    add_library(${arg_ALIAS} ALIAS ${arg_PROJECT}_interface)
+endfunction()

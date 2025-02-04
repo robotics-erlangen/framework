@@ -69,21 +69,24 @@ EPHelper_Add_Cleanup(project_luajit bin include lib share)
 EPHelper_Add_Clobber(project_luajit ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
 EPHelper_Mark_For_Download(project_luajit)
 
-externalproject_get_property(project_luajit install_dir)
 set_target_properties(project_luajit PROPERTIES EXCLUDE_FROM_ALL true)
-add_library(lib::luajit UNKNOWN IMPORTED)
-add_dependencies(lib::luajit project_luajit)
+
+externalproject_get_property(project_luajit install_dir)
 # cmake enforces that the include directory exists
 file(MAKE_DIRECTORY "${install_dir}/include/luajit-2.1")
-set_target_properties(lib::luajit PROPERTIES
+
+add_library(project_luajit_import UNKNOWN IMPORTED)
+set_target_properties(project_luajit_import PROPERTIES
     IMPORTED_LOCATION "${install_dir}/${LUAJIT_SUBPATH}"
     INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/luajit-2.1"
 )
 
 if(APPLE)
   # required by LuaJIT for 64bit
-  set_target_properties(lib::luajit PROPERTIES INTERFACE_LINK_LIBRARIES "-pagezero_size 10000 -image_base 100000000")
+  set_target_properties(project_luajit_import PROPERTIES INTERFACE_LINK_LIBRARIES "-pagezero_size 10000 -image_base 100000000")
 elseif(UNIX AND NOT APPLE)
   # required for the static library
-  set_property(TARGET lib::luajit PROPERTY INTERFACE_LINK_LIBRARIES m dl)
+  set_property(TARGET project_luajit_import PROPERTY INTERFACE_LINK_LIBRARIES m dl)
 endif()
+
+EPHelper_Add_Interface_Library(PROJECT project_luajit ALIAS lib::luajit)

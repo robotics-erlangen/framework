@@ -48,15 +48,18 @@ if(MINGW)
     EPHelper_Mark_For_Download(project_usb)
 
     externalproject_get_property(project_usb install_dir)
-    add_library(lib::usb UNKNOWN IMPORTED)
     # cmake enforces that the include directory exists
     file(MAKE_DIRECTORY "${install_dir}/include/libusb-1.0")
+
+    add_library(project_usb_import UNKNOWN IMPORTED)
     set_target_properties(lib::usb PROPERTIES
         IMPORTED_LOCATION "${install_dir}/${LIBUSB_SUBPATH}"
         INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBUSB_SUBPATH}.a"
         INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/libusb-1.0"
     )
-    add_dependencies(lib::usb project_usb)
+
+    EPHelper_Add_Interface_Library(PROJECT project_usb ALIAS lib::usb)
+
     set(USB_FOUND true)
     message(STATUS "Building libusb 1.0.21")
 else()

@@ -9,7 +9,7 @@
 #   V8_FOUND - True if the system has the V8 library
 #   V8_VERSION  - The version of the V8 library which was found
 #
-# and the following imported targets::
+# and the following targets:
 #
 #   lib::v8  - The V8 library
 
@@ -109,7 +109,7 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT ${V8_VERSION} MATCHES ${V8_FI
     message("Could not find V8 - downloading a precompiled version")
 
     if(V8_PRECOMPILED_DOWNLOAD)
-        ExternalProject_Add(v8_download
+        ExternalProject_Add(project_v8
             URL ${V8_PRECOMPILED_DOWNLOAD}
             URL_HASH SHA256=${V8_PRECOMPILED_HASH}
             CONFIGURE_COMMAND ""
@@ -119,15 +119,15 @@ if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT ${V8_VERSION} MATCHES ${V8_FI
             DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
             TEST_COMMAND ${CMAKE_COMMAND} -D V8_INCLUDE_DIR=<SOURCE_DIR>/include -D REQUESTED_V8_VERSION=${V8_VERSION} -P ${CMAKE_SOURCE_DIR}/cmake/CheckV8Version.cmake
         )
-        EPHelper_Add_Cleanup(v8_download bin include lib share)
-        EPHelper_Add_Clobber(v8_download ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
-        EPHelper_Mark_For_Download(v8_download)
+        EPHelper_Add_Cleanup(project_v8 bin include lib share)
+        EPHelper_Add_Clobber(project_v8 ${CMAKE_CURRENT_LIST_DIR}/stub.patch)
+        EPHelper_Mark_For_Download(project_v8)
 
-        ExternalProject_Get_property(v8_download SOURCE_DIR)
+        ExternalProject_Get_property(project_v8 SOURCE_DIR)
         set(V8_INCLUDE_DIR "${SOURCE_DIR}/include")
         set(V8_OUTPUT_DIR "${SOURCE_DIR}/out/${V8_ARCHITECTURE}.release")
         # the byproducts are available after the build step
-        ExternalProject_Add_Step(v8_download out
+        ExternalProject_Add_Step(project_v8 out
             DEPENDEES build
             BYPRODUCTS
                 "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}"
@@ -159,15 +159,22 @@ if(V8_FOUND)
         message("Statically linking V8")
     endif()
 
-    add_library(lib::v8 UNKNOWN IMPORTED)
-    if(V8_PRECOMPILED_DOWNLOAD)
-        add_dependencies(lib::v8 v8_download)
-    endif()
-    set_target_properties(lib::v8 PROPERTIES INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}")
-    if(V8_IS_DYNAMIC)
-        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    if (V8_IS_DYNAMIC)
+        set(LIBRARY_IMPORT_LOCATION "${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}")
     else()
-        set_target_properties(lib::v8 PROPERTIES IMPORTED_LOCATION "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}")
+        set(LIBRARY_IMPORT_LOCATION "${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}")
+    endif()
+
+    add_library(project_v8_import UNKNOWN IMPORTED)
+    set_target_properties(project_v8_import PROPERTIES
+        IMPORTED_LOCATION "${LIBRARY_IMPORT_LOCATION}"
+        INTERFACE_INCLUDE_DIRECTORIES "${V8_INCLUDE_DIR}"
+    )
+
+    if(V8_PRECOMPILED_DOWNLOAD)
+        EPHelper_Add_Interface_Library(PROJECT project_v8 ALIAS lib::v8)
+    else()
+        add_library(lib::v8 ALIAS project_v8_import)
     endif()
 
     if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
@@ -180,7 +187,7 @@ if(V8_FOUND)
         # force the linker to explcitly include all v8 libs
         # this is necesary as otherwise dependencies of v8 are resolved
         # using the standard library search path which will fail.
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--push-state,--no-as-needed -Wl,--start-group)
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--push-state,--no-as-needed -Wl,--start-group)
     endif()
 
     if(V8_IS_DYNAMIC)
@@ -190,31 +197,31 @@ if(V8_FOUND)
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libbase${CMAKE_SHARED_LIBRARY_SUFFIX}
             ${V8_OUTPUT_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}v8_libplatform${CMAKE_SHARED_LIBRARY_SUFFIX}
         )
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${V8_LIBS})
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES ${V8_LIBS})
         set(V8_DLL
-            $<TARGET_FILE:lib::v8>
+            $<TARGET_FILE:project_v8_import>
             ${V8_LIBS}
         )
     else()
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES
             ${V8_OUTPUT_DIR}/obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}
         )
         set(V8_DLL)
     endif()
 
     if(USING_GCC)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--end-group -Wl,--pop-state)
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--end-group -Wl,--pop-state)
     endif()
 
     if(MINGW)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES
             -lwinmm
             -ldbghelp
             -lshlwapi
             -lssp
         )
     elseif(LINUX)
-        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+        set_property(TARGET project_v8_import APPEND PROPERTY INTERFACE_LINK_LIBRARIES
             -lrt
             -ldl
             Threads::Threads

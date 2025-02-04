@@ -81,7 +81,7 @@ add_custom_target(assemble
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/tsc ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/tsc
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:lib::luajit>
+        $<TARGET_FILE:project_luajit_import>
         $<TARGET_FILE:lib::sdl2>
         $<TARGET_FILE:lib::usb>
         $<TARGET_FILE:Qt5::Core>

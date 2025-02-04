@@ -45,19 +45,17 @@ EPHelper_Add_Cleanup(project_googletest bin include ${CMAKE_INSTALL_LIBDIR} shar
 EPHelper_Add_Clobber(project_googletest "${GOOGLETEST_PATCH_FILE}")
 EPHelper_Mark_For_Download(project_googletest)
 
-externalproject_get_property(project_googletest install_dir)
 set_target_properties(project_googletest PROPERTIES EXCLUDE_FROM_ALL true)
-
-add_library(lib::googletest STATIC IMPORTED)
-add_dependencies(lib::googletest project_googletest)
 
 externalproject_get_property(project_googletest install_dir)
 file(MAKE_DIRECTORY "${install_dir}/include/")
-set_property(TARGET lib::googletest PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include")
-# just select a library
-set_property(TARGET lib::googletest PROPERTY IMPORTED_LOCATION
-	"${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
+
+add_library(project_googletest_import STATIC IMPORTED)
+set_target_properties(project_googletest_import PROPERTIES
+    # just select a library
+    IMPORTED_LOCATION "${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_LINK_LIBRARIES "${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
+    INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include"
 )
-set_property(TARGET lib::googletest PROPERTY INTERFACE_LINK_LIBRARIES
-	"${install_dir}/${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}gtest_main${CMAKE_STATIC_LIBRARY_SUFFIX}"
-)
+
+EPHelper_Add_Interface_Library(PROJECT project_googletest ALIAS lib::googletest)

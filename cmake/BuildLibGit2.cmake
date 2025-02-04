@@ -67,13 +67,14 @@ EPHelper_Add_Cleanup(project_libgit2 bin include lib share)
 EPHelper_Add_Clobber(project_libgit2 ${CMAKE_CURRENT_LIST_DIR}/libgit.patch)
 
 externalproject_get_property(project_libgit2 install_dir)
-
-add_library(lib::git2 UNKNOWN IMPORTED)
-add_dependencies(lib::git2 project_libgit2)
 # cmake enforces that the include directory exists
 file(MAKE_DIRECTORY "${install_dir}/include/")
-set_target_properties(lib::git2 PROPERTIES
+
+add_library(project_libgit2_import UNKNOWN IMPORTED)
+set_target_properties(project_libgit2_import PROPERTIES
     IMPORTED_LOCATION "${install_dir}/${LIBGIT_SUBPATH}"
     INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBGIT_SUBPATH};${LIBGIT_INCLUDE_LIBS}"
     INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/"
 )
+
+EPHelper_Add_Interface_Library(PROJECT project_libgit2 ALIAS lib::git2)
