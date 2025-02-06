@@ -35,10 +35,34 @@ export class CrossShoot extends Move {
 	private _timeBegin: number | undefined = undefined;
 	private _waitTwoSeconds: number | undefined = undefined;
 	private _restart: boolean = true;
+	private _firstContactPos: Position;
+	private _receiverPos: Position;
 
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
+		[this._firstContactPos, this._receiverPos] = CrossShoot._computeFirstContactAndReceiverPos();
 	}
+
+	private static _computeFirstContactAndReceiverPos(): [Position, Position] {
+		let startContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_Y);
+		let endContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
+		let alpha = valueToRating(World.Ball.pos.y, CORNER_KICK_POS_Y, GOAL_KICK_POS_Y);
+		let startContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
+		let endContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
+			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X - Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf / 3, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
+		let beta = valueToRating(Math.abs(World.Ball.pos.x), G.FieldWidthHalf, G.FieldWidthHalf - (G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf));
+
+		let _firstContactPosY = CrossShoot._calculateFirstContactPosY(startContactPosY, endContactPosY, alpha);
+		let _firstContactPosX = CrossShoot._calculateFirstContactPosX(startContactPosX, endContactPosX, beta);
+		let _firstContactPos = _firstContactPosY + 0.5 * (_firstContactPosX - _firstContactPosY);
+		let _receiverPos = geom.intersectLineLine(World.Ball.pos, _firstContactPos - World.Ball.pos,
+			new Vector(G.DefenseWidthHalf, G.OpponentGoal.y - G.DefenseHeight - RECIEVER_POS_Y), new Vector(1, 0))[0]!;
+		return [_firstContactPos, _receiverPos];
+	}
+
 	public static canStart() {
 		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
 		// - don't waste time by restarting different moves
@@ -64,31 +88,16 @@ export class CrossShoot extends Move {
 		}
 	}
 
-	private _calculateFirstContactPosY(start: Vector, end: Vector, alpha: number): Vector {
+	private static _calculateFirstContactPosY(start: Vector, end: Vector, alpha: number): Vector {
 		return new Vector(start.x, start.y - alpha * (start.y - end.y));
 	}
-	private _calculateFirstContactPosX(start: Vector, end: Vector, beta: number): Vector {
+
+	private static _calculateFirstContactPosX(start: Vector, end: Vector, beta: number): Vector {
 		return new Vector(start.x - beta * (start.x - end.x), start.y);
 	}
 
 	protected _updateTasks(): MoveParameters {
-		let startContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + FIRST_CONTACT_POS_OFFSET_Y);
-		let endContactPosY = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
-		let alpha = valueToRating(World.Ball.pos.y, CORNER_KICK_POS_Y, GOAL_KICK_POS_Y);
-		let startContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
-		let endContactPosX = new Vector(Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf -
-			Math.sign(World.Ball.pos.x) * FIRST_CONTACT_POS_OFFSET_X - Math.sign(World.Ball.pos.x) * G.DefenseWidthHalf / 3, G.OpponentGoal.y - G.DefenseHeight + CONTACT_POS_OFFSET);
-		let beta = valueToRating(Math.abs(World.Ball.pos.x), G.FieldWidthHalf, G.FieldWidthHalf - (G.DefenseWidthHalf + (1 / 4) * G.DefenseWidthHalf));
-
-		let firstContactPosY = this._calculateFirstContactPosY(startContactPosY, endContactPosY, alpha);
-		let firstContactPosX = this._calculateFirstContactPosX(startContactPosX, endContactPosX, beta);
-		let firstContactPos = firstContactPosY + 0.5 * (firstContactPosX - firstContactPosY);
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
-		let receiverPos = geom.intersectLineLine(World.Ball.pos, firstContactPos - World.Ball.pos,
-			new Vector(G.DefenseWidthHalf, G.OpponentGoal.y - G.DefenseHeight - RECIEVER_POS_Y), new Vector(1, 0));
 		for (let i = 0; i < 4; i++) {
 			this._pos[i] = new Vector(Math.sign(World.Ball.pos.x) * (G.DefenseWidthHalf + START_POS_WALL + i * WALL_SPACE),
 				G.OpponentGoal.y - G.DefenseHeight);
@@ -96,7 +105,7 @@ export class CrossShoot extends Move {
 		for (let i = 0; i < this._pos.length; i++) {
 			taskAssignments[this._robots[i + 1]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._pos[i] }] });
 		}
-		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: receiverPos[0]! }], restart: this._restart });
+		taskAssignments[this._robots[5]] = Assignment.create({ class: MoveToPos, params: [{ pos: this._receiverPos }], restart: this._restart });
 
 		if (World.RefereeState === "Stop") {
 			taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
@@ -106,7 +115,7 @@ export class CrossShoot extends Move {
 				this._waitTwoSeconds = World.Time;
 			}
 			if (World.Time - this._waitTwoSeconds > 2) {
-				taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [firstContactPos, World.Time] });
+				taskAssignments[this._robots[0]] = Assignment.create({ class: ChipToPos, params: [this._firstContactPos, World.Time] });
 			} else {
 				taskAssignments[this._robots[0]] = Assignment.create({ class: StopAttack, params: [] });
 			}
