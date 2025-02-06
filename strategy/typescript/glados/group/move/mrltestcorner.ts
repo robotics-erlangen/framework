@@ -68,26 +68,23 @@ export class MrlTestCorner extends Move {
 				|| MrlTestCorner.Referee.isFriendlyFreeKickState());
 	}
 
-	private _distractorPositions: Position[];
+	private static readonly _DISTRACTOR_POSITIONS: Position[] = [
+		new Vector(0.3, G.OpponentGoal.y - (G.DefenseHeight + 0.4)),
+		new Vector(0.0, G.OpponentGoal.y - (G.DefenseHeight + 0.4)),
+		new Vector(-0.3, G.OpponentGoal.y - (G.DefenseHeight + 0.4))
+	];
 	private _distractorAttackPos: Position[];
-	private _activeRobotInitPos: Position;
+	private static readonly _ACTIVE_ROBOT_INIT_POS: Position = new Vector(-G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1);
 	private _activeRobotShootPos: Position;
 	private _restart: boolean = true;
 
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		let goalDist = G.DefenseHeight + 0.4;
-		this._distractorPositions = [
-			new Vector(0.3, G.OpponentGoal.y - goalDist),
-			new Vector(0.0, G.OpponentGoal.y - goalDist),
-			new Vector(-0.3, G.OpponentGoal.y - goalDist)
-		];
 		this._distractorAttackPos = [];
 		for (let i = 0; i < 3; i++) {
-			this._distractorAttackPos.push(this._distractorPositions[i] - new Vector((i) * 0.3 + 0.3, 0.5));
+			this._distractorAttackPos.push(MrlTestCorner._DISTRACTOR_POSITIONS[i] - new Vector((i) * 0.3 + 0.3, 0.5));
 		}
 
-		this._activeRobotInitPos = new Vector(-G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1);
 		this._activeRobotShootPos = new Vector(G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3);
 	}
 
@@ -124,11 +121,11 @@ export class MrlTestCorner extends Move {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 
 		let buffer = 0.1;
-		taskAssignments[this._robots[1]] = taskAssignment(passInfoTable, this._activeRobotInitPos, this._activeRobotShootPos, this._robots[1], 0);
+		taskAssignments[this._robots[1]] = taskAssignment(passInfoTable, MrlTestCorner._ACTIVE_ROBOT_INIT_POS, this._activeRobotShootPos, this._robots[1], 0);
 
-		let enemyRobots = getRobotsInRect(this._distractorPositions[0], this._distractorPositions[2] + new Vector(-0.6, 0.4), World.OpponentRobots, buffer);
+		let enemyRobots = getRobotsInRect(MrlTestCorner._DISTRACTOR_POSITIONS[0], MrlTestCorner._DISTRACTOR_POSITIONS[2] + new Vector(-0.6, 0.4), World.OpponentRobots, buffer);
 		for (let i = 0; i < 3; i++) {
-			taskAssignments[this._robots[i + 2]] = taskAssignment(passInfoTable, this._distractorPositions[i], this._distractorAttackPos[i], this._robots[i + 2], enemyRobots.length);
+			taskAssignments[this._robots[i + 2]] = taskAssignment(passInfoTable, MrlTestCorner._DISTRACTOR_POSITIONS[i], this._distractorAttackPos[i], this._robots[i + 2], enemyRobots.length);
 		}
 
 		return {
