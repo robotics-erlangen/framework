@@ -128,6 +128,7 @@ SimRobot::~SimRobot()
 {
     if (m_holdBallConstraint) {
         m_world->removeConstraint(m_holdBallConstraint.get());
+        m_world->removeConstraint(m_notTipOverConstraint.get());
     }
     m_world->removeConstraint(m_dribblerConstraint);
     m_world->removeRigidBody(m_dribblerBody);
@@ -155,23 +156,25 @@ void SimRobot::dribble(SimBall *ball, float speed)
 {
     if (m_perfectDribbler) {
         if (canKickBall(ball) && !m_holdBallConstraint) {
-            btTransform localA, localB;
-            localA.setIdentity();
-            localB.setIdentity();
+            btVector3 localA, localB;
+            localB.setZero();
 
-            auto robotWorldTransform = m_body->getWorldTransform();
-            // set the constraint position for the robot to the same height as the ball
-            // this prevents the robot from toppling over due to forces in the z direction
-            auto modifiedRobotPos = robotWorldTransform.getOrigin();
-            modifiedRobotPos.setZ(0);
-            robotWorldTransform.setOrigin(modifiedRobotPos);
+            const auto robotWorldTransform = m_body->getWorldTransform();
             const auto worldToRobot = robotWorldTransform.inverse();
-            localA.setOrigin(worldToRobot * ball->position());
-            localA.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
-            localB.setRotation(btQuaternion(worldToRobot * btVector3(0, 1, 0), M_PI_2));
+            localA = worldToRobot * ball->position();
 
-            m_holdBallConstraint.reset(new btHingeConstraint(*m_body, *ball->body(), localA, localB));
+            m_holdBallConstraint.reset(new btPoint2PointConstraint(*m_body, *ball->body(), localA, localB));
             m_world->addConstraint(m_holdBallConstraint.get(), true);
+
+            // add a constraint to prevent the robot from tipping over
+            // previously it was common for one robot tipping over if both had the dribbling constraint
+            // this is an ugly hack, but then again so is this the holdBallConstraint
+            m_notTipOverConstraint.reset(new btGeneric6DofSpring2Constraint(*m_body, robotWorldTransform));
+            m_notTipOverConstraint->setAngularLowerLimit(btVector3(0,0,1));
+            m_notTipOverConstraint->setAngularUpperLimit(btVector3(0,0,0));
+            m_notTipOverConstraint->setLinearLowerLimit(btVector3(1,1,1));
+            m_notTipOverConstraint->setLinearUpperLimit(btVector3(0,0,0));
+            m_world->addConstraint(m_notTipOverConstraint.get(),true);
         }
     } else {
         // unit for rotation is  (rad / s) in bullet, but (rpm) in sslCommand
@@ -189,7 +192,9 @@ void SimRobot::stopDribbling()
 
     if (m_holdBallConstraint) {
         m_world->removeConstraint(m_holdBallConstraint.get());
+        m_world->removeConstraint(m_notTipOverConstraint.get());
         m_holdBallConstraint.reset();
+        m_notTipOverConstraint.reset();
     }
 }
 

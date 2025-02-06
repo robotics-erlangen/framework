@@ -21,7 +21,6 @@
 #ifndef SIMROBOT_H
 #define SIMROBOT_H
 
-#include "protobuf/command.pb.h"
 #include "protobuf/robot.pb.h"
 #include "protobuf/sslsim.h"
 #include <QList>
@@ -90,7 +89,8 @@ private:
     QList<btCollisionShape*> m_shapes;
     btMotionState * m_motionState;
     btVector3 m_dribblerCenter;
-    std::unique_ptr<btHingeConstraint> m_holdBallConstraint;
+    std::unique_ptr<btPoint2PointConstraint> m_holdBallConstraint;
+    std::unique_ptr<btGeneric6DofSpring2Constraint> m_notTipOverConstraint;
 
     struct Wheel
     {
