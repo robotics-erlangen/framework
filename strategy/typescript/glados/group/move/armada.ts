@@ -8,7 +8,8 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { Assignment, MoveParameters } from "glados/group/move/base";
+import { FixedMAMove } from "glados/group/move/fixedmamove";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { Circuit } from "glados/task/attacker/circuit";
 import { StopAttack } from "glados/task/attacker/stopattack";
@@ -41,10 +42,9 @@ function randomExtension(min: number): number {
 
 const ARMADA_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
-export class Armada extends Move {
+export class Armada extends FixedMAMove {
 	public static readonly MIN_ROBOTS: number = 5;
 	public static readonly MAX_ROBOTS: number = 5;
-	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	private _circleCenter: Position;
 	private _positions: Position[];
@@ -146,5 +146,16 @@ export class Armada extends Move {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]
 		};
+	}
+
+	public static sortRobotsByPriority(robots: FriendlyRobot[]): FriendlyRobot[] {
+		const localSort = (robots: FriendlyRobot[]): FriendlyRobot[] => {
+			const robotsWithDistancesToCenter: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(new Vector(0, 0))]);
+			robotsWithDistancesToCenter.sort((robotA, robotB) => robotA[1] - robotB[1]);
+
+			return robotsWithDistancesToCenter.map(([robot, _distance]) => robot);
+		};
+
+		return FixedMAMove._sortRobotsByPriorityMAFirst(robots, localSort);
 	}
 }

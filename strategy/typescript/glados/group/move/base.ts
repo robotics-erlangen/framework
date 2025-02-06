@@ -106,4 +106,13 @@ export abstract class Move {
 	public abstract static canStart(numCandidateRobots: number): boolean;
 	public abstract canContinue(): boolean;
 	protected abstract _updateTasks(): MoveParameters;
+
+	/**
+	 * Sorts robots so that the most fitting robots for the move are in the front and the main attacker is at index 0.
+	 * In other words this ensures that robots.slice(0,max(MIN_ROBOTS, min(robots.length, MAX_ROBOTS))) contains the "best" robots for the move.
+	 */
+	public static sortRobotsByPriority(robots: FriendlyRobot[]): FriendlyRobot[] {
+		robots.sort((a, b) => b.pos.y - a.pos.y);
+		return robots;
+	}
 }

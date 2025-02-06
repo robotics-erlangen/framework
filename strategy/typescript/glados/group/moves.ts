@@ -111,11 +111,11 @@ export class Moves implements Group {
 		}
 
 		if (this._currentMove == undefined && this._chosenMove != undefined) {
-			const availableRobots = [...messages.keys()];
+			let availableRobots = [...messages.keys()];
 
 			if (availableRobots.length >= this._chosenMove.ctor.MIN_ROBOTS
 					&& this._numAttackersSent) {
-				availableRobots.sort((a, b) => b.pos.y - a.pos.y);
+				availableRobots = this._chosenMove.ctor.sortRobotsByPriority(availableRobots);
 				const numAssigned = Math.min(
 					availableRobots.length,
 					this._chosenMove.requestedRobots,

@@ -8,7 +8,8 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { Assignment, MoveParameters } from "glados/group/move/base";
+import { FixedMAMove } from "glados/group/move/fixedmamove";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
@@ -20,10 +21,9 @@ const G = World.Geometry;
 
 const WINDSHIELD_WIPER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
-export class WindshieldWiper extends Move {
+export class WindshieldWiper extends FixedMAMove {
 	public static readonly MIN_ROBOTS: number = 1;
 	public static readonly MAX_ROBOTS: number = 5;
-	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 
 	public static canStart(): boolean {
@@ -144,5 +144,16 @@ export class WindshieldWiper extends Move {
 			assignments: taskAssignments,
 			mainAttacker: mainrobot
 		};
+	}
+
+	public static sortRobotsByPriority(robots: FriendlyRobot[]): FriendlyRobot[] {
+		const localSort = (robots: FriendlyRobot[]): FriendlyRobot[] => {
+			const robotsWithDistancesToCenterOfMove: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(new Vector((MathUtil.sign(World.Ball.pos.x)) * (2 / WindshieldWiper.MAX_ROBOTS - 0.5) * G.FieldWidth * 0.75, G.FieldHeightQuarter * (8 / 7)))]);
+			robotsWithDistancesToCenterOfMove.sort((robotA, robotB) => robotA[1] - robotB[1]);
+
+			return robotsWithDistancesToCenterOfMove.map(([robot, _distance]) => robot);
+		};
+
+		return FixedMAMove._sortRobotsByPriorityMAFirst(robots, localSort);
 	}
 }

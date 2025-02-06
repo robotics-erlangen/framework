@@ -4,8 +4,9 @@ import { FriendlyRobot } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as World from "base/world";
 
-import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { MessageBox } from "glados/control/messaging";
+import { Assignment, MoveParameters } from "glados/group/move/base";
+import { FixedMAMove } from "glados/group/move/fixedmamove";
 import { isShot } from "glados/observer/ball";
 import { StopAttack } from "glados/task/attacker/stopattack";
 import { ChipToPos } from "glados/task/shared/chiptopos";
@@ -27,10 +28,10 @@ const CORNER_KICK_POS_Y: number = G.OpponentGoal.y - 0.2;
 const GOAL_KICK_POS_Y: number = G.OpponentGoal.y - 1;
 
 
-export class CrossShoot extends Move {
+export class CrossShoot extends FixedMAMove {
 	public static readonly MIN_ROBOTS: number = 6;
 	public static readonly MAX_ROBOTS: number = 6;
-	public static readonly ALLOW_EXTRA_ATTACKERS = false;
+
 	private _pos: Vector[] = [];
 	private _timeBegin: number | undefined = undefined;
 	private _waitTwoSeconds: number | undefined = undefined;
@@ -124,6 +125,30 @@ export class CrossShoot extends Move {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]
 		};
+	}
+
+	public static sortRobotsByPriority(robots: FriendlyRobot[]): FriendlyRobot[] {
+		const _receiverPos = CrossShoot._computeFirstContactAndReceiverPos()[1];
+		const localSort = (robots: FriendlyRobot[]): FriendlyRobot[] => {
+			// search robot with closest distance to receive pos
+			const robotsWithDistancesToReceivePos: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(_receiverPos)]);
+			robotsWithDistancesToReceivePos.sort((robotA, robotB) => robotA[1] - robotB[1]);
+			const receiverBot = robotsWithDistancesToReceivePos[0][0];
+			const receiverBotIndex = robots.indexOf(receiverBot);
+			robots.splice(receiverBotIndex, 1);
+
+			// sort rest of robots according to their distance to the ball
+			const robotsWithDistancesToBall: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(World.Ball.pos)]);
+			robotsWithDistancesToBall.sort((robotA, robotB) => robotA[1] - robotB[1]);
+			robots = robotsWithDistancesToBall.map(([robot, _distance]) => robot);
+
+			// - 2, because it's index 5 in the original array, but localSort gets array without MA, so it needs to be offset by 2
+			robots.splice(CrossShoot.MAX_ROBOTS - 2, 0, receiverBot);
+
+			return robots;
+		};
+
+		return FixedMAMove._sortRobotsByPriorityMAFirst(robots, localSort);
 	}
 }
 

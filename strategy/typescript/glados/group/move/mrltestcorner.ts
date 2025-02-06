@@ -7,7 +7,8 @@ import * as World from "base/world";
 
 import { FreeKick } from "glados/agent/attacker/freekick";
 import { MessageBox, MessageType } from "glados/control/messaging";
-import { Assignment, Move, MoveParameters } from "glados/group/move/base";
+import { Assignment, MoveParameters } from "glados/group/move/base";
+import { FixedMAMove } from "glados/group/move/fixedmamove";
 import { StrikerSampling } from "glados/task/ability/strikersampling";
 import { AcceptPass } from "glados/task/attacker/acceptpass";
 import { StopAttack } from "glados/task/attacker/stopattack";
@@ -53,10 +54,9 @@ function taskAssignment(passInfoTable: any, pos1: Position, pos2: Position, robo
 
 const MRLTESTCORNER_FREEKICK = parameterizeClass(FreeKick, Attack.defaultRatePass);
 
-export class MrlTestCorner extends Move {
+export class MrlTestCorner extends FixedMAMove {
 	public static readonly MIN_ROBOTS: number = 5;
 	public static readonly MAX_ROBOTS: number = 5;
-	public static readonly ALLOW_EXTRA_ATTACKERS = false;
 
 	public static canStart(): boolean {
 		// _canContinue must not fail during freekick state if this move is to be allowed to start in freekick state
@@ -132,5 +132,30 @@ export class MrlTestCorner extends Move {
 			assignments: taskAssignments,
 			mainAttacker: this._robots[0]
 		};
+	}
+
+	public static sortRobotsByPriority(robots: FriendlyRobot[]): FriendlyRobot[] {
+		const localSort = (robots: FriendlyRobot[]): FriendlyRobot[] => {
+			const ballSide = (World.Ball.pos.x > 0) ? 1 : -1;
+			const activeRobotInitPos = new Vector(ballSide * MrlTestCorner._ACTIVE_ROBOT_INIT_POS.x, MrlTestCorner._ACTIVE_ROBOT_INIT_POS.y);
+
+			// search robot with closest distance to ACTIVE_ROBOT_INIT_POS pos
+			const robotsWithDistancesToActiveRobotInitPos: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(activeRobotInitPos)]);
+			robotsWithDistancesToActiveRobotInitPos.sort((robotA, robotB) => robotA[1] - robotB[1]);
+			const activeRobot = robotsWithDistancesToActiveRobotInitPos[0][0];
+			const activeRobotIndex = robots.indexOf(activeRobot);
+			robots.splice(activeRobotIndex, 1);
+
+			// sort rest of robots according to their distance to the ball
+			const robotsWithDistancesToDistractorPositions: [FriendlyRobot, number][] = robots.map((robot) => [robot, robot.pos.distanceTo(MrlTestCorner._DISTRACTOR_POSITIONS[1])]);
+			robotsWithDistancesToDistractorPositions.sort((robotA, robotB) => robotA[1] - robotB[1]);
+			robots = robotsWithDistancesToDistractorPositions.map(([robot, _distance]) => robot);
+
+			robots.unshift(activeRobot);
+
+			return robots;
+		};
+
+		return FixedMAMove._sortRobotsByPriorityMAFirst(robots, localSort);
 	}
 }
