@@ -131,13 +131,11 @@ restore_env()
 if (NOT ${PROTOBUF_FOUND})
     set(Protobuf_VERSION 4.25.0)
 endif()
-# old cmake versions can't detect the protobuf version number
-# the protobuf version on such systems is too old to be useful
+
 if(NOT ${PROTOBUF_FOUND}
-    OR ${CMAKE_VERSION} VERSION_LESS 3.6.0
-    # protobuf version 4.25.0 leads to weird linker errors, not sure if versions greater than that cause the same issues
-    OR ${Protobuf_VERSION} VERSION_GREATER_EQUAL 4.25.0
-    OR NOT TARGET protobuf::protoc)
+        # protobuf version 4.25.0 leads to weird linker errors, not sure if versions greater than that cause the same issues
+        OR ${Protobuf_VERSION} VERSION_GREATER_EQUAL 4.25.0
+        OR NOT TARGET protobuf::protoc)
     include(BuildProtobuf)
 endif()
 
