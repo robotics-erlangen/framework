@@ -20,26 +20,26 @@
 
 # support legacy windows build setups
 if (NOT TARGET project_protobuf)
-	find_program(Protobuf_LIBRARY_DLL
-	  NAMES libprotobuf-9.dll
-	  HINTS $ENV{PROTOBUF_DIR}
-	  PATH_SUFFIXES bin
-	  PATHS
-		~/Library/Frameworks
-		/Library/Frameworks
-		/usr/local
-		/usr
-		/sw
-		/opt/local
-		/opt/csw
-		/opt
-	)
-	mark_as_advanced(Protobuf_LIBRARY_DLL)
-	if(Protobuf_LIBRARY_DLL)
-		set(Protobuf_DLL ${Protobuf_LIBRARY_DLL})
-	else()
-		set(Protobuf_DLL)
-	endif()
+    find_program(Protobuf_LIBRARY_DLL
+        NAMES libprotobuf-9.dll
+        HINTS $ENV{PROTOBUF_DIR}
+        PATH_SUFFIXES bin
+        PATHS
+            ~/Library/Frameworks
+            /Library/Frameworks
+            /usr/local
+            /usr
+            /sw
+            /opt/local
+            /opt/csw
+            /opt
+    )
+    mark_as_advanced(Protobuf_LIBRARY_DLL)
+    if(Protobuf_LIBRARY_DLL)
+        set(Protobuf_DLL ${Protobuf_LIBRARY_DLL})
+    else()
+        set(Protobuf_DLL)
+    endif()
 endif()
 
 if(MINGW64)
@@ -56,46 +56,46 @@ endif()
 
 if(CMAKE_CROSS_COMPILING AND MINGW)
     set(COPY_GCC_DLL_COMMANDS ${CMAKE_SOURCE_DIR}/data/scripts/copydlldeps.sh -c
-		-f ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ra.exe
-		--destdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-		--srcdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-		--srcdir ${CMAKE_PREFIX_PATH}/bin)
+        -f ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ra.exe
+        --destdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        --srcdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+        --srcdir ${CMAKE_PREFIX_PATH}/bin)
 else()
-		file(GLOB_RECURSE MINGW_LIB_SSL "$ENV{MINGW_PREFIX}/bin/libssl-*${PACK_SUFFIX}.dll")
-		file(GLOB_RECURSE MINGW_LIB_CRYPTO "$ENV{MINGW_PREFIX}/bin/libcrypto-*${PACK_SUFFIX}.dll")
-		file(GLOB_RECURSE MINGW_LIB_STDCXX "$ENV{MINGW_PREFIX}/bin/libstdc++-*.dll")
-		file(GLOB_RECURSE MINGW_LIB_WINPTHREAD "$ENV{MINGW_PREFIX}/bin/libwinpthread-*.dll")
-		file(GLOB_RECURSE MINGW_LIB_SSP "$ENV{MINGW_PREFIX}/bin/libssp-*.dll")
+    file(GLOB_RECURSE MINGW_LIB_SSL "$ENV{MINGW_PREFIX}/bin/libssl-*${PACK_SUFFIX}.dll")
+    file(GLOB_RECURSE MINGW_LIB_CRYPTO "$ENV{MINGW_PREFIX}/bin/libcrypto-*${PACK_SUFFIX}.dll")
+    file(GLOB_RECURSE MINGW_LIB_STDCXX "$ENV{MINGW_PREFIX}/bin/libstdc++-*.dll")
+    file(GLOB_RECURSE MINGW_LIB_WINPTHREAD "$ENV{MINGW_PREFIX}/bin/libwinpthread-*.dll")
+    file(GLOB_RECURSE MINGW_LIB_SSP "$ENV{MINGW_PREFIX}/bin/libssp-*.dll")
 
     set(COPY_GCC_DLL_COMMANDS ${CMAKE_COMMAND} -E copy_if_different
-			$ENV{MINGW_PREFIX}/bin/${LIB_GCC}
-			${MINGW_LIB_STDCXX}
-			${MINGW_LIB_WINPTHREAD}
-			${MINGW_LIB_SSP}
-			${MINGW_LIB_SSL}
-			${MINGW_LIB_CRYPTO}
-			${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+            $ENV{MINGW_PREFIX}/bin/${LIB_GCC}
+            ${MINGW_LIB_STDCXX}
+            ${MINGW_LIB_WINPTHREAD}
+            ${MINGW_LIB_SSP}
+            ${MINGW_LIB_SSL}
+            ${MINGW_LIB_CRYPTO}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 endif()
 
 add_custom_target(assemble
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/tsc ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/tsc
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		$<TARGET_FILE:lib::luajit>
-		$<TARGET_FILE:lib::sdl2>
-		$<TARGET_FILE:lib::usb>
-		$<TARGET_FILE:Qt5::Core>
-		$<TARGET_FILE:Qt5::Gui>
-		$<TARGET_FILE:Qt5::Network>
-		$<TARGET_FILE:Qt5::OpenGL>
-		$<TARGET_FILE:Qt5::Widgets>
-		$<$<BOOL:$<TARGET_NAME_IF_EXISTS:Qt5::Svg>>:$<TARGET_FILE:Qt5::Svg>>
-		${Protobuf_DLL}
-		${V8_DLL}
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:lib::luajit>
+        $<TARGET_FILE:lib::sdl2>
+        $<TARGET_FILE:lib::usb>
+        $<TARGET_FILE:Qt5::Core>
+        $<TARGET_FILE:Qt5::Gui>
+        $<TARGET_FILE:Qt5::Network>
+        $<TARGET_FILE:Qt5::OpenGL>
+        $<TARGET_FILE:Qt5::Widgets>
+        $<$<BOOL:$<TARGET_NAME_IF_EXISTS:Qt5::Svg>>:$<TARGET_FILE:Qt5::Svg>>
+        ${Protobuf_DLL}
+        ${V8_DLL}
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
-	COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GAMECONTROLLER_FULL_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     COMMAND ${COPY_GCC_DLL_COMMANDS}
@@ -103,7 +103,7 @@ add_custom_target(assemble
 
 
 add_custom_target(pack
-	COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
-	WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-	DEPENDS amun-cli logplayer ra visionanalyzer assemble
+    COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    DEPENDS amun-cli logplayer ra visionanalyzer assemble
 )
