@@ -34,6 +34,7 @@ add_library(core STATIC
     include/core/configuration.h
     include/core/sslprotocols.h
     include/core/teamedrobotidmap.h
+    include/core/staticvector.h
 
     fieldtransform.cpp
     rng.cpp

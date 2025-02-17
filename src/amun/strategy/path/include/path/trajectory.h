@@ -22,62 +22,15 @@
 #define SPEEDPROFILE_H
 
 #include "core/vector.h"
+#include "core/staticvector.h"
 #include "boundingbox.h"
 #include "trajectoryinput.h"
 #include "accelerationprofile.h"
 
 #include <cassert>
 #include <vector>
-#include <array>
 
 class AlphaTimeTrajectory;
-
-template<typename T, std::size_t n>
-class StaticVector {
-public:
-    void push_back(const T &e) {
-        assert(counter < n);
-        elements[counter] = e;
-        counter++;
-    }
-
-    const T& operator[](std::size_t index) const {
-        assert(index < n);
-        return elements[index];
-    }
-
-    T& operator[](std::size_t index) {
-        assert(index < n);
-        return elements[index];
-    }
-
-    const T& back() const {
-        assert(counter > 0);
-        return elements[counter - 1];
-    }
-
-    T& back() {
-        assert(counter > 0);
-        return elements[counter - 1];
-    }
-
-    std::size_t capacity() {
-        return n;
-    }
-
-    std::size_t size() const {
-        return counter;
-    }
-
-    void resize(std::size_t numElements) {
-        assert(numElements <= n);
-        counter = numElements;
-    }
-
-private:
-    std::array<T, n> elements;
-    std::size_t counter = 0;
-};
 
 class Trajectory1D {
 public:
