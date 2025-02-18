@@ -192,6 +192,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
             m_lastTrueBallSpeed = Vector(state.ball().v_x(), state.ball().v_y());
         }
     });
+    simulate(0.005);
 }
 
 amun::SimulatorSetup SimulationController::createDefaultSetup()
