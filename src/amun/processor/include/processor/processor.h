@@ -97,6 +97,7 @@ private:
     void clearExtraData();
     void injectUserControl(Status &status, bool isBlue);
     Status assembleStatus(qint64 time, bool resetRaw);
+    void injectAndClearDebugValues(qint64 currentTime, Status &status);
     world::WorldSource currentWorldSource() const;
     static QString ballModelConfigFile(bool isSimulator);
 

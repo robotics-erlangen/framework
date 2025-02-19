@@ -62,6 +62,8 @@ public:
 public:
     void process(qint64 currentTime);
     Status worldState(qint64 currentTime, bool resetRaw);
+    bool injectDebugValues(qint64 currentTime, amun::DebugValues *debug);
+    void clearDebugValues();
 
     void setFlip(bool flip);
     void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender);

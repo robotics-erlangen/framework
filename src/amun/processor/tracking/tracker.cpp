@@ -263,15 +263,6 @@ BallTracker* Tracker::bestBallFilter()
     return m_currentBallFilter;
 }
 
-static amun::DebugValues* mutable_debug(amun::DebugValues** adv, Status s)
-{
-    if (nullptr == *adv) {
-        *adv = s->add_debug();
-        (*adv)->set_source(amun::Tracking);
-    }
-    return *adv;
-}
-
 Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 {
     // only return objects which have been tracked for more than minFrameCount frames
@@ -344,30 +335,45 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         aoi->set_y2(m_aoi.y2());
     }
 
-    amun::DebugValues *debug = nullptr;
+    return status;
+}
+
+bool Tracker::injectDebugValues(qint64 currentTime, amun::DebugValues *debug)
+{
 #ifdef ENABLE_TRACKING_DEBUG
     for (auto& filter : m_ballFilter) {
         if (filter == m_currentBallFilter) {
-            amun::DebugValue *debugValue = mutable_debug(&debug, status)->add_value();
+            amun::DebugValue *debugValue = debug->add_value();
             debugValue->set_key("active cam");
             debugValue->set_float_value(m_currentBallFilter->primaryCamera());
-            debug->MergeFrom(filter->debugValues());
-        } else {
-            mutable_debug(&debug, status)->MergeFrom(filter->debugValues());
         }
+
+        debug->MergeFrom(filter->debugValues());
+    }
+#endif
+
+    for (const QString &message : m_errorMessages) {
+        amun::StatusLog *log = debug->add_log();
+        log->set_timestamp(currentTime);
+        log->set_text(message.toStdString());
+    }
+
+#ifdef ENABLE_TRACKING_DEBUG
+    return true;
+#else
+    return m_errorMessages.size() > 0;
+#endif
+}
+
+void Tracker::clearDebugValues()
+{
+#ifdef ENABLE_TRACKING_DEBUG
+    for (auto& filter : m_ballFilter) {
         filter->clearDebugValues();
     }
 #endif
-    if (m_errorMessages.size() > 0) {
-        for (const QString &message : m_errorMessages) {
-            amun::StatusLog *log = mutable_debug(&debug, status)->add_log();
-            log->set_timestamp(currentTime);
-            log->set_text(message.toStdString());
-        }
-        m_errorMessages.clear();
-    }
 
-    return status;
+    m_errorMessages.clear();
 }
 
 void Tracker::finishProcessing()

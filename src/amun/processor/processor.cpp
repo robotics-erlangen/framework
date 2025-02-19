@@ -211,6 +211,20 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     return status;
 }
 
+void Processor::injectAndClearDebugValues(qint64 currentTime, Status &status)
+{
+    amun::DebugValues debug;
+    debug.set_source(amun::Tracking);
+
+    if (m_tracker->injectDebugValues(currentTime, &debug)) {
+        status->add_debug()->Swap(&debug);
+    }
+
+    m_tracker->clearDebugValues();
+    m_speedTracker->clearDebugValues();
+    m_simpleTracker->clearDebugValues();
+}
+
 world::WorldSource Processor::currentWorldSource() const
 {
     if (!m_simulatorEnabled) {
@@ -295,6 +309,7 @@ void Processor::process(qint64 overwriteTime)
     m_speedTracker->process(currentTime);
     m_simpleTracker->process(currentTime);
     Status status = assembleStatus(currentTime, false);
+    injectAndClearDebugValues(currentTime, status);
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
