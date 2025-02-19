@@ -358,7 +358,7 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         filter->clearDebugValues();
     }
 #endif
-    if (m_errorMessages.size() > 0 && !m_robotsOnly) {
+    if (m_errorMessages.size() > 0) {
         for (const QString &message : m_errorMessages) {
             amun::StatusLog *log = mutable_debug(&debug, status)->add_log();
             log->set_timestamp(currentTime);
