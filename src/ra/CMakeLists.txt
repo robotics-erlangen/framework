@@ -137,13 +137,13 @@ add_library(ra::ra-horus ALIAS ra-horus)
 
 add_executable(ra WIN32 MACOSX_BUNDLE
     ra.cpp
-    ${CMAKE_BINARY_DIR}/startRa.sh
+    ${CMAKE_BINARY_DIR}/tournamentRa.sh
 )
 
 add_custom_command(
-    OUTPUT ${CMAKE_BINARY_DIR}/startRa.sh
-    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
-    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/startRa.sh
+    OUTPUT ${CMAKE_BINARY_DIR}/tournamentRa.sh
+    COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_SOURCE_DIR}/cmake/tournamentRa.sh ${CMAKE_BINARY_DIR}/tournamentRa.sh
+    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/tournamentRa.sh
 )
 
 if(MINGW)
