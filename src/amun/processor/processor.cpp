@@ -334,10 +334,12 @@ void Processor::process(qint64 overwriteTime)
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
     status->mutable_game_state()->set_is_real_game_running(m_referee->isGameRunning());
 
+    std::optional<world::Geometry::Division> division;
     if (status->has_geometry()) {
         world::Geometry* geometry = status->mutable_geometry();
 
-        geometry->set_division(tryInferDivision(status->game_state().blue(), *geometry, m_divisionDimensions));
+        division.emplace(tryInferDivision(status->game_state().blue(), *geometry, m_divisionDimensions));
+        geometry->set_division(*division);
     }
 
     // add radio responses from robots and mixed team data
@@ -380,9 +382,15 @@ void Processor::process(qint64 overwriteTime)
     // prediction which accounts for the strategy runtime
     // depends on the just created radio command
     Status strategyStatus = assembleStatus(nextProcessControllerTime, true);
+
+    strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
+
+    if (strategyStatus->has_geometry() && division) {
+        strategyStatus->mutable_geometry()->set_division(*division);
+    }
+
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
     strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
-    strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
     injectExtraData(strategyStatus);
 
     // remove responses after injecting to avoid sending them a second time
