@@ -23,8 +23,8 @@
 
 #include "core/areaofinterest.h"
 #include "protobuf/command.pb.h"
+#include "protobuf/debug.pb.h"
 #include "protobuf/ssl_wrapper.pb.h"
-#include "protobuf/status.h"
 #include "protobuf/world.pb.h"
 #include <QMap>
 #include <QPair>
@@ -64,7 +64,7 @@ public:
 
 public:
     void process(qint64 currentTime);
-    Status worldState(qint64 currentTime, bool resetRaw);
+    void worldState(world::State *worldState, qint64 currentTime, bool resetRaw);
     bool injectDebugValues(qint64 currentTime, amun::DebugValues *debug);
     void clearDebugValues();
 

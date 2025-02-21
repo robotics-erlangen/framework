@@ -124,8 +124,11 @@ Status VisionLogLiveConverter::readStatus(int packet)
     m_lastPacket = packet;
 
     m_tracker.process(requestedTime);
-    Status status = m_tracker.worldState(requestedTime, true);
+
+    Status status { new amun::Status };
     status->set_time(requestedTime);
+
+    m_tracker.worldState(status->mutable_world_state(), requestedTime, true);
 
     m_referee.process(status->world_state());
     status->mutable_game_state()->CopyFrom(m_referee.gameState());

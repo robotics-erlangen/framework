@@ -24,6 +24,7 @@
 #include "robotfilter.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/geometry.h"
+#include "protobuf/world.pb.h"
 #include "core/fieldtransform.h"
 #include "worldparameters.h"
 #include <QDebug>
@@ -245,15 +246,13 @@ BallTracker* Tracker::bestBallFilter()
     return m_currentBallFilter;
 }
 
-Status Tracker::worldState(qint64 currentTime, bool resetRaw)
+void Tracker::worldState(world::State *worldState, qint64 currentTime, bool resetRaw)
 {
     // only return objects which have been tracked for more than minFrameCount frames
     // if the tracker was reset recently, allow for fast repopulation
     const int minFrameCount = (currentTime > m_timeSinceLastReset + m_resetTimeout) ? 5: 0;
 
     // create world state for the given time
-    Status status(new amun::Status);
-    world::State *worldState = status->mutable_world_state();
     worldState->set_time(currentTime);
     worldState->set_has_vision_data(m_hasVisionData);
     worldState->set_vision_transmission_delay(m_visionTransmissionDelay);
@@ -308,8 +307,6 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         aoi->set_x2(m_aoi.x2());
         aoi->set_y2(m_aoi.y2());
     }
-
-    return status;
 }
 
 bool Tracker::injectDebugValues(qint64 currentTime, amun::DebugValues *debug)

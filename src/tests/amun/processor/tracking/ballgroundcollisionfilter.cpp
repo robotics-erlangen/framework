@@ -152,8 +152,10 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
 
             // TODO: use varying worldState times different from the process time
             // TODO: process more often (everey 10 ms as opposed to every 15)
-            Status status = m_tracker.worldState(time + predictTimeOffsetMs * 1000000, true);
+            Status status { new amun::Status };
             status->set_time(time);
+
+            m_tracker.worldState(status->mutable_world_state(), time + predictTimeOffsetMs * 1000000, true);
 
             if (auto geometry = m_worldParameters.getGeometryUpdate(); geometry) {
                 status->mutable_geometry()->Swap(&*geometry);

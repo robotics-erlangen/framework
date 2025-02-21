@@ -158,8 +158,10 @@ int main(int argc, char* argv[])
 
         timer->setTime(systemTimeNanos, 1.0); // update timer for strategy
 
-        Status status = tracker.worldState(systemTimeNanos, true);
+        Status status { new amun::Status };
         status->set_time(systemTimeNanos);
+
+        tracker.worldState(status->mutable_world_state(), systemTimeNanos, true);
 
         ref.process(status->world_state());
         status->mutable_game_state()->CopyFrom(ref.gameState());

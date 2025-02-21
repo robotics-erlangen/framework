@@ -192,17 +192,21 @@ Processor::~Processor()
 
 Status Processor::assembleStatus(qint64 time, bool resetRaw)
 {
-    Status status = m_tracker->worldState(time, resetRaw);
+    Status status { new amun::Status };
+
+    m_tracker->worldState(status->mutable_world_state(), time, resetRaw);
 
     if (auto geometry = m_worldParameters->getGeometryUpdate(); geometry) {
         status->mutable_geometry()->Swap(&*geometry);
     }
 
-    Status simplePredictionStatus = m_simpleTracker->worldState(time, resetRaw);
-    status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionStatus->world_state().blue());
-    status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionStatus->world_state().yellow());
-    if (simplePredictionStatus->world_state().has_ball()) {
-        status->mutable_world_state()->mutable_simple_tracking_ball()->CopyFrom(simplePredictionStatus->world_state().ball());
+    world::State simplePredictionWorldState;
+    m_simpleTracker->worldState(&simplePredictionWorldState, time, resetRaw);
+
+    status->mutable_world_state()->mutable_simple_tracking_blue()->CopyFrom(simplePredictionWorldState.blue());
+    status->mutable_world_state()->mutable_simple_tracking_yellow()->CopyFrom(simplePredictionWorldState.yellow());
+    if (simplePredictionWorldState.has_ball()) {
+        status->mutable_world_state()->mutable_simple_tracking_ball()->CopyFrom(simplePredictionWorldState.ball());
     }
 
     // Ensure we are not overwriting the radio command delay if it was set by
@@ -360,13 +364,14 @@ void Processor::process(qint64 overwriteTime)
     {
         QList<robot::RadioCommand> radio_commands;
         // compute world state and speed for the time at which the command reaches the robot
-        const Status commandStatus = m_tracker->worldState(controllerTime, false);
-        const Status radioStatus = m_speedTracker->worldState(controllerTime, false);
+        world::State commandWorldState, radioWorldState;
+        m_tracker->worldState(&commandWorldState, controllerTime, false);
+        m_speedTracker->worldState(&radioWorldState, controllerTime, false);
 
-        processTeam(m_blueTeam, true, commandStatus->world_state().blue(), radio_commands_prio, radio_commands,
-                    status, controllerTime, radioStatus->world_state().blue(), debug);
-        processTeam(m_yellowTeam, false, commandStatus->world_state().yellow(), radio_commands_prio, radio_commands,
-                    status, controllerTime, radioStatus->world_state().yellow(), debug);
+        processTeam(m_blueTeam, true, commandWorldState.blue(), radio_commands_prio, radio_commands,
+                    status, controllerTime, radioWorldState.blue(), debug);
+        processTeam(m_yellowTeam, false, commandWorldState.yellow(), radio_commands_prio, radio_commands,
+                    status, controllerTime, radioWorldState.yellow(), debug);
 
         radio_commands_prio.append(radio_commands);
     }
