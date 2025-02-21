@@ -218,6 +218,10 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     Q_ASSERT(!status->world_state().has_radio_command_delay());
     status->mutable_world_state()->set_radio_command_delay(m_trackingRadioCommandDelay);
 
+    // add information, about whether the world state is from the simulator or not
+    status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
+    status->mutable_world_state()->set_world_source(currentWorldSource());
+
     return status;
 }
 
@@ -318,12 +322,9 @@ void Processor::process(qint64 overwriteTime)
     m_tracker->process(currentTime);
     m_speedTracker->process(currentTime);
     m_simpleTracker->process(currentTime);
+
     Status status = assembleStatus(currentTime, false);
     injectAndClearDebugValues(currentTime, status);
-
-    // add information, about whether the world state is from the simulator or not
-    status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
-    status->mutable_world_state()->set_world_source(currentWorldSource());
 
     // run referee
     Referee* activeReferee = (m_refereeInternalActive) ? m_refereeInternal : m_referee;
@@ -394,8 +395,6 @@ void Processor::process(qint64 overwriteTime)
         strategyStatus->mutable_geometry()->set_division(*division);
     }
 
-    strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
-    strategyStatus->mutable_world_state()->set_world_source(currentWorldSource());
     injectExtraData(strategyStatus);
 
     // remove responses after injecting to avoid sending them a second time
