@@ -114,14 +114,6 @@ tests:
   only:
     - schedules
 
-compile-ra-20.04:
-  extends: .compile-ra-schedule
-  image: ci:ubuntu-20.04
-
-compile-ra-20.04-no-v8:
-  extends: .compile-ra-schedule
-  image: ci:ubuntu-20.04-no-v8
-
 compile-ra-22.04:
   extends: .compile-ra-schedule
   image: ci:ubuntu-22.04
