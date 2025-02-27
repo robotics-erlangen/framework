@@ -642,8 +642,10 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         .charge = charge,
 
         .detection = {
-            .x = lastDetection.has_x() ? lastDetection.x() : 0,
-            .y = lastDetection.has_y() ? lastDetection.y() : 0,
+            .coords = {
+                .x = lastDetection.has_x() ? lastDetection.x() : 0,
+                .y = lastDetection.has_y() ? lastDetection.y() : 0,
+            },
             .angle = lastDetection.has_phi() ? normalizeAngle(lastDetection.phi()) : 0,
         },
     };
@@ -652,49 +654,61 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
     // TODO
     if (true) {
         RadioCommand2025TrajectoryPath trajectoryPath = {
-            .start_pos = {
-                .x = 0,
-                .y = 0,
+            .start_state = {
+                .coords = {
+                    .x = 0,
+                    .y = 0,
+                },
                 .angle = 0,
             },
             .start_vel = {
                 .x = 0,
                 .y = 0,
-                .angle = 0,
             },
+            .end_angle = 0,
             .end_vel = {
                 .x = 0,
                 .y = 0,
-                .angle = 0,
             },
 
             .alpha = 0,
             .t = 0,
-            .a_max = 0,
+            .acceleration = 0,
             .v_max = 0,
+
+            .slow_down_time = 0,
+            .is_fast_endspeed = false,
         };
         write_trajectory_path(&trajectoryPath, &data.payload.regular);
     } else if (command.has_controller() && command.controller().spline_size() > 0) {
         robot::Spline spline0 = command.controller().spline(0);
         RadioCommand2025Spline spline = {
             .a_0 = {
-                .x = spline0.x().a0(),
-                .y = spline0.y().a0(),
+                .coords = {
+                    .x = spline0.x().a0(),
+                    .y = spline0.y().a0(),
+                },
                 .angle = spline0.phi().a0(),
             },
             .a_1 = {
-                .x = spline0.x().a1(),
-                .y = spline0.y().a1(),
+                .coords = {
+                    .x = spline0.x().a1(),
+                    .y = spline0.y().a1(),
+                },
                 .angle = spline0.phi().a1(),
             },
             .a_2 {
-                .x = spline0.x().a2(),
-                .y = spline0.y().a2(),
+                .coords = {
+                    .x = spline0.x().a2(),
+                    .y = spline0.y().a2(),
+                },
                 .angle = spline0.phi().a2(),
             },
             .a_3 {
-                .x = spline0.x().a3(),
-                .y = spline0.y().a3(),
+                .coords = {
+                    .x = spline0.x().a3(),
+                    .y = spline0.y().a3(),
+                },
                 .angle = spline0.phi().a3(),
             },
         };

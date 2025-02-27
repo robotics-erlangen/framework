@@ -33,10 +33,16 @@ bool static randomBool(RNG &rng) {
     return rng.uniform() >= 0.5;
 }
 
+RadioCommand2025Vector static randomVector(RNG &rng, float max) {
+    return {
+        .x = rng.uniformFloat(-max, max),
+        .y = rng.uniformFloat(-max, max),
+    };
+}
+
 RadioCommand2025State static randomState(RNG &rng, float xyMax, float angleMax) {
     return {
-        .x = rng.uniformFloat(-xyMax, xyMax),
-        .y = rng.uniformFloat(-xyMax, xyMax),
+        .coords = randomVector(rng, xyMax),
         .angle = rng.uniformFloat(-angleMax, angleMax),
     };
 }
@@ -59,14 +65,18 @@ RadioCommand2025Common static randomCommon(RNG &rng) {
 
 RadioCommand2025TrajectoryPath static randomTrajectoryPath(RNG &rng) {
     return {
-        .start_pos = randomState(rng, POS_MAX, ANGLE_MAX),
-        .start_vel = randomState(rng, VEL_MAX, ANGLE_VEL_MAX),
-        .end_vel = randomState(rng, VEL_MAX, ANGLE_VEL_MAX),
+        .start_state = randomState(rng, POS_MAX, ANGLE_MAX),
+        .start_vel = randomVector(rng, VEL_MAX),
+        .end_angle = rng.uniformFloat(-ANGLE_MAX, ANGLE_MAX),
+        .end_vel = randomVector(rng, VEL_MAX),
 
         .alpha = rng.uniformFloat(-ANGLE_MAX, ANGLE_MAX),
         .t = rng.uniformFloat(0, TRAJECTORY_PATH_T_MAX),
-        .a_max = rng.uniformFloat(0, ACC_MAX),
+        .acceleration = rng.uniformFloat(0, ACC_MAX),
         .v_max = rng.uniformFloat(0, VEL_MAX),
+
+        .slow_down_time = rng.uniformFloat(0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX),
+        .is_fast_endspeed = randomBool(rng),
     };
 }
 
@@ -80,29 +90,41 @@ RadioCommand2025Spline static randomSpline(RNG &rng) {
         .a_0 = pos, // 0! = 1
         .a_1 = vel, // 1! = 1
         .a_2 = { // 2! = 2
-            .x = acc.x / 2.0f,
-            .y = acc.y / 2.0f,
+            .coords = {
+                .x = acc.coords.x / 2.0f,
+                .y = acc.coords.y / 2.0f,
+            },
             .angle = acc.angle / 2.0f,
         },
         .a_3 = { // 3! = 6
-            .x = jerk.x / 6.0f,
-            .y = jerk.y / 6.0f,
+            .coords = {
+                .x = jerk.coords.x / 6.0f,
+                .y = jerk.coords.y / 6.0f,
+            },
             .angle = jerk.angle / 6.0f,
         },
     };
 }
 
+static bool vectorEq(const RadioCommand2025Vector &a, const RadioCommand2025Vector &b, float error) {
+    // setting the relative error to 0 disables it, only the absolute error is of interest here
+    return approxEq(a.x, b.x, 0, error)
+        && approxEq(a.y, b.y, 0, error);
+}
+
+static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Vector &a) {
+    return out << "Vector(" << a.x << ", " << a.y << ")";
+}
+
 static bool stateEq(const RadioCommand2025State &a, const RadioCommand2025State &b, float xyError, float angleError) {
     // setting the relative error to 0 disables it, only the absolute error is of interest here
-    return approxEq(a.x, b.x, 0, xyError)
-        && approxEq(a.y, b.y, 0, xyError)
+    return vectorEq(a.coords, b.coords, xyError)
         && approxEq(a.angle, b.angle, 0, angleError);
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025State &a) {
     return out << "State { "
-        << ".x=" << a.x << ", "
-        << ".y=" << a.y << ", "
+        << ".coords=" << a.coords << ", "
         << ".angle=" << a.angle << " }";
 }
 
@@ -139,26 +161,34 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common 
 
 #define ASSERT_TRAJECTORY_PATH_EQ(a, b) ASSERT_PRED2(trajectoryPathEq, a, b)
 static bool trajectoryPathEq(const RadioCommand2025TrajectoryPath &a, const RadioCommand2025TrajectoryPath &b) {
-    return stateEq(a.start_pos, b.start_pos, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
-        && stateEq(a.start_vel, b.start_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
-        && stateEq(a.end_vel, b.end_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
+    return stateEq(a.start_state, b.start_state, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && vectorEq(a.start_vel, b.start_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS))
+        && approxEq(a.end_angle, b.end_angle, 0, ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && vectorEq(a.end_vel, b.end_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS))
 
         && approxEq(a.alpha, b.alpha, 0, ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, TRAJECTORY_PATH_ALPHA_BITS))
         && approxEq(a.t, b.t, 0, ABS_ERROR(0, TRAJECTORY_PATH_T_MAX, TRAJECTORY_PATH_T_BITS))
-        && approxEq(a.a_max, b.a_max, 0, ABS_ERROR(0, ACC_MAX, ACC_BITS))
-        && approxEq(a.v_max, b.v_max, 0, ABS_ERROR(0, VEL_MAX, VEL_BITS));
+        && approxEq(a.acceleration, b.acceleration, 0, ABS_ERROR(0, ACC_MAX, TRAJECTORY_PATH_ACC_BITS))
+        && approxEq(a.v_max, b.v_max, 0, ABS_ERROR(0, VEL_MAX, TRAJECTORY_PATH_MAX_VEL_BITS))
+
+        && approxEq(a.slow_down_time, b.slow_down_time, 0, ABS_ERROR(0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX, TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS))
+        && a.is_fast_endspeed == b.is_fast_endspeed;
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025TrajectoryPath &a) {
     return out << "RadioCommand2025TrajectoryPath { "
-        << ".start_pos=" << a.start_pos << ", "
+        << ".start_state=" << a.start_state << ", "
         << ".start_vel=" << a.start_vel << ", "
+        << ".end_angle=" << a.end_angle << ", "
         << ".end_vel=" << a.end_vel << ", "
 
         << ".alpha=" << a.alpha << ", "
         << ".t=" << a.t << ", "
-        << ".a_max=" << a.a_max << ", "
-        << ".v_max=" << a.v_max << " }";
+        << ".acceleration=" << a.acceleration << ", "
+        << ".v_max=" << a.v_max << ", "
+
+        << ".slow_down_time=" << a.slow_down_time << ", "
+        << ".is_fast_endspeed=" << a.is_fast_endspeed << " }";
 }
 
 #define ASSERT_SPLINE_EQ(a, b) ASSERT_PRED2(splineEq, a, b)

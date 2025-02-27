@@ -19,11 +19,16 @@
 #define ANGLE_JERK_MAX 400000.0f
 
 #define TRAJECTORY_PATH_T_MAX 40.0f
+#define TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX 1.0f
 
 
 typedef struct {
     float x;  // m, m/s, m/s^2, m/s^3
     float y;  // m, m/s, m/s^2, m/s^3
+} RadioCommand2025Vector;
+
+typedef struct {
+    RadioCommand2025Vector coords;
     float angle;  // rad, rad/s, rad/s^2, rad/s^3
 } RadioCommand2025State;
 
@@ -42,14 +47,18 @@ typedef struct {
 } RadioCommand2025Common;
 
 typedef struct {
-    RadioCommand2025State start_pos;
-    RadioCommand2025State start_vel;
-    RadioCommand2025State end_vel;
+    RadioCommand2025State start_state;
+    RadioCommand2025Vector start_vel;
+    float end_angle;
+    RadioCommand2025Vector end_vel;
 
     float alpha;
     float t;
-    float a_max;
+    float acceleration;
     float v_max;
+
+    float slow_down_time;
+    bool is_fast_endspeed;
 } RadioCommand2025TrajectoryPath;
 
 typedef struct {

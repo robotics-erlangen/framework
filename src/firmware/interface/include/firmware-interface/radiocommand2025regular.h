@@ -15,8 +15,11 @@
 #define ANGLE_ACC_BITS 14
 #define ANGLE_JERK_BITS 17
 
-#define TRAJECTORY_PATH_ALPHA_BITS 13
+#define TRAJECTORY_PATH_ALPHA_BITS 15
 #define TRAJECTORY_PATH_T_BITS 15
+#define TRAJECTORY_PATH_ACC_BITS 12
+#define TRAJECTORY_PATH_MAX_VEL_BITS 12
+#define TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS 9
 
 #define TIME_OFFSET_BITS 8
 
@@ -44,17 +47,20 @@ typedef union {
 
         int16_t start_vel_x:VEL_BITS;
         int16_t start_vel_y:VEL_BITS;
-        int16_t start_omega:ANGLE_VEL_BITS;
+
+        int16_t end_phi:ANGLE_BITS;
 
         int16_t end_vel_x:VEL_BITS;
         int16_t end_vel_y:VEL_BITS;
-        int16_t end_omega:ANGLE_VEL_BITS;
 
         int16_t alpha:TRAJECTORY_PATH_ALPHA_BITS;
         uint16_t t:TRAJECTORY_PATH_T_BITS;
 
-        uint16_t a_max:ACC_BITS;
-        uint16_t v_max:VEL_BITS;
+        uint16_t acceleration:TRAJECTORY_PATH_ACC_BITS;
+        uint16_t v_max:TRAJECTORY_PATH_MAX_VEL_BITS;
+
+        uint16_t slow_down_time:TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS;
+        bool is_fast_endspeed:1;
     } __attribute__ ((packed)) trajectory_path;
     struct {
         int32_t x_a_0:POS_BITS;
