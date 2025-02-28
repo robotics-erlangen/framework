@@ -24,6 +24,7 @@
 #include <memory>
 #include <v8.h>
 
+#include "path/trajectoryinput.h"
 #include "strategy/script/scriptstate.h"
 #include "path/path.h"
 #include "path/trajectorypath.h"
@@ -300,29 +301,71 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
         return;
     }
 
-    std::vector<TrajectoryPoint> trajectory = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
+    auto [trajectoryPoints, trajectories] = wrapper->trajectoryPath()->calculateTrajectory(Vector(startX, startY), Vector(startSpeedX, startSpeedY),
                                                      Vector(endX, endY), Vector(endSpeedX, endSpeedY), maxSpeed, acceleration);
 
-    // convert path to js object
-    unsigned int i = 0;
-    Local<Array> result = Array::New(isolate, trajectory.size());
+    // convert trajectoryPoints to js array
+    Local<Array> trajectoryPointsV8 = Array::New(isolate, trajectoryPoints.size());
     Local<String> pxString = v8string(isolate, "px");
     Local<String> pyString = v8string(isolate, "py");
     Local<String> vxString = v8string(isolate, "vx");
     Local<String> vyString = v8string(isolate, "vy");
     Local<String> timeString = v8string(isolate, "time");
-    for (const auto &p : trajectory) {
-        Local<Object> pathPart = Object::New(isolate);
-        pathPart->Set(context, pxString, Number::New(isolate, double(p.state.pos.x))).Check();
-        pathPart->Set(context, pyString, Number::New(isolate, double(p.state.pos.y))).Check();
-        pathPart->Set(context, vxString, Number::New(isolate, double(p.state.speed.x))).Check();
-        pathPart->Set(context, vyString, Number::New(isolate, double(p.state.speed.y))).Check();
-        pathPart->Set(context, timeString, Number::New(isolate, double(p.time))).Check();
-        result->Set(context, i++, pathPart).Check();
+    for (int i = 0; i < trajectoryPoints.size(); i++) {
+        const TrajectoryPoint trajectoryPoint = trajectoryPoints[i];
+        Local<Object> trajectoryPointV8 = Object::New(isolate);
+        trajectoryPointV8->Set(context, pxString, Number::New(isolate, double(trajectoryPoint.state.pos.x))).Check();
+        trajectoryPointV8->Set(context, pyString, Number::New(isolate, double(trajectoryPoint.state.pos.y))).Check();
+        trajectoryPointV8->Set(context, vxString, Number::New(isolate, double(trajectoryPoint.state.speed.x))).Check();
+        trajectoryPointV8->Set(context, vyString, Number::New(isolate, double(trajectoryPoint.state.speed.y))).Check();
+        trajectoryPointV8->Set(context, timeString, Number::New(isolate, double(trajectoryPoint.time))).Check();
+        trajectoryPointsV8->Set(context, i, trajectoryPointV8).Check();
     }
 
+    // convert trajectories to js array
+    Local<Array> trajectoryDatasV8 = Array::New(isolate, trajectories.size());
+
+    Local<String> startPosXString = v8string(isolate, "startPosX");
+    Local<String> startPosYString = v8string(isolate, "startPosY");
+    Local<String> startVelXString = v8string(isolate, "startVelX");
+    Local<String> startVelYString = v8string(isolate, "startVelY");
+    Local<String> endVelXString = v8string(isolate, "endVelX");
+    Local<String> endVelYString = v8string(isolate, "endVelY");
+    Local<String> alphaString = v8string(isolate, "alpha");
+    Local<String> accelerationString = v8string(isolate, "acceleration");
+    Local<String> vMaxString = v8string(isolate, "vMax");
+    Local<String> endSpeedTypeString = v8string(isolate, "endSpeedType");
+    Local<String> endSpeedTypeFastString = v8string(isolate, "FAST");
+    Local<String> endSpeedTypeExactString = v8string(isolate, "EXACT");
+    Local<String> slowDownTimeString = v8string(isolate, "slowDownTime");
+    for (int i = 0; i < trajectories.size(); i++) {
+        const AlphaTimeTrajectoryData trajectoryData = trajectories[i].data();
+
+        Local<Object> trajectoryDataV8 = Object::New(isolate);
+
+        trajectoryDataV8->Set(context, startPosXString, Number::New(isolate, trajectoryData.start.pos.x)).Check();
+        trajectoryDataV8->Set(context, startPosYString, Number::New(isolate, trajectoryData.start.pos.y)).Check();
+        trajectoryDataV8->Set(context, startVelXString, Number::New(isolate, trajectoryData.start.speed.x)).Check();
+        trajectoryDataV8->Set(context, startVelYString, Number::New(isolate, trajectoryData.start.speed.y)).Check();
+        trajectoryDataV8->Set(context, endVelXString, Number::New(isolate, trajectoryData.v1.x)).Check();
+        trajectoryDataV8->Set(context, endVelYString, Number::New(isolate, trajectoryData.v1.y)).Check();
+        trajectoryDataV8->Set(context, alphaString, Number::New(isolate, trajectoryData.angle)).Check();
+        trajectoryDataV8->Set(context, timeString, Number::New(isolate, trajectoryData.time)).Check();
+        trajectoryDataV8->Set(context, accelerationString, Number::New(isolate, trajectoryData.acc)).Check();
+        trajectoryDataV8->Set(context, vMaxString, Number::New(isolate, trajectoryData.vMax)).Check();
+        trajectoryDataV8->Set(context, endSpeedTypeString, trajectoryData.endSpeedType == EndSpeed::FAST ? endSpeedTypeFastString : endSpeedTypeExactString).Check();
+        trajectoryDataV8->Set(context, slowDownTimeString, Number::New(isolate, trajectoryData.slowDownTime)).Check();
+
+        trajectoryDatasV8->Set(context, i, trajectoryDataV8).Check();
+    }
+
+    Local<Array> returnValueV8 = Array::New(isolate, 2);
+    returnValueV8->Set(context, 0, trajectoryPointsV8).Check();
+    returnValueV8->Set(context, 1, trajectoryDatasV8).Check();
+
+    args.GetReturnValue().Set(returnValueV8);
+
     wrapper->typescript()->addPathTime((Timer::systemTime() - t) / 1E9);
-    args.GetReturnValue().Set(result);
 }
 
 static void trajectoryAddMovingCircle(const FunctionCallbackInfo<Value>& args)

@@ -37,7 +37,7 @@ class TrajectoryPath : public AbstractPath
 public:
     TrajectoryPath(uint32_t rng_seed, ProtobufFileSaver *inputSaver, pathfinding::InputSourceType captureType);
     void reset() override;
-    std::vector<TrajectoryPoint> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
+    std::pair<std::vector<TrajectoryPoint>, std::vector<AlphaTimeTrajectory>> calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration);
     // is guaranteed to be equally spaced in time
     std::vector<TrajectoryPoint> *getCurrentTrajectory() { return &m_currentTrajectory; }
     int maxIntersectingObstaclePrio() const;

@@ -38,7 +38,7 @@ void TrajectoryPath::reset()
     // TODO: reset internal state
 }
 
-std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration)
+std::pair<std::vector<TrajectoryPoint>, std::vector<AlphaTimeTrajectory>> TrajectoryPath::calculateTrajectory(Vector s0, Vector v0, Vector s1, Vector v1, float maxSpeed, float acceleration)
 {
     // sanity checks
     if (maxSpeed < 0.01f || acceleration < 0.01f) {
@@ -56,7 +56,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
     input.acceleration = acceleration;
 
     std::vector<AlphaTimeTrajectory> trajectories = findPath(input);
-    return getResultPath(trajectories, input);
+    return {getResultPath(trajectories, input), trajectories};
 }
 
 static void setVector(Vector v, pathfinding::Vector *out)

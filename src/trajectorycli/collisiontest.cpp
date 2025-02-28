@@ -228,7 +228,7 @@ static bool testScenarioCollision(const Scenario &s, QString logname, bool useOl
             path.world().addOpponentRobotObstacle(currentOpponent.pos, currentOpponent.speed, 80);
         }
 
-        const auto trajectory = path.calculateTrajectory(currentRobot.pos, currentRobot.speed, s.targetPos, Vector(0, 0), MAX_SPEED, ACCELERATION);
+        const auto trajectory = path.calculateTrajectory(currentRobot.pos, currentRobot.speed, s.targetPos, Vector(0, 0), MAX_SPEED, ACCELERATION).first;
 
         currentOpponent = updateOpponent(currentOpponent, s, currentRobot);
         const RobotState nextRobot = robotOnTrajectory(trajectory, 0.01f);

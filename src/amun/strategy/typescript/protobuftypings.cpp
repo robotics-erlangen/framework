@@ -77,6 +77,7 @@ const Descriptor* EXPOSED_MESSAGES[] {
     gameController::TeamRegistration::descriptor(),
     gameController::TeamToController::descriptor(),
     robot::Command::descriptor(),
+    robot::AlphaTimeTrajectory::descriptor(),
     robot::Spline::descriptor(),
     robot::Team::descriptor(),
     world::Geometry::descriptor(),

@@ -82,9 +82,37 @@ message Spline
     required Polynomial phi = 5;
 };
 
+message Vector {
+    required float x = 1;
+    required float y = 2;
+};
+
+message AlphaTimeTrajectory {
+    enum EndSpeedType
+    {
+        Exact = 1;
+        Fast = 2;
+    };
+    optional Vector start_pos = 1;
+    optional Vector start_vel = 2;
+    optional Vector end_vel = 3;
+
+    optional float start_angle = 4;
+    optional float end_angle = 5;
+
+    optional float alpha = 6;
+    optional float time = 7;
+    optional float acceleration = 8;
+    optional float v_max = 9;
+    optional EndSpeedType end_speed_type = 10;
+
+    optional float slow_down_time = 11;
+};
+
 message ControllerInput
 {
     repeated Spline spline = 1;
+    repeated AlphaTimeTrajectory trajectory = 2;
 };
 
 message SpeedVector
