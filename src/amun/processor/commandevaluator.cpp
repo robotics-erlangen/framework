@@ -21,11 +21,13 @@
 
 #include "commandevaluator.h"
 #include "debughelper.h"
+#include "path/trajectoryinput.h"
 #include "processor.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/world.pb.h"
 #include <cmath>
 #include <QString>
+#include <qdebug.h>
 
 CommandEvaluator::CommandEvaluator(const robot::Specs &specs) :
     m_specs(specs),
@@ -39,6 +41,36 @@ void CommandEvaluator::setInput(const robot::ControllerInput &input, qint64 curr
 {
     m_input = input;
     m_startTime = currentTime;
+
+    m_trajs.clear();
+    for (int i = 0; i < m_input.trajectory_size(); i++) {
+        robot::AlphaTimeTrajectory traj = m_input.trajectory(i);
+        if (!traj.has_start_pos()
+                || !traj.has_start_vel()
+                || !traj.has_end_vel()
+                || !traj.has_start_angle()
+                || !traj.has_end_angle()
+                || !traj.has_alpha()
+                || !traj.has_time()
+                || !traj.has_acceleration()
+                || !traj.has_v_max()
+                || !traj.has_end_speed_type()
+                || !traj.has_slow_down_time()) {
+            qDebug() << "Incomplete AlphaTimeTrajectory object - skipping";
+            continue;
+        }
+
+        m_trajs.emplace_back(
+            RobotState(Vector(traj.start_pos().x(), traj.start_pos().y()), Vector(traj.start_vel().x(), traj.start_vel().y())),
+            Vector(traj.end_vel().x(), traj.end_vel().y()),
+            traj.time(),
+            traj.alpha(),
+            traj.acceleration(),
+            traj.v_max(),
+            traj.slow_down_time(),
+            traj.end_speed_type() == robot::AlphaTimeTrajectory::EndSpeedType::AlphaTimeTrajectory_EndSpeedType_Fast ? EndSpeed::FAST : EndSpeed::EXACT
+        );
+    }
 }
 
 void CommandEvaluator::clearInput()
@@ -140,8 +172,10 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi
         output = evaluateGlobalManualControl(command);
     } else if (hasManualCommand) {
         output = evaluateLocalManualControl(command).toGlobal(robotPhi);
-    } else if (hasTrackedRobot) {
+    } else if (hasTrackedRobot && m_input.spline_size() > 0) {
         output = evaluateSplineAtTime(worldTime);
+    } else if (hasTrackedRobot && m_trajs.size() > 0) {
+        output = evaluateAlphaTimeTrajectoryAtTime(worldTime);
     }
 
     if (!output.isValid()) {
@@ -198,6 +232,21 @@ GlobalSpeed CommandEvaluator::evaluateSplinePartAtTime(const robot::Spline &spli
     float omega = spline.phi().a1() + (2 * spline.phi().a2() + 3 * spline.phi().a3() * t) * t;
     return GlobalSpeed(v_x, v_y, omega);
 }
+
+GlobalSpeed CommandEvaluator::evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime)
+{
+    float timeElapsed = (worldTime - m_startTime) * 1E-9f;
+    for (AlphaTimeTrajectory &traj : m_trajs) {
+        if (timeElapsed < traj.endTime()) {
+            const RobotState state = traj.stateAtTime(timeElapsed);
+            return GlobalSpeed(state.speed.x, state.speed.y, 0);
+        } else {
+            timeElapsed -= traj.endTime();
+        }
+    }
+    return GlobalSpeed(0, 0, 0);
+}
+
 
 void CommandEvaluator::logInvalidCommand(amun::DebugValues *debug, qint64 worldTime)
 {

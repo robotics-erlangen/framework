@@ -48,6 +48,7 @@ target_link_libraries(processor
     PUBLIC shared::protobuf
     PUBLIC amun::tracking
     PRIVATE amun::gamecontroller
+    PRIVATE amun::path
     PRIVATE firmware::interface
     PUBLIC Qt6::Core
     PRIVATE Qt6::Network

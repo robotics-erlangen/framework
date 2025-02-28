@@ -23,6 +23,7 @@
 #define COMMAND_EVALUATOR_H
 
 #include "coordinatehelper.h"
+#include "path/alphatimetrajectory.h"
 #include "protobuf/robot.pb.h"
 #include <QtGlobal>
 
@@ -57,6 +58,7 @@ private:
     GlobalSpeed evaluateSplineAtTime(const qint64 worldTime);
     int findActiveSpline(const float time);
     GlobalSpeed evaluateSplinePartAtTime(const robot::Spline &spline, const float t);
+    GlobalSpeed evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime);
 
     void logInvalidCommand(amun::DebugValues *debug, qint64 worldTime);
     void drawSpline(amun::DebugValues *debug);
@@ -71,6 +73,8 @@ private:
     robot::ControllerInput m_input;
     // Time (absolute) when new input arrived, in ns.
     qint64 m_startTime;
+
+    std::vector<AlphaTimeTrajectory> m_trajs;
 
     GlobalSpeed m_baseSpeed;
     qint64 m_baseSpeedTime;
