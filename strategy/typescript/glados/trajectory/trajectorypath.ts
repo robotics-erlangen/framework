@@ -437,12 +437,31 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
 		}
 
-		const spline = [{ t_start: 0, t_end: Infinity,
-			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
-			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
-			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
-		}];
-		return [{ spline }, result];
+		const trajectory: pb.robot.AlphaTimeTrajectory[] = [];
+		const END_SPEED_TYPE_MAP = new Map<"EXACT" | "FAST", pb.robot.AlphaTimeTrajectory.EndSpeedType>([
+			["EXACT", pb.robot.AlphaTimeTrajectory.EndSpeedType.Exact],
+			["FAST", pb.robot.AlphaTimeTrajectory.EndSpeedType.Fast],
+		]);
+		for (const trajectoryData of trajectoryDatas) {
+			trajectory.push({
+				start_pos: { x: trajectoryData.startPos.x, y: trajectoryData.startPos.y },
+				start_vel: { x: trajectoryData.startSpeed.x, y: trajectoryData.startSpeed.y },
+				end_vel: { x: trajectoryData.endSpeed.x, y: trajectoryData.endSpeed.y },
+
+				start_angle: robotDir,
+				end_angle: targetDir,
+
+				alpha: trajectoryData.alpha,
+				time: trajectoryData.time,
+				acceleration: trajectoryData.acceleration,
+				v_max: trajectoryData.vMax,
+				end_speed_type: END_SPEED_TYPE_MAP[trajectoryData.endSpeedType],
+
+				slow_down_time: trajectoryData.slowDownTime,
+			});
+		}
+
+		return [{ trajectory }, result];
 	}
 
 	private static _calculateClosestPoint(position: Position, speed: Speed, result: TrajectoryPathResult, offset: number) {

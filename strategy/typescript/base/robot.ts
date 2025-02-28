@@ -57,11 +57,19 @@ export const HALT = Symbol("HALT");
 
 export type TrajectoryCommand = {
 	spline: pb.robot.Spline[];
+	trajectory?: undefined;
 	v_f?: undefined;
 	v_s?: undefined;
 	omega?: undefined;
 } | {
 	spline?: undefined;
+	trajectory: pb.robot.AlphaTimeTrajectory[];
+	v_f?: undefined;
+	v_s?: undefined;
+	omega?: undefined;
+} | {
+	spline?: undefined;
+	trajectory?: undefined;
 	v_f: number;
 	v_s: number;
 	omega: number;
@@ -456,6 +464,7 @@ export class FriendlyRobot extends Robot {
 		} else {
 			result.controller = {
 				spline: this._controllerInput.spline,
+				trajectory: this._controllerInput.trajectory,
 			};
 			result.v_f = this._controllerInput.v_f;
 			result.v_s = this._controllerInput.v_s;
