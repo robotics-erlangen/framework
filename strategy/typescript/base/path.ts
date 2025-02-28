@@ -191,20 +191,65 @@ interface PathObjectRRT extends PathObjectCommon {
 	addTreeVisualization(): void;
 }
 
-type TrajectoryPathResult = {
+type TrajectoryPointCPP = {
 	px: number;
 	py: number;
 	vx: number;
 	vy: number;
 	time: number;
-}[];
+};
+
+type TrajectoryPoint = {
+	pos: Vector;
+	speed: Vector;
+	time: number;
+};
+
+
+type EndSpeedType = "EXACT" | "FAST";
+
+
+type AlphaTimeTrajectoryDataCPP = {
+	startPosX: number;
+	startPosY: number;
+
+	startVelX: number;
+	startVelY: number;
+
+	endVelX: number;
+	endVelY: number;
+
+	alpha: number;
+	time: number;
+	acceleration: number;
+	vMax: number;
+
+	endSpeedType: EndSpeedType;
+
+	slowDownTime: number;
+};
+
+type AlphaTimeTrajectoryData = {
+	startPos: Vector;
+	startSpeed: Vector;
+	endSpeed: Vector;
+
+	alpha: number;
+	time: number;
+	acceleration: number;
+	vMax: number;
+
+	endSpeedType: EndSpeedType;
+
+	slowDownTime: number;
+};
 
 // just some impossible to create type, is actually a C++ external
 type TrajectoryObstacle = number & { _tag: "Trajectory obstacle" };
 
 interface PathObjectTrajectory extends PathObjectCommon {
 	calculateTrajectory(startX: number, startY: number, startSpeedX: number, startSpeedY: number,
-		endX: number, endY: number, endSpeedX: number, endSpeedY: number, maxSpeed: number, acceleration: number): TrajectoryPathResult;
+		endX: number, endY: number, endSpeedX: number, endSpeedY: number, maxSpeed: number, acceleration: number): [TrajectoryPointCPP[], AlphaTimeTrajectoryDataCPP[]];
 
 	// uses relative times
 	addMovingCircle(startTime: number, endTime: number, startX: number, startY: number, speedX: number,
@@ -310,16 +355,35 @@ export class Path {
 		this._lastWasTrajectoryPath = false;
 	}
 
-	public getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): { pos: Position; speed: Speed; time: number }[] {
+	public getTrajectory(startPos: Position, startSpeed: Speed, endPos: Position, endSpeed: Speed, maxSpeed: number, acceleration: number): [TrajectoryPoint[], AlphaTimeTrajectoryData[]] {
 		this._lastWasTrajectoryPath = true;
 		this._addObstaclesToPath(this._trajectoryInst);
-		let t = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
+		let [trajectoryPoints, trajectoryDatas] = this._trajectoryInst.calculateTrajectory(startPos.x, startPos.y, startSpeed.x,
 			startSpeed.y, endPos.x, endPos.y, endSpeed.x, endSpeed.y, maxSpeed, acceleration);
-		let result: { pos: Position; speed: Speed; time: number }[] = [];
-		for (let p of t) {
-			result.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time });
+
+		let points: TrajectoryPoint[] = [];
+		for (let p of trajectoryPoints) {
+			points.push({ pos: new Vector(p.px, p.py), speed: new Vector(p.vx, p.vy), time: p.time });
 		}
-		return result;
+
+		let datas: AlphaTimeTrajectoryData[] = [];
+		for (let trajectoryData of trajectoryDatas) {
+			datas.push({
+				startPos: new Vector(trajectoryData.startPosX, trajectoryData.startPosY),
+				startSpeed: new Vector(trajectoryData.startVelX, trajectoryData.startVelY),
+				endSpeed: new Vector(trajectoryData.endVelX, trajectoryData.endVelY),
+
+				alpha: trajectoryData.alpha,
+				time: trajectoryData.time,
+				acceleration: trajectoryData.acceleration,
+				vMax: trajectoryData.vMax,
+
+				endSpeedType: trajectoryData.endSpeedType,
+
+				slowDownTime: trajectoryData.slowDownTime,
+			});
+		}
+		return [points, datas];
 	}
 
 	public getPath(x1: number, y1: number, x2: number, y2: number): Waypoint[] {

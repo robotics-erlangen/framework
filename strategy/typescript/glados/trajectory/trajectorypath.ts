@@ -341,20 +341,20 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		let accelerate = baseAcceleration * accelScale;
 
 		// call C++ path finding
-		let trajectory = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
+		let [trajectoryPoints, trajectoryDatas] = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
 			maxSpeed, accelerate);
 		const result = new TrajectoryPathResult(
 			this._robot,
 			Coordinates.toLocal(targetPos),
 			Coordinates.toLocal(endSpeed),
 			Coordinates.toLocal(targetDir),
-			trajectory,
+			trajectoryPoints,
 		);
 
 		// if the trajectory intersects a robot obstacle, brake as fast as possible
 		// same thing if no trajectory was found (to prevent driving further into obstacles)
 		if ((robotSpeed.length() > 1 && this._robot.path.maxIntersectingObstaclePrio() === PathHelper.PRIORITIES.ROBOT) ||
-				trajectory.length === 0) {
+				trajectoryPoints.length === 0) {
 			const spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: 0, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
