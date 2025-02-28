@@ -50,4 +50,21 @@ struct TrajectoryPoint
     float time;
 };
 
+enum class EndSpeed {
+    FAST,
+    EXACT,
+};
+
+struct AlphaTimeTrajectoryData {
+    RobotState start;
+    Vector v1;
+    float time;
+    float angle;
+    float acc;
+    float vMax;
+    float slowDownTime;
+    EndSpeed endSpeedType;
+};
+
+
 #endif // TRAJECTORYINPUT_H

@@ -55,7 +55,8 @@ std::vector<TrajectoryPoint> TrajectoryPath::calculateTrajectory(Vector s0, Vect
     input.maxSpeedSquared = maxSpeed * maxSpeed;
     input.acceleration = acceleration;
 
-    return getResultPath(findPath(input), input);
+    std::vector<AlphaTimeTrajectory> trajectories = findPath(input);
+    return getResultPath(trajectories, input);
 }
 
 static void setVector(Vector v, pathfinding::Vector *out)
@@ -75,9 +76,9 @@ static void serializeTrajectoryInput(const TrajectoryInput &input, pathfinding::
     result->set_acceleration(input.acceleration);
 }
 
-static std::vector<Trajectory> concat(const std::vector<Trajectory> &a, const std::vector<Trajectory> &b)
+static std::vector<AlphaTimeTrajectory> concat(const std::vector<AlphaTimeTrajectory> &a, const std::vector<AlphaTimeTrajectory> &b)
 {
-    std::vector<Trajectory> result;
+    std::vector<AlphaTimeTrajectory> result;
     result.insert(result.end(), a.begin(), a.end());
     result.insert(result.end(), b.begin(), b.end());
     return result;
@@ -112,7 +113,7 @@ bool TrajectoryPath::testSampler(const TrajectoryInput &input, pathfinding::Inpu
     return false;
 }
 
-std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
+std::vector<AlphaTimeTrajectory> TrajectoryPath::findPath(TrajectoryInput input)
 {
     m_escapeObstacleSampler.resetMaxIntersectingObstaclePrio();
 
@@ -123,7 +124,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
     }
 
     // check if start point is in obstacle
-    std::vector<Trajectory> escapeObstacle;
+    std::vector<AlphaTimeTrajectory> escapeObstacle;
     const TrajectoryPoint startState{input.start, 0};
     if (m_world.minObstacleDistancePoint(startState) <= 0.0f) {
         if (!testSampler(input, pathfinding::EscapeObstacleSampler)) {
@@ -136,10 +137,7 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
         escapeObstacle = m_escapeObstacleSampler.getResult();
 
         // assume no slowDownTime
-        const Vector startPos = escapeObstacle[0].endPosition();
-        const Vector startSpeed = escapeObstacle[0].endSpeed();
-
-        input.start = RobotState(startPos, startSpeed);
+        input.start = escapeObstacle[0].endState();
         input.t0 = escapeObstacle[0].endTime();
     }
 
@@ -173,20 +171,22 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
 
     // check direct trajectory
     const float directSlowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0.0f;
-    const auto direct = AlphaTimeTrajectory::findTrajectory(input.start, input.target, input.acceleration, input.maxSpeed,
-                                                            directSlowDownTime, EndSpeed::FAST);
+    std::optional<AlphaTimeTrajectory> direct = AlphaTimeTrajectory::find(input.start, input.target, input.acceleration, input.maxSpeed, directSlowDownTime, EndSpeed::FAST);
 
     float directTrajectoryScore = std::numeric_limits<float>::max();
     if (direct) {
-        auto obstacleDistances = m_world.minObstacleDistance(direct.value(), 0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
+        AlphaTimeTrajectory &alphaTime = direct.value();
+        const Trajectory &traj = alphaTime.getTrajectory();
+
+        auto obstacleDistances = m_world.minObstacleDistance(traj, 0, StandardSampler::OBSTACLE_AVOIDANCE_RADIUS);
 
         if (obstacleDistances.first > StandardSampler::OBSTACLE_AVOIDANCE_RADIUS ||
                 (obstacleDistances.first > 0 && obstacleDistances.second < StandardSampler::OBSTACLE_AVOIDANCE_RADIUS)) {
 
-            return concat(escapeObstacle, {direct.value()});
+            return concat(escapeObstacle, {alphaTime});
         }
         if (obstacleDistances.first > 0) {
-            directTrajectoryScore = StandardSampler::trajectoryScore(direct->endTime(), obstacleDistances.first);
+            directTrajectoryScore = StandardSampler::trajectoryScore(traj.endTime(), obstacleDistances.first);
         }
     }
 
@@ -213,9 +213,9 @@ std::vector<Trajectory> TrajectoryPath::findPath(TrajectoryInput input)
     return {};
 }
 
-std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Trajectory> &profiles, const TrajectoryInput &input)
+std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(std::vector<AlphaTimeTrajectory> &trajectories, const TrajectoryInput &input)
 {
-    if (profiles.size() == 0) {
+    if (trajectories.size() == 0) {
         m_currentTrajectory = {{input.start, 0}, {RobotState{input.start.pos, Vector(0, 0)}, 0.01f}};
 
         const TrajectoryPoint p1{input.start, 0};
@@ -224,8 +224,8 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     }
 
     float toEndTime = 0;
-    for (const Trajectory& profile : profiles) {
-        const float time = profile.endTime();
+    for (AlphaTimeTrajectory& traj : trajectories) {
+        const float time = traj.endTime();
 
         const float maxTime = 20 / input.maxSpeed;
         if (time > maxTime || std::isinf(time) || std::isnan(time) || time < 0) {
@@ -233,7 +233,7 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
             return {};
         }
 
-        toEndTime += profile.endTime();
+        toEndTime += traj.endTime();
     }
 
 
@@ -243,30 +243,30 @@ std::vector<TrajectoryPoint> TrajectoryPath::getResultPath(const std::vector<Tra
     float startOffset = 0;
     float totalTime = 0;
     const int SAMPLES_PER_TRAJECTORY = 40;
-    const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * profiles.size());
-    for (unsigned int i = 0; i < profiles.size(); i++) {
-        const Trajectory &trajectory = profiles[i];
-        const float partTime = trajectory.endTime();
+    const float samplingInterval = toEndTime / (SAMPLES_PER_TRAJECTORY * trajectories.size());
+    for (unsigned int i = 0; i < trajectories.size(); i++) {
+        const Trajectory &traj = trajectories[i].getTrajectory();
+        const float partTime = traj.endTime();
 
         // sample the resulting trajectories in equal time intervals for friendly robot obstacles
-        Trajectory::Iterator it{trajectory, totalTime};
+        Trajectory::Iterator it{traj, totalTime};
         // make sure that all samples are in uniform time intervals even across trajectories
         it.next(startOffset);
         const int baseSamples = std::floor((partTime - startOffset) / samplingInterval);
-        const int allSamples = baseSamples + (i == profiles.size() - 1 ? 1 : 0);
+        const int allSamples = baseSamples + (i == trajectories.size() - 1 ? 1 : 0);
         std::generate_n(std::back_inserter(m_currentTrajectory), allSamples, [&]() { return it.next(samplingInterval); });
         startOffset += allSamples * samplingInterval - partTime;
 
         // use the smaller, more efficient trajectory points for transfer and usage to the strategy
         std::vector<TrajectoryPoint> newPoints;
-        if (partTime > trajectory.getSlowDownTime() * 2.0f) {
+        if (partTime > traj.getSlowDownTime() * 2.0f) {
             // when the trajectory is far longer than the exponential slow down part, omit it from the result (to minimize it)
-            newPoints = trajectory.getTrajectoryPoints(totalTime);
+            newPoints = traj.getTrajectoryPoints(totalTime);
         } else {
             // we are close to, or in the slow down phase
             const std::size_t SLOW_DOWN_SAMPLE_COUNT = 10;
             const float timeInterval = partTime / float(SLOW_DOWN_SAMPLE_COUNT - 1);
-            newPoints = trajectory.trajectoryPositions(SLOW_DOWN_SAMPLE_COUNT, timeInterval, totalTime);
+            newPoints = traj.trajectoryPositions(SLOW_DOWN_SAMPLE_COUNT, timeInterval, totalTime);
         }
         result.insert(result.end(), newPoints.begin(), newPoints.end());
 

@@ -305,11 +305,20 @@ StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput 
 
     const float slowDownTime = input.exponentialSlowDown ? SlowdownAcceleration::SLOW_DOWN_TIME : 0;
     const RobotState secondStartState(Vector(0, 0), sample.getMidSpeed());
-    Trajectory secondPart = AlphaTimeTrajectory::calculateTrajectory(secondStartState, input.target.speed, sample.getTime(),
-                                                                     sample.getAngle(), input.acceleration, input.maxSpeed, slowDownTime, EndSpeed::FAST);
+    AlphaTimeTrajectory secondPart{
+        secondStartState,
+        input.target.speed,
+        sample.getTime(),
+        sample.getAngle(),
+        input.acceleration,
+        input.maxSpeed,
+        slowDownTime,
+        EndSpeed::FAST
+    };
+    Trajectory const &secondPartTraj = secondPart.getTrajectory();
 
     const float secondPartTime = secondPart.endTime();
-    const Vector secondPartOffset = secondPart.endPosition(); // startpos is (0, 0), computes offset of trajectory
+    const Vector secondPartOffset = secondPart.endState().pos; // startpos is (0, 0), computes offset of trajectory
     secondPart.setStartPos(input.target.pos - secondPartOffset);
     if (secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return {ScoreType::WORSE_THAN, secondPartTime};
@@ -319,24 +328,31 @@ StandardSampler::SampleScore StandardSampler::checkSample(const TrajectoryInput 
     const Vector firstPartTarget = input.target.pos - secondPartOffset;
     const float firstPartSlowDownTime = input.exponentialSlowDown ? std::max(0.0f, SlowdownAcceleration::SLOW_DOWN_TIME - secondPartTime) : 0.0f;
     const RobotState firstTargetState(firstPartTarget, sample.getMidSpeed());
-    const auto firstPartOpt = AlphaTimeTrajectory::findTrajectory(input.start, firstTargetState, input.acceleration,
-                                                                  input.maxSpeed, firstPartSlowDownTime, EndSpeed::EXACT);
+    auto firstPartOpt = AlphaTimeTrajectory::find(
+        input.start,
+        firstTargetState,
+        input.acceleration,
+        input.maxSpeed,
+        firstPartSlowDownTime,
+        EndSpeed::EXACT
+    );
     if (!firstPartOpt) {
         return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
-    const Trajectory &firstPart = firstPartOpt.value();
+    const AlphaTimeTrajectory &firstPart = firstPartOpt.value();
+    const Trajectory &firstPartTraj = firstPartOpt.value().getTrajectory();
 
-    const float firstPartTime = firstPart.endTime();
+    const float firstPartTime = firstPartTraj.endTime();
     if (firstPartTime + secondPartTime > bestTime - MINIMUM_TIME_IMPROVEMENT) {
         return {ScoreType::WORSE_THAN, firstPartTime + secondPartTime};
     }
     // TODO: end point might also be close to the target?
-    const float firstPartDistance = m_world.minObstacleDistance(firstPart, input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float firstPartDistance = m_world.minObstacleDistance(firstPartTraj, input.t0, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (firstPartDistance < 0) {
         return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }
     // TODO: calculate the offset while calculating the trajectory
-    const float secondPartDistance = m_world.minObstacleDistance(secondPart, input.t0 + firstPartTime, OBSTACLE_AVOIDANCE_RADIUS).first;
+    const float secondPartDistance = m_world.minObstacleDistance(secondPartTraj, input.t0 + firstPartTime, OBSTACLE_AVOIDANCE_RADIUS).first;
     if (secondPartDistance < 0) {
         return {ScoreType::EXACT, std::numeric_limits<float>::max()};
     }

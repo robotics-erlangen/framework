@@ -23,18 +23,13 @@
 
 #include "core/vector.h"
 #include "trajectory.h"
+#include "trajectoryinput.h"
 #include <vector>
 #include <optional>
 
 #ifdef TESTING
     #include "gtest/gtest.h"
 #endif
-
-enum class EndSpeed {
-    FAST,
-    EXACT,
-};
-
 
 // WARNING: generated trajectories may exceed the maximum velocity by a factor of up to sqrt(2) in rare cases
 class AlphaTimeTrajectory
@@ -43,21 +38,16 @@ class AlphaTimeTrajectory
     FRIEND_TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant);
 #endif
 
-public:
+private:
     // helper functions
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, EndSpeed endSpeedType);
     static Vector minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime);
 
-    // search for position
-    static std::optional<Trajectory> findTrajectory(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, EndSpeed endSpeedType);
-
-    // speed profile output
     // any input is valid as long as time is not negative
     // if minTime is given, it must be the value of minTimeFastEndSped(v0, v1, acc)
     static Trajectory calculateTrajectory(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
                                             float slowDownTime, EndSpeed endSpeedType, float minTime = -1);
 
-private:
     struct TrajectoryPosInfo2D {
         Vector endPos;
         Vector increaseAtSpeed;
@@ -77,11 +67,99 @@ private:
     static constexpr int HIGH_PRECISION_ITERATIONS = 50;
 
 public:
-    // for the trajectorycli paramter optimization of findTrajectory (for single threaded use only)
+    AlphaTimeTrajectory(
+        RobotState start,
+        Vector v1,
+        float time,
+        float angle,
+        float acc,
+        float vMax,
+        float slowDownTime,
+        EndSpeed endSpeedType,
+        std::optional<float> minTime = {}
+    ) : start(start)
+      , v1(v1)
+      , time(time)
+      , angle(angle)
+      , acc(acc)
+      , vMax(vMax)
+      , slowDownTime(slowDownTime)
+      , endSpeedType(endSpeedType)
+      , minTime(minTime)
+    {}
+
+private:
+    RobotState start;
+    Vector v1;
+    float time;
+    float angle;
+    float acc;
+    float vMax;
+    float slowDownTime;
+    EndSpeed endSpeedType;
+    std::optional<float> minTime;
+    std::optional<Trajectory> trajectory;
+
+public:
+    static std::optional<AlphaTimeTrajectory> find(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, EndSpeed endSpeedType);
+
+    // speed profile output
+    Trajectory const &getTrajectory();
+
+    void setStartPos(const Vector pos) {
+        start.pos = pos;
+        if (trajectory.has_value()) {
+            trajectory.value().setStartPos(pos);
+        }
+    }
+
+    void setCorrectionOffset(const Vector offset) {
+        getTrajectory();
+        trajectory->setCorrectionOffset(offset);
+    }
+
+    void limitToTime(const float t) {
+        time = t;
+        if (trajectory.has_value()) {
+            trajectory.value().limitToTime(t);
+        }
+    }
+
+    float endTime() {
+        return getTrajectory().endTime();
+    };
+
+    RobotState endState() {
+        Trajectory const &traj = getTrajectory();
+        return {
+            traj.endPosition(),
+            traj.endSpeed()
+        };
+    }
+
+    RobotState stateAtTime(float t) {
+        return getTrajectory().stateAtTime(t);
+    };
+
+public:
+    AlphaTimeTrajectoryData data() {
+        return {
+            .start = start,
+            .v1 = v1,
+            .time = time,
+            .angle = angle,
+            .acc = acc,
+            .vMax = vMax,
+            .slowDownTime = slowDownTime,
+            .endSpeedType = endSpeedType
+        };
+    }
+
+public:
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
+    // for the trajectorycli paramter optimization of AlphaTimeTrajectory::find (for single threaded use only)
     static int searchIterationCounter;
 #endif
-
 };
 
 #endif // ALPHATIMETRAJECTORY_H

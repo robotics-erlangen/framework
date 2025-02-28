@@ -59,7 +59,7 @@ public:
     StandardSampler(RNG *rng, const WorldInformation &world, PathDebug &debug);
 
     bool compute(const TrajectoryInput &input) final override;
-    const std::vector<Trajectory> &getResult() const final override { return m_result; }
+    const std::vector<AlphaTimeTrajectory> &getResult() const final override { return m_result; }
     void setDirectTrajectoryScore(float score) { m_directTrajectoryScore = score; }
     float getScore() const { return m_bestResultInfo.time; }
 
@@ -102,7 +102,7 @@ protected:
     float m_directTrajectoryScore = std::numeric_limits<float>::max();
     StandardSamplerBestTrajectoryInfo m_bestResultInfo;
 
-    std::vector<Trajectory> m_result;
+    std::vector<AlphaTimeTrajectory> m_result;
 };
 
 class PrecomputedStandardSampler : public StandardSampler

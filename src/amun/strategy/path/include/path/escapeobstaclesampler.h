@@ -29,7 +29,7 @@ class EscapeObstacleSampler : public TrajectorySampler
 public:
     EscapeObstacleSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) : TrajectorySampler(rng, world, debug) {}
     bool compute(const TrajectoryInput &input) final override;
-    const std::vector<Trajectory> &getResult() const final override { return m_result; }
+    const std::vector<AlphaTimeTrajectory> &getResult() const final override { return m_result; }
     int getMaxIntersectingObstaclePrio() const { return m_maxIntersectingObstaclePrio; }
     void resetMaxIntersectingObstaclePrio() { m_maxIntersectingObstaclePrio = -1; }
     void updateFrom(const EscapeObstacleSampler &other);
@@ -52,7 +52,7 @@ private:
 
     int m_maxIntersectingObstaclePrio = -1;
 
-    std::vector<Trajectory> m_result;
+    std::vector<AlphaTimeTrajectory> m_result;
 };
 
 #endif // ESCAPEOBSTACLESAMPLER_H

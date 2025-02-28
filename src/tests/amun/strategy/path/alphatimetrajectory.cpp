@@ -174,9 +174,9 @@ static void checkLimitToTime(const Trajectory &profile, RNG &rng) {
 static void checkDistanceIncrease(const Vector v0, const float time, const float maxSpeed, const float acc, const float angle) {
 
     // more time must result in more distance traveled
-    const Trajectory p1 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time, angle, acc, maxSpeed, 0, EndSpeed::EXACT);
-    const Trajectory p2 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.1, angle, acc, maxSpeed, 0, EndSpeed::EXACT);
-    const Trajectory p3 = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.2, angle, acc, maxSpeed, 0, EndSpeed::EXACT);
+    const Trajectory p1 = AlphaTimeTrajectory{RobotState(Vector(0, 0), v0), Vector(0, 0), time, angle, acc, maxSpeed, 0, EndSpeed::EXACT}.getTrajectory();
+    const Trajectory p2 = AlphaTimeTrajectory{RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.1f, angle, acc, maxSpeed, 0, EndSpeed::EXACT}.getTrajectory();
+    const Trajectory p3 = AlphaTimeTrajectory{RobotState(Vector(0, 0), v0), Vector(0, 0), time + 0.2f, angle, acc, maxSpeed, 0, EndSpeed::EXACT}.getTrajectory();
 
     ASSERT_LT((p2.endPosition() - p1.endPosition()).length(), (p3.endPosition() - p1.endPosition()).length());
 }
@@ -206,7 +206,7 @@ TEST(AlphaTimeTrajectory, calculateTrajectory) {
         const float slowDown = rng.uniform() > 0.5 ? rng.uniformFloat(0, SlowdownAcceleration::SLOW_DOWN_TIME) : 0;
         const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::EXACT : EndSpeed::FAST;
 
-        const auto profile = AlphaTimeTrajectory::calculateTrajectory(RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, endSpeedType);
+        const auto profile = AlphaTimeTrajectory{RobotState(Vector(1, 2), v0), v1, time, angle, acc, maxSpeed, slowDown, endSpeedType}.getTrajectory();
 
         // generic checks
         checkBasic(rng, profile, v0, v1, maxSpeed, acc, slowDown, endSpeedType);
@@ -231,12 +231,13 @@ TEST(AlphaTimeTrajectory, findTrajectory) {
         const float slowDownTime = rng.uniform() > 0.5 ? rng.uniformFloat(0, SlowdownAcceleration::SLOW_DOWN_TIME) : 0;
         const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::FAST : EndSpeed::EXACT;
 
-        const auto profileOpt = AlphaTimeTrajectory::findTrajectory(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, endSpeedType);
-        if (!profileOpt) {
+        auto trajOpt = AlphaTimeTrajectory::find(RobotState(s0, v0), RobotState(s1, v1), acc, maxSpeed, slowDownTime, endSpeedType);
+        if (!trajOpt) {
             fails += 1;
             continue;
         }
-        const auto profile = profileOpt.value();
+        AlphaTimeTrajectory traj = trajOpt.value();
+        const auto profile = traj.getTrajectory();
 
         // generic checks
         checkBasic(rng, profile, v0, v1, maxSpeed, acc, slowDownTime, endSpeedType);

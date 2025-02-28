@@ -44,8 +44,8 @@ public:
 
 private:
     // copy input so that the modification does not affect the getResultPath function
-    std::vector<Trajectory> findPath(TrajectoryInput input);
-    std::vector<TrajectoryPoint> getResultPath(const std::vector<Trajectory> &profiles, const TrajectoryInput &input);
+    std::vector<AlphaTimeTrajectory> findPath(TrajectoryInput input);
+    std::vector<TrajectoryPoint> getResultPath(std::vector<AlphaTimeTrajectory> &trajectories, const TrajectoryInput &input);
     bool testSampler(const TrajectoryInput &input, pathfinding::InputSourceType type);
     void savePathfindingInput(const TrajectoryInput &input);
 

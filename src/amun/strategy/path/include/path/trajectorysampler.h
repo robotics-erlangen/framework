@@ -41,7 +41,7 @@ public:
     virtual ~TrajectorySampler() {}
     // returns true on finding a valid trajectory
     virtual bool compute(const TrajectoryInput &input) = 0;
-    virtual const std::vector<Trajectory> &getResult() const = 0;
+    virtual const std::vector<AlphaTimeTrajectory> &getResult() const = 0;
 
 protected:
     RNG *m_rng;

@@ -41,7 +41,8 @@ bool MultiEscapeSampler::compute(const TrajectoryInput &input)
     // TODO: in principle, this sampler can be simplified since the result is always a straight line
     const bool zeroValid = m_zeroV0Sampler.compute(zeroV0Input);
     if (zeroValid) {
-        const Vector initialAcc = m_zeroV0Sampler.getResult()[0].initialAcceleration();
+        AlphaTimeTrajectory traj = m_zeroV0Sampler.getResult()[0];
+        const Vector initialAcc = traj.getTrajectory().initialAcceleration();
         const float accInV0 = initialAcc.dot(input.start.speed);
         m_resultIsZeroV0 = accInV0 <= 0;
     } else {
@@ -71,7 +72,7 @@ void MultiEscapeSampler::resetMaxIntersectingObstaclePrio()
     m_regularSampler.resetMaxIntersectingObstaclePrio();
 }
 
-const std::vector<Trajectory> &MultiEscapeSampler::getResult() const
+const std::vector<AlphaTimeTrajectory> &MultiEscapeSampler::getResult() const
 {
     if (m_resultIsZeroV0) {
         return m_zeroV0Sampler.getResult();
