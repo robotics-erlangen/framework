@@ -619,6 +619,95 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
     }
 }
 
+bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand) {
+    if (controller.trajectory_size() == 0) {
+        return false;
+    }
+    robot::AlphaTimeTrajectory traj0 = controller.trajectory(0);
+    if (!traj0.has_start_pos()
+            || !traj0.has_start_vel()
+            || !traj0.has_end_vel()
+            || !traj0.has_start_angle()
+            || !traj0.has_end_angle()
+            || !traj0.has_alpha()
+            || !traj0.has_time()
+            || !traj0.has_acceleration()
+            || !traj0.has_v_max()
+            || !traj0.has_end_speed_type()
+            || !traj0.has_slow_down_time()) {
+        return false;
+    }
+
+    RadioCommand2025TrajectoryPath trajectoryPath = {
+        .start_state = {
+            .coords = {
+                .x = traj0.start_pos().x(),
+                .y = traj0.start_pos().y(),
+            },
+            .angle = traj0.start_angle(),
+        },
+        .start_vel = {
+            .x = traj0.start_vel().x(),
+            .y = traj0.start_vel().y(),
+        },
+        .end_angle = traj0.end_angle(),
+        .end_vel = {
+            .x = traj0.end_vel().x(),
+            .y = traj0.end_vel().y(),
+        },
+
+        .alpha = traj0.alpha(),
+        .t = traj0.time(),
+        .acceleration = traj0.acceleration(),
+        .v_max = 0,
+
+        .slow_down_time = traj0.slow_down_time(),
+        .is_fast_endspeed = traj0.end_speed_type() == robot::AlphaTimeTrajectory::EndSpeedType::AlphaTimeTrajectory_EndSpeedType_Fast,
+    };
+    write_trajectory_path(&trajectoryPath, &radioCommand.payload.regular);
+    return true;
+}
+
+bool static writeSpline(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand) {
+    if (controller.spline_size() == 0) {
+        return false;
+    }
+    robot::Spline spline0 = controller.spline(0);
+    RadioCommand2025Spline spline = {
+        .a_0 = {
+            .coords = {
+                .x = spline0.x().a0(),
+                .y = spline0.y().a0(),
+            },
+            .angle = spline0.phi().a0(),
+        },
+        .a_1 = {
+            .coords = {
+                .x = spline0.x().a1(),
+                .y = spline0.y().a1(),
+            },
+            .angle = spline0.phi().a1(),
+        },
+        .a_2 {
+            .coords = {
+                .x = spline0.x().a2(),
+                .y = spline0.y().a2(),
+            },
+            .angle = spline0.phi().a2(),
+        },
+        .a_3 {
+            .coords = {
+                .x = spline0.x().a3(),
+                .y = spline0.y().a3(),
+            },
+            .angle = spline0.phi().a3(),
+        },
+    };
+    write_spline(&spline, &radioCommand.payload.regular);
+    return true;
+}
+
+
 void RadioSystem::addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
 {
     // copy command
@@ -651,71 +740,10 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
     };
     write_common(&common, &data.payload.regular);
 
+    const robot::ControllerInput &controller = command.controller();
+    writeTrajectoryPath(controller, data);
+    writeSpline(controller, data);
     // TODO
-    if (true) {
-        RadioCommand2025TrajectoryPath trajectoryPath = {
-            .start_state = {
-                .coords = {
-                    .x = 0,
-                    .y = 0,
-                },
-                .angle = 0,
-            },
-            .start_vel = {
-                .x = 0,
-                .y = 0,
-            },
-            .end_angle = 0,
-            .end_vel = {
-                .x = 0,
-                .y = 0,
-            },
-
-            .alpha = 0,
-            .t = 0,
-            .acceleration = 0,
-            .v_max = 0,
-
-            .slow_down_time = 0,
-            .is_fast_endspeed = false,
-        };
-        write_trajectory_path(&trajectoryPath, &data.payload.regular);
-    } else if (command.has_controller() && command.controller().spline_size() > 0) {
-        robot::Spline spline0 = command.controller().spline(0);
-        RadioCommand2025Spline spline = {
-            .a_0 = {
-                .coords = {
-                    .x = spline0.x().a0(),
-                    .y = spline0.y().a0(),
-                },
-                .angle = spline0.phi().a0(),
-            },
-            .a_1 = {
-                .coords = {
-                    .x = spline0.x().a1(),
-                    .y = spline0.y().a1(),
-                },
-                .angle = spline0.phi().a1(),
-            },
-            .a_2 {
-                .coords = {
-                    .x = spline0.x().a2(),
-                    .y = spline0.y().a2(),
-                },
-                .angle = spline0.phi().a2(),
-            },
-            .a_3 {
-                .coords = {
-                    .x = spline0.x().a3(),
-                    .y = spline0.y().a3(),
-                },
-                .angle = spline0.phi().a3(),
-            },
-        };
-        write_spline(&spline, &data.payload.regular);
-    } else {
-        // TODO panic?
-    }
 
     for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
         transceiver->addSendCommand(
