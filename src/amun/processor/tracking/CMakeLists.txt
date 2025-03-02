@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 add_library(tracking STATIC
+    include/tracking/latency.h
     include/tracking/tracker.h
     include/tracking/visionprocessingtime.h
     include/tracking/worldparameters.h
