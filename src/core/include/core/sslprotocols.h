@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2021 Paul Bergmann                                          *
+ *   Copyright 2025 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -23,7 +23,7 @@
 
 #include <cstdint>
 
-// See https://ssl.robocup.org/league-software/ "Standard Network Parameters"
+// See https://ssl.robocup.org/technical-overview-of-the-small-size-league/ "Standard Network Parameters"
 
 /* The game controller publishes referee commands using UDP multicast on this
  * address:port
