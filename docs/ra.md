@@ -5,10 +5,6 @@ Ra can either use the builtin simulator or use the data provided by SSL-Vision.
 Theres also a small builtin refbox which can be used in place of a network
 referee.
 
-## Table of Contents
-* [Widgets](#widgets)
-* [Analysis](#analysis)
-
 ## Widgets
 The GUI is made up of various widgets which can (for the most part) be freely
 moved inside the window. To open the menu used to hide or show widgets, make a

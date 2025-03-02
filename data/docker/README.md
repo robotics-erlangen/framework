@@ -13,12 +13,6 @@ images, **enter the respsitory root** and run
 $ docker build -t sometag -f data/docker/Dockerfile.something .
 ```
 
-## Table of Contents
-- [V8 Images](#v8-images)
-- [CI Images](#ci-images)
-- [Simulator-CLI](#simulator-cli)
-- [Robocup Setup](#robocup-setup)
-
 ## CI images
 These images need to be available on the CI runner host. Take a look at
 `.gitlab-ci.yml` for the required tag names.

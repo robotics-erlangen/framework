@@ -22,21 +22,6 @@ Certain features require additional libraries:
 - `libqt5svg5-dev` - Required for taking SVG screenshots of the fieldwidget
 - `python2` and `git` - Required to build V8
 
-## Table Of Contents
-- [Note for Robocup 2021 participants](#note-for-robocup-2021-participants)
-- [Linux](#linux)
-  * [Required packages](#required-packages)
-    * [Ubuntu 20.04/22.04/24.04](#ubuntu-200422042404)
-    * [Manjaro](#manjaro)
-    * [Open Suse](#open-suse)
-  * [Building V8 (optional)](#building-v8-optional-needed-for-javascript-support)
-  * [Building the Framework](#building-the-framework)
-- [Windows](#windows)
-  * [Setup](#setup)
-  * [Compiling](#compiling)
-  * [Common problems](#common-problems)
-- [macOS](#macos)
-
 ## Note for Robocup 2021 participants
 None of the additional libraries are required to use the simulator. You'll
 just need to install the required dependencies.

@@ -2,16 +2,6 @@
 This directory contains a script `build.sh` to allow building V8 binaries on Linux (Both native x64 and cross-compilation to arm64), MinGW-w64 and MinGW-w32.
 Building on MacOS is currently untested.
 
-## Table of Contents
-- [Building V8](#building-v8)
-- [Updating V8](#updating-v8)
-  * [Obtaining an up-to-date source tree](#obtaining-an-up-to-date-source-tree)
-  * [Updating the patches](#updating-the-patches)
-  * [Avoiding performance regressions](#avoiding-performance-regressions)
-  * [Regenerate PGO profiles](#regenerate-pgo-profiles)
-  * [Updating the Docker script](#updating-the-docker-script)
-  * [Updating CMake and wrapping up](#updating-cmake-and-wrapping-up)
-
 ## Building V8
 Simply run `build.sh`.
 To cross-compile for arm64, pass `--arch=arm64` as an additional argument (Only supported on Linux).

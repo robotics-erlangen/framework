@@ -14,15 +14,6 @@ already cloned it, you can also use `git submodule init && git submodule update
 
 Ra for Windows is built in a nightly pipeline and can be [downloaded here](https://project.robotics-erlangen.de/robocup/software/-/jobs/artifacts/master/download?job=cross-compile-ra).
 
-## Table of Contents
-- [Getting started and compiling the framework](#getting-started-and-compiling-the-framework)
-- [Contained programs](#contained-programs-and-their-corresponding-makefile-target)
-  * [Ra and Horus](#ra-and-horus)
-  * [Simulator CLI](#simulator-cli)
-  * [Other utilities](#other-utilities)
-- [Language services and Tests](#language-services-and-tests)
-
-
 ## Getting started and compiling the framework
 First, [see here](COMPILE.md) on how to setup a build environment.
 

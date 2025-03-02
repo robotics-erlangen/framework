@@ -6,11 +6,6 @@ In general, building these images requires **at least Docker 19.03** and [Docker
 Prefix `docker` commands with `DOCKER_BUILDKIT=1` or take a look at the link to get instructions on how to enable it permanently.
 `docker` aliased to Podman should also work.
 
-## Table of Contents
-- [V8 Images](#v8-images)
-  * [Building V8](#building-v8)
-  * [Packaging V8](#packaging-v8)
-
 ## V8 Images
 We distribute V8 binaries as Docker images.
 These images are available from Docker Hub at [`roboticserlangen/v8`](https://hub.docker.com/r/roboticserlangen/v8).
