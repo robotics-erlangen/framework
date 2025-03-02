@@ -47,14 +47,15 @@ commands encoded using the [SSL simulation
 protocol](https://github.com/RoboCup-SSL/ssl-simulation-protocol) and broadcast
 the state of the world (i.e. positions of robots and the ball) using the SSL
 vision protocol.
+The `simulator-cli` multicasts the vision packets on **port 10020** (instead of the usual 10006) to avoid conflicts in tournament networks.
 
-The `simulator-cli` takes two command line arguments:
+The `simulator-cli` takes three command line arguments:
 - `-g short_file_name` sets the initial geometry to one of the defaults in `config/simulator`.
 - `--realism short_file_name` sets the initial realism to on of the defaults in `config/simulator-realism`
+- `--localhost` forces the simulator to use the localhost as the multicast address (and thus only send packets to the local machine).
 
-Both of these argument take a `short_file_name`, i.e. just the filename without the path or the extension.
+A `short_file_name` is just the filename without the path or the extension.
 For example, to start the binary with no realism and 2018 setup, call `simulator-cli -g 2018 --realism None`
-
 
 ### Other utilities
 This repo also contains various utilities:
