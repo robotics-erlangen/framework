@@ -647,9 +647,9 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     }
 }
 
-void Tracker::queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender)
+void Tracker::queuePacket(const SSL_WrapperPacket &wrapper, qint64 time)
 {
-    m_visionPackets.append(Packet(wrapper, time, sender));
+    m_visionPackets.append(Packet(wrapper, time));
     m_hasVisionData = true;
 }
 

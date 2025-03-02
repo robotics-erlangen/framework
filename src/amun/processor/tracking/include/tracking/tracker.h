@@ -50,10 +50,9 @@ class Tracker : public QObject
 private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
     struct Packet {
-        Packet(const SSL_WrapperPacket &wrapper, qint64 time, QString sender) : wrapper(wrapper), time(time), sender(sender) {}
+        Packet(const SSL_WrapperPacket &wrapper, qint64 time) : wrapper(wrapper), time(time) {}
         SSL_WrapperPacket wrapper;
         qint64 time;
-        QString sender;
     };
 
 public:
@@ -68,7 +67,7 @@ public:
     bool injectDebugValues(qint64 currentTime, amun::DebugValues *debug);
     void clearDebugValues();
 
-    void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time, QString sender);
+    void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();

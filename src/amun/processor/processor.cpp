@@ -543,9 +543,9 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
         m_worldParameters->handleVisionGeometry(wrapper.geometry(), sender);
     }
 
-    m_tracker->queuePacket(wrapper, time, sender);
-    m_speedTracker->queuePacket(wrapper, time, sender);
-    m_simpleTracker->queuePacket(wrapper, time, sender);
+    m_tracker->queuePacket(wrapper, time);
+    m_speedTracker->queuePacket(wrapper, time);
+    m_simpleTracker->queuePacket(wrapper, time);
 }
 
 void Processor::handleSimulatorExtraVision(const QByteArray &data)

@@ -83,7 +83,7 @@ qint64 VisionLogLiveConverter::processPacket(int packet, qint64 nextProcess)
     if (type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
         SSL_WrapperPacket wrapper;
         if (wrapper.ParseFromArray(m_visionFrame.data(), m_visionFrame.size())) {
-            m_tracker.queuePacket(wrapper, header.first, "logfile");
+            m_tracker.queuePacket(wrapper, header.first);
         }
     } else if (type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
         m_referee.handlePacket(m_visionFrame, SENDER_NAME_FOR_REFEREE);

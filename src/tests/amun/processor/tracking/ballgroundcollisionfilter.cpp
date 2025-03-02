@@ -144,7 +144,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
         }
 
         // TODO: add radio commands to tracker
-        m_tracker.queuePacket(wrapper, time, sender);
+        m_tracker.queuePacket(wrapper, time);
         if (time - m_lastTrackingTime > 10000000) { // 10 ms
             // TODO: to better mimick the behavior of the real tracker, use a time offset here (and at the worldState query)
             m_tracker.process(time);

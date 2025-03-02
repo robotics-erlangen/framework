@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
                 if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
                     SSL_WrapperPacket wrapper;
                     if (wrapper.ParseFromArray(visionFrame.data(), visionFrame.size())) {
-                        tracker.queuePacket(wrapper, receiveTimeNanos, "logfile");
+                        tracker.queuePacket(wrapper, receiveTimeNanos);
                     }
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                     ref.handlePacket(visionFrame, SENDER_NAME_FOR_REFEREE);
