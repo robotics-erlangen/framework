@@ -65,13 +65,13 @@ static float map_from_unsigned(int32_t y, uint32_t bits, float x_min, float x_ma
 void write_common(const RadioCommand2025Common *common, RegularCommandPayload2025 *cmd) {
     cmd->standby = common->standby;
     cmd->eject_sd_card = common->eject_sd_card;
-    cmd->time_offset = map_to_unsigned(common->time_offset, 0.0f, TIME_OFFSET_MAX, TIME_OFFSET_BITS);
+    cmd->time_offset = map_to_signed(common->time_offset, -TIME_OFFSET_MAX, TIME_OFFSET_MAX, TIME_OFFSET_BITS);
 
+    cmd->dribbler = map_to_signed(common->dribbler, -DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS);
     cmd->shot_power = map_to_unsigned(common->shot_power, 0.0f, SHOT_POWER_MAX, SHOT_POWER_BITS);
-    cmd->dribbler = map_to_unsigned(common->dribbler, 0.0f, DRIBBLER_MAX, DRIBBLER_BITS);
-    cmd->force_kick = common->force_kick;
     cmd->is_chip = common->is_chip;
     cmd->charge = common->charge;
+    cmd->force_kick = common->force_kick;
 
     cmd->detection_pos_x = map_to_signed(common->detection.coords.x, -POS_MAX, POS_MAX, POS_BITS);
     cmd->detection_pos_y = map_to_signed(common->detection.coords.y, -POS_MAX, POS_MAX, POS_BITS);
@@ -81,13 +81,13 @@ void write_common(const RadioCommand2025Common *common, RegularCommandPayload202
 void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025 *cmd) {
     common->standby = cmd->standby;
     common->eject_sd_card = cmd->eject_sd_card;
-    common->time_offset = map_from_unsigned(cmd->time_offset, 8, 0.0f, TIME_OFFSET_MAX);
+    common->time_offset = map_from_signed(cmd->time_offset, TIME_OFFSET_BITS, -TIME_OFFSET_MAX, TIME_OFFSET_MAX);
 
-    common->shot_power = map_from_unsigned(cmd->shot_power, 8, 0.0f, SHOT_POWER_MAX);
-    common->dribbler = map_from_unsigned(cmd->dribbler, 8, 0.0f, DRIBBLER_MAX);
-    common->force_kick = cmd->force_kick;
+    common->dribbler = map_from_signed(cmd->dribbler, DRIBBLER_BITS, -DRIBBLER_MAX, DRIBBLER_MAX);
+    common->shot_power = map_from_unsigned(cmd->shot_power, SHOT_POWER_BITS, 0.0f, SHOT_POWER_MAX);
     common->is_chip = cmd->is_chip;
     common->charge = cmd->charge;
+    common->force_kick = cmd->force_kick;
 
     common->detection.coords.x = map_from_signed(cmd->detection_pos_x, POS_BITS, -POS_MAX, POS_MAX);
     common->detection.coords.y = map_from_signed(cmd->detection_pos_y, POS_BITS, -POS_MAX, POS_MAX);

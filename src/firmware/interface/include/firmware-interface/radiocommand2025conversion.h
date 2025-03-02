@@ -37,11 +37,11 @@ typedef struct {
     bool standby;
     bool eject_sd_card;
 
-    float shot_power;
     float dribbler;
-    bool force_kick;
+    float shot_power;
     bool is_chip;
     bool charge;
+    bool force_kick;
 
     RadioCommand2025State detection;
 } RadioCommand2025Common;

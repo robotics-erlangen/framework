@@ -6,7 +6,7 @@
 #include <stddef.h>
 
 
-#define DATAGRAM_CHUNK_SIZE sizeof(RegularCommandPayload2025) - 1
+#define DATAGRAM_CHUNK_SIZE (sizeof(RegularCommandPayload2025) - 1)
 #define MAX_CHUNKS_PER_DATAGRAM 20
 
 /*
@@ -34,7 +34,7 @@ typedef struct {
     float max_accel;
     float pfusch_faktor;
     float mass_factor;
-} ConfigParamsDatagram;
+} __attribute__ ((packed)) ConfigParamsDatagram;
 
 typedef enum {
     READ_ID_COMMAND,

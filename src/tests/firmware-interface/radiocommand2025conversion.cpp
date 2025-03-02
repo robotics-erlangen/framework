@@ -53,11 +53,11 @@ RadioCommand2025Common static randomCommon(RNG &rng) {
         .standby = randomBool(rng),
         .eject_sd_card = randomBool(rng),
 
+        .dribbler = rng.uniformFloat(-DRIBBLER_MAX, DRIBBLER_MAX),
         .shot_power = rng.uniformFloat(0, SHOT_POWER_MAX),
-        .dribbler = rng.uniformFloat(0, DRIBBLER_MAX),
-        .force_kick = randomBool(rng),
         .is_chip = randomBool(rng),
         .charge = randomBool(rng),
+        .force_kick = randomBool(rng),
 
         .detection = randomState(rng, POS_MAX, ANGLE_MAX),
     };
@@ -130,15 +130,15 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025State &
 
 #define ASSERT_COMMON_EQ(a, b) ASSERT_PRED2(commonEq, a, b)
 static bool commonEq(const RadioCommand2025Common &a, const RadioCommand2025Common &b) {
-    return approxEq(a.time_offset, b.time_offset, 0, ABS_ERROR(0, TIME_OFFSET_MAX, TIME_OFFSET_BITS))
+    return approxEq(a.time_offset, b.time_offset, 0, ABS_ERROR(-TIME_OFFSET_MAX, TIME_OFFSET_MAX, TIME_OFFSET_BITS))
         && a.standby == b.standby
         && a.eject_sd_card == b.eject_sd_card
 
-        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, SHOT_POWER_MAX, SHOT_POWER_BITS))
         && approxEq(a.dribbler, b.dribbler, 0, ABS_ERROR(-DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS))
-        && a.force_kick == b.force_kick
+        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, SHOT_POWER_MAX, SHOT_POWER_BITS))
         && a.is_chip == b.is_chip
         && a.charge == b.charge
+        && a.force_kick == b.force_kick
 
         && stateEq(a.detection, b.detection, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS));
 }
@@ -149,11 +149,11 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common 
         << ".standby=" << a.standby << ", "
         << ".eject_sd_card=" << a.eject_sd_card << ", "
 
-        << ".shot_power=" << a.shot_power << ", "
         << ".dribbler=" << a.dribbler << ", "
-        << ".force_kick=" << a.force_kick << ", "
+        << ".shot_power=" << a.shot_power << ", "
         << ".is_chip=" << a.is_chip << ", "
         << ".charge=" << a.charge << ", "
+        << ".force_kick=" << a.force_kick << ", "
 
         << ".detection=" << a.detection << " }";
 }

@@ -84,15 +84,15 @@ typedef union {
  * @brief Structure for robot control commands (without header)
  */
 typedef struct {
-    uint8_t time_offset:TIME_OFFSET_BITS; // Radiosystem processing delay
+    int8_t time_offset:TIME_OFFSET_BITS; // Radiosystem processing delay
 
+    int8_t dribbler:DRIBBLER_BITS; // -100 to 100, percentage of max speed
     uint8_t shot_power:SHOT_POWER_BITS; // 0: Disable kicker, 1-255: Enable kicker with set power. Conversion from value to shot distance in meters: max_chip_dist=5; max_flat_dist=10; if chip { shot_power / 255 * max_chip_dist } else { shot_power / 255 * max_flat_dist }
-    uint8_t dribbler:DRIBBLER_BITS; // -100 to 100, percentage of max speed
-    bool force_kick:1; // 0: Kick on ir detection, 1: Force kick now
     bool is_chip:1; // 0: Flat kick, 1: Chip
     bool charge:1; // 0: Discharge kick capacitors, 1: Charge kick capacitors
+    bool force_kick:1; // 0: Kick on break beam detection, 1: Force kick now
 
-    bool standby:1; // 0: active, 1: standby
+    bool standby:1;
     bool eject_sd_card:1; // 0: nothing, 1: eject SD card
 
     int16_t detection_pos_x:POS_BITS; // Current x position, as detected by the vision, without any further processing

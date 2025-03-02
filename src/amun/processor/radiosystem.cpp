@@ -724,11 +724,11 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         .standby = command.standby(),
         .eject_sd_card = command.eject_sdcard(),
 
-        .shot_power = command.kick_power(),
         .dribbler = command.dribbler(),
-        .force_kick = command.force_kick(),
+        .shot_power = command.kick_power(),
         .is_chip = command.kick_style() == robot::Command_KickStyle_Chip,
         .charge = charge,
+        .force_kick = command.force_kick(),
 
         .detection = {
             .coords = {
