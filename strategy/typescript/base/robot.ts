@@ -326,8 +326,8 @@ export class FriendlyRobot extends Robot {
 	public maxShotChip: number;
 	/** the robot's height */
 	public height: number;
-	/** moveTo from previous trajectory call or undefined */
-	public prevMoveTo: Position | undefined;
+	/** current path planning target position */
+	public moveTo: Position | undefined;
 	public path: Path;
 	public trajectory: Trajectory;
 	/** response from the robot, only set if there is a current response */

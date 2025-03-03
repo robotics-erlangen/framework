@@ -107,7 +107,7 @@ function updateErrorTables(isLeavingStop: boolean) {
 
 // we don't have any feedback by our robots. At least we have to assume its like that
 // We still want to be able to detect broken bots.
-// To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
+// To do so, we use the moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
 // If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
 // We reset this counter if the robot gets fast eanough, or reaches its destination.
 // We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
@@ -118,8 +118,8 @@ let speedError: Map<FriendlyRobot, number> = new Map<FriendlyRobot, number>();
 function updateSpeedError() {
 	let halfSpeed = Referee.isSlowDriveState() ? 0.75 : 1.5;
 	for (let robot of World.FriendlyRobots) {
-		if (robot.prevMoveTo && !World.IsReplay && World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE) {
-			if (robot.speed.lengthSq() < halfSpeed * halfSpeed && robot.pos.distanceToSq(robot.prevMoveTo) > 0.5 * 0.5) {
+		if (robot.moveTo && !World.IsReplay && World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE) {
+			if (robot.speed.lengthSq() < halfSpeed * halfSpeed && robot.pos.distanceToSq(robot.moveTo) > 0.5 * 0.5) {
 				if (speedError.has(robot) && speedError[robot]! <= 450) {
 					speedError[robot] = speedError[robot]! + 1;
 				} else if (!speedError.has(robot)) {
