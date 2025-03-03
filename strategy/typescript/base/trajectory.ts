@@ -43,7 +43,7 @@ export type RobotLike = Pick<FriendlyRobot,
 	| "id" | "radius"
 	| "isVisible"
 	| "maxAngularSpeed" | "angularSpeed"
-	| "acceleration" | "prevMoveTo" | "setControllerInput" | "path"
+	| "acceleration" | "moveTo" | "setControllerInput" | "path"
 >;
 
 /** A tuple consisting of
@@ -114,20 +114,10 @@ export class Trajectory {
 
 		// target is the desired target position,
 		// dest the position reached by path planning without violating any obstacles
-		let [splines, target, dest, timeToDest] = this._handler.update(...args);
+		let [controllerInput, target, dest, timeToDest] = this._handler.update(...args);
+		this._robot.moveTo = dest;
+		this._robot.setControllerInput(controllerInput);
 
-		let splin;
-		if (splines.spline != undefined) {
-			splin = splines.spline[0];
-		}
-		if (splin != undefined) {
-			let xCalc = splin.x.a0 + splin.x.a1 * timeToDest + splin.x.a2 * timeToDest / 2;
-			let yCalc = splin.y.a0 + splin.y.a1 * timeToDest + splin.y.a2 * timeToDest / 2;
-			this._robot.prevMoveTo = Coordinates.toLocal(new Vector(xCalc, yCalc));
-		} else {
-			this._robot.prevMoveTo = undefined;
-		}
-		this._robot.setControllerInput(splines);
 		if (this._robot.pos) {
 			vis.addPath("MoveTo", [this._robot.pos, dest], vis.colors.whiteHalf);
 			vis.addCircle("MoveTo", dest, this._robot.radius, vis.colors.yellowHalf, true);
