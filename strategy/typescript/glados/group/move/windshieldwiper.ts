@@ -27,12 +27,9 @@ export class WindshieldWiper extends FixedMAMove {
 
 
 	public static canStart(): boolean {
-		if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
-			return Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
-				&& World.Ball.pos.y > 3 * G.FieldHeightHalf / 5;
-			// return true
-		}
-		return false;
+		return WindshieldWiper.Referee.isFriendlyFreeKickState()
+			&& Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
+			&& World.Ball.pos.y > 3 * G.FieldHeightHalf / 5;
 	}
 
 	public canContinue(): boolean {
