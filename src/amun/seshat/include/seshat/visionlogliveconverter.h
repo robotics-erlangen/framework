@@ -31,6 +31,8 @@
 #include <QMap>
 #include <QByteArray>
 #include <QCache>
+#include <utility>
+#include <vector>
 
 class VisionLogReader;
 
@@ -59,6 +61,8 @@ private:
     VisionLogReader *m_logFile;
     WorldParameters m_worldParameters;
     Referee m_referee;
+    /*! \brief Pair of SSL_WrapperPacket and the time it was received. */
+    std::vector<std::pair<SSL_WrapperPacket, qint64>> m_visionWrapperPackets;
     Tracker m_tracker;
     // uniform times between the start and end of the logfile
     QList<qint64> m_timings;

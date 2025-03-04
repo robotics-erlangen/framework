@@ -91,6 +91,8 @@ qint64 VisionLogLiveConverter::processPacket(int packet, qint64 nextProcess)
             }
 
             m_tracker.queuePacket(wrapper, header.first);
+
+            m_visionWrapperPackets.emplace_back(wrapper, header.first);
         }
     } else if (type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
         m_referee.handlePacket(m_visionFrame, SENDER_NAME_FOR_REFEREE);
@@ -139,6 +141,18 @@ Status VisionLogLiveConverter::readStatus(int packet)
 
     if (auto geometry = m_worldParameters.getGeometryUpdate(); geometry) {
         status->mutable_geometry()->Swap(&*geometry);
+    }
+
+    {
+        world::State* worldState = status->mutable_world_state();
+
+        worldState->set_has_vision_data(!m_visionWrapperPackets.empty());
+        for (const auto& [wrapper, time] : m_visionWrapperPackets) {
+            worldState->add_vision_frames()->CopyFrom(wrapper);
+            worldState->add_vision_frame_times(time);
+        }
+
+        m_visionWrapperPackets.clear();
     }
 
     m_referee.process(status->world_state());

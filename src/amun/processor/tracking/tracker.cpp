@@ -34,7 +34,6 @@ Tracker::Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldP
     m_cameraInfo(new CameraInfo),
     m_visionTransmissionDelay(0),
     m_timeSinceLastReset(0),
-    m_hasVisionData(false),
     m_lastSlowVisionFrame(0),
     m_numSlowVisionFrames(0),
     m_currentBallFilter(nullptr),
@@ -67,7 +66,6 @@ void Tracker::reset()
     qDeleteAll(m_ballFilter);
     m_ballFilter.clear();
 
-    m_hasVisionData = false;
     m_timeSinceLastReset = 0;
     m_lastUpdateTime.clear();
     m_visionPackets.clear();
@@ -89,10 +87,6 @@ void Tracker::process(qint64 currentTime)
 
     for (const Packet &p : m_visionPackets) {
         const auto &wrapper = p.wrapper;
-
-        if (!m_robotsOnly) {
-            m_detectionWrappers.append({wrapper, p.time});
-        }
 
         if (!wrapper.has_detection()) {
             continue;
@@ -254,7 +248,6 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
 
     // create world state for the given time
     worldState->set_time(currentTime);
-    worldState->set_has_vision_data(m_hasVisionData);
     worldState->set_vision_transmission_delay(m_visionTransmissionDelay);
 
     if (!m_robotsOnly) {
@@ -285,12 +278,6 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
     }
 
     if (!m_robotsOnly) {
-        for (auto &data : m_detectionWrappers) {
-            worldState->add_vision_frames()->CopyFrom(data.first);
-            worldState->add_vision_frame_times(data.second);
-        }
-        m_detectionWrappers.clear();
-
         BallTracker *ball = bestBallFilter();
 
         if (ball != nullptr) {
@@ -650,7 +637,6 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
 void Tracker::queuePacket(const SSL_WrapperPacket &wrapper, qint64 time)
 {
     m_visionPackets.append(Packet(wrapper, time));
-    m_hasVisionData = true;
 }
 
 void Tracker::queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time)

@@ -99,7 +99,6 @@ private:
     // used to delay the reset, to avoid accepting invalid vision frames that were sent before reset was triggered
     qint64 m_timeToReset = std::numeric_limits<qint64>::max();
 
-    bool m_hasVisionData;
     world::BallModel m_ballModel;
 
     QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
@@ -120,7 +119,6 @@ private:
     AreaOfInterest m_aoi;
 
     QList<QString> m_errorMessages;
-    QList<std::pair<SSL_WrapperPacket, qint64>> m_detectionWrappers;
     WorldParameters *m_worldParameters = nullptr;
 
     // if possible, select robots from this camera

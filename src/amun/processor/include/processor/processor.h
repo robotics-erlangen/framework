@@ -24,6 +24,7 @@
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
 #include "protobuf/ssl_mixed_team.pb.h"
+#include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/status.h"
 #include <QMap>
 #include <QPair>
@@ -31,6 +32,8 @@
 #include <QThread>
 #include <cstddef>
 #include <cstdint>
+#include <utility>
+#include <vector>
 
 class CommandEvaluator;
 class Referee;
@@ -119,6 +122,8 @@ private:
     std::unique_ptr<Tracker> m_simpleTracker;
     QList<robot::RadioResponse> m_responses;
     QList<QByteArray> m_extraVision;
+    /*! \brief Pair of SSL_WrapperPacket and the time it was received. */
+    std::vector<std::pair<SSL_WrapperPacket, qint64>> m_visionWrapperPackets;
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;

@@ -456,11 +456,18 @@ void Processor::injectRawWorldState(Status &status)
     for(const QByteArray& data : m_extraVision) {
         worldState->add_reality()->ParseFromArray(data.data(), data.size());
     }
+
+    worldState->set_has_vision_data(!m_visionWrapperPackets.empty());
+    for (const auto& [wrapper, time] : m_visionWrapperPackets) {
+        worldState->add_vision_frames()->CopyFrom(wrapper);
+        worldState->add_vision_frame_times(time);
+    }
 }
 
 void Processor::clearRawWorldState()
 {
     m_extraVision.clear();
+    m_visionWrapperPackets.clear();
 }
 
 void Processor::injectUserControl(Status &status, bool isBlue)
@@ -548,6 +555,8 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
     if (!wrapper.ParseFromArray(data.data(), data.size())) {
         return;
     }
+
+    m_visionWrapperPackets.emplace_back(wrapper, time);
 
     if (wrapper.has_geometry()) {
         m_worldParameters->handleVisionGeometry(wrapper.geometry(), sender);
