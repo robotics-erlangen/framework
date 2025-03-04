@@ -160,6 +160,19 @@ Status VisionLogLiveConverter::readStatus(int packet)
     m_referee.process(status->world_state());
     status->mutable_game_state()->CopyFrom(m_referee.gameState());
 
+    if (!m_warningSent) {
+        auto *debug = status->add_debug();
+        // Just use any source that is not in use
+        debug->set_source(amun::DebugSource::StrategyBlue);
+        debug->add_log()->set_text(
+            "<font color=\"red\">Warning</font> "
+            "The VisionLogLiveConverter status assembly diverges from the Processor. "
+            "Because of this, some information may be different or missing."
+        );
+
+        m_warningSent = true;
+    }
+
     // yes, it is really uncomfortable to use smart pointers this way
     m_packetCache.insert(packet, new Status(status));
     return status;

@@ -74,6 +74,8 @@ private:
     QString m_indexError;
 
     QCache<int, Status> m_packetCache;
+
+    bool m_warningSent = false;
 };
 
 #endif // VISIONLOGLIVECONVERTER_H
