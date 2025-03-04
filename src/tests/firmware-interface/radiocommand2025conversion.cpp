@@ -48,14 +48,21 @@ RadioCommand2025State static randomState(RNG &rng, float xyMax, float angleMax) 
 }
 
 RadioCommand2025Common static randomCommon(RNG &rng) {
+    const bool is_chip = randomBool(rng);
+    float shot_power;
+    if (is_chip) {
+        shot_power = rng.uniformFloat(0, CHIP_DISTANCE_MAX);
+    } else {
+        shot_power = rng.uniformFloat(0, LINEAR_SHOT_SPEED_MAX);
+    }
     return {
         .time_offset = rng.uniformFloat(0, TIME_OFFSET_MAX),
         .standby = randomBool(rng),
         .eject_sd_card = randomBool(rng),
 
         .dribbler = rng.uniformFloat(-DRIBBLER_MAX, DRIBBLER_MAX),
-        .shot_power = rng.uniformFloat(0, SHOT_POWER_MAX),
-        .is_chip = randomBool(rng),
+        .shot_power = shot_power,
+        .is_chip = is_chip,
         .charge = randomBool(rng),
         .force_kick = randomBool(rng),
 
@@ -135,7 +142,7 @@ static bool commonEq(const RadioCommand2025Common &a, const RadioCommand2025Comm
         && a.eject_sd_card == b.eject_sd_card
 
         && approxEq(a.dribbler, b.dribbler, 0, ABS_ERROR(-DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS))
-        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, SHOT_POWER_MAX, SHOT_POWER_BITS))
+        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, a.is_chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX, SHOT_POWER_BITS))
         && a.is_chip == b.is_chip
         && a.charge == b.charge
         && a.force_kick == b.force_kick

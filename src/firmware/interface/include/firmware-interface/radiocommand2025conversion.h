@@ -6,7 +6,8 @@
 
 #define TIME_OFFSET_MAX 0.01f
 
-#define SHOT_POWER_MAX 10.0f
+#define LINEAR_SHOT_SPEED_MAX 10.0f
+#define CHIP_DISTANCE_MAX 5.0f
 #define DRIBBLER_MAX 1.0f
 
 #define POS_MAX 8.0f
