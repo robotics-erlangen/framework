@@ -96,6 +96,8 @@ private:
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
     void injectExtraData(Status &status);
     void clearExtraData();
+    void injectRawWorldState(Status &status);
+    void clearRawWorldState();
     void injectUserControl(Status &status, bool isBlue);
     Status assembleStatus(qint64 time, bool resetRaw);
     void injectAndClearDebugValues(qint64 currentTime, Status &status);

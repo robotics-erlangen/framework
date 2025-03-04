@@ -349,6 +349,7 @@ void Processor::process(qint64 overwriteTime)
 
     // add radio responses from robots and mixed team data
     injectExtraData(status);
+    injectRawWorldState(status);
 
     // add input / commands from the user for the strategy
     injectUserControl(status, true);
@@ -399,6 +400,7 @@ void Processor::process(qint64 overwriteTime)
 
     // remove responses after injecting to avoid sending them a second time
     clearExtraData();
+    clearRawWorldState();
 
     // copy to other status message
     strategyStatus->mutable_user_input_yellow()->CopyFrom(status->user_input_yellow());
@@ -438,10 +440,6 @@ void Processor::injectExtraData(Status &status)
     if (m_mixedTeamInfoSet) {
         *(status->mutable_world_state()->mutable_mixed_team_info()) = m_mixedTeamInfo;
     }
-
-    for(const QByteArray& data : m_extraVision) {
-        status->mutable_world_state()->add_reality()->ParseFromArray(data.data(), data.size());
-    }
 }
 
 void Processor::clearExtraData() {
@@ -449,7 +447,19 @@ void Processor::clearExtraData() {
 
     m_mixedTeamInfo.Clear();
     m_mixedTeamInfoSet = false;
+}
 
+void Processor::injectRawWorldState(Status &status)
+{
+    world::State* worldState = status->mutable_world_state();
+
+    for(const QByteArray& data : m_extraVision) {
+        worldState->add_reality()->ParseFromArray(data.data(), data.size());
+    }
+}
+
+void Processor::clearRawWorldState()
+{
     m_extraVision.clear();
 }
 
