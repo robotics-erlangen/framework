@@ -84,20 +84,20 @@ typedef union {
  * @brief Structure for robot control commands (without header)
  */
 typedef struct {
-    int8_t time_offset:TIME_OFFSET_BITS; // Radiosystem processing delay
+    int8_t time_offset:TIME_OFFSET_BITS;
 
-    int8_t dribbler:DRIBBLER_BITS; // -100 to 100, percentage of max speed
-    uint8_t shot_power:SHOT_POWER_BITS; // 0: Disable kicker, 1-255: Enable kicker with set power. Conversion from value to shot distance in meters: max_chip_dist=5; max_flat_dist=10; if chip { shot_power / 255 * max_chip_dist } else { shot_power / 255 * max_flat_dist }
-    bool is_chip:1; // 0: Flat kick, 1: Chip
-    bool charge:1; // 0: Discharge kick capacitors, 1: Charge kick capacitors
-    bool force_kick:1; // 0: Kick on break beam detection, 1: Force kick now
+    int8_t dribbler:DRIBBLER_BITS;
+    uint8_t shot_power:SHOT_POWER_BITS;
+    bool is_chip:1;
+    bool charge:1;
+    bool force_kick:1;
 
     bool standby:1;
-    bool eject_sd_card:1; // 0: nothing, 1: eject SD card
+    bool eject_sd_card:1;
 
-    int16_t detection_pos_x:POS_BITS; // Current x position, as detected by the vision, without any further processing
-    int16_t detection_pos_y:POS_BITS; // Current y position, as detected by the vision, without any further processing
-    int16_t detection_phi:ANGLE_BITS; // Current orientation of the robot, as detected by the vision, without any further processing
+    int16_t detection_pos_x:POS_BITS;
+    int16_t detection_pos_y:POS_BITS;
+    int16_t detection_phi:ANGLE_BITS;
 
     uint8_t unused:8;
 

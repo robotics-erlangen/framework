@@ -24,49 +24,49 @@
 
 
 typedef struct {
-    float x;  // m, m/s, m/s^2, m/s^3
-    float y;  // m, m/s, m/s^2, m/s^3
+    float x;
+    float y;
 } RadioCommand2025Vector;
 
 typedef struct {
     RadioCommand2025Vector coords;
-    float angle;  // rad, rad/s, rad/s^2, rad/s^3
+    float angle;
 } RadioCommand2025State;
 
 typedef struct {
-    float time_offset;
+    float time_offset;  // [s], from -TIME_OFFSET_MAX to TIME_OFFSET_MAX, "radiosystem processing delay"
     bool standby;
     bool eject_sd_card;
 
-    float dribbler;
-    float shot_power;
-    bool is_chip;
-    bool charge;
-    bool force_kick;
+    float dribbler;  // percent of max dribbler speed, from -DRIBBLER_MAX to DRIBBLER_MAX
+    float shot_power;  // if shot_power == 0: disable kicker, else if is_chip is false: [m/s], from 0 to LINEAR_SHOT_SPEED_MAX, else: [m], from 0 to CHIP_DISTANCE_MAX
+    bool is_chip;  // false: flat kick, true: chip
+    bool charge;  // false: discharge kick capacitors, true: charge kick capacitors
+    bool force_kick;  // false: kick on break beam detection, true: force kick right now
 
-    RadioCommand2025State detection;
+    RadioCommand2025State detection;  // [m] and [rad], current state of the robot, as detected by the vision, without any further processing
 } RadioCommand2025Common;
 
 typedef struct {
-    RadioCommand2025State start_state;
-    RadioCommand2025Vector start_vel;
-    float end_angle;
-    RadioCommand2025Vector end_vel;
+    RadioCommand2025State start_state;  // [m] and [rad]
+    RadioCommand2025Vector start_vel;  // [m/s]
+    float end_angle;  // [rad]
+    RadioCommand2025Vector end_vel;  // [m/s]
 
-    float alpha;
-    float t;
-    float acceleration;
-    float v_max;
+    float alpha;  // [rad]
+    float t;  // [s]
+    float acceleration;  // [m/s^2]
+    float v_max;  // [m/s]
 
-    float slow_down_time;
+    float slow_down_time;  // [s]
     bool is_fast_endspeed;
 } RadioCommand2025TrajectoryPath;
 
 typedef struct {
-    RadioCommand2025State a_0;
-    RadioCommand2025State a_1;
-    RadioCommand2025State a_2;
-    RadioCommand2025State a_3;
+    RadioCommand2025State a_0;  // [m] and [rad]
+    RadioCommand2025State a_1;  // [m/s] and [rad/s]
+    RadioCommand2025State a_2;  // [m/s^2] and [rad/s^2]
+    RadioCommand2025State a_3;  // [m/s^3] and [rad/s^3]
 } RadioCommand2025Spline;
 
 
