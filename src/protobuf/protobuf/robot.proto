@@ -161,7 +161,7 @@ message Command
     optional float cur_phi = 25;
     optional float cur_omega = 19;
     optional SpeedVector output0 = 20;
-    optional SpeedVector output1 = 21;
+    optional SpeedVector output1 = 21;  // this field is used by the command converter for the SSL sim protocol
     optional SpeedVector output2 = 22;
     optional RobotDetection last_detection = 26;
 }
