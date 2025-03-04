@@ -135,8 +135,8 @@ int main(int argc, char* argv[])
                 // collect all packets until current system time
                 if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
                     SSL_WrapperPacket wrapper;
-                    if (wrapper.ParseFromArray(visionFrame.data(), visionFrame.size())) {
-                        tracker.queuePacket(wrapper, receiveTimeNanos);
+                    if (wrapper.ParseFromArray(visionFrame.data(), visionFrame.size()) && wrapper.has_detection()) {
+                        tracker.queuePacket(wrapper.detection(), receiveTimeNanos);
                     }
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                     ref.handlePacket(visionFrame, SENDER_NAME_FOR_REFEREE);

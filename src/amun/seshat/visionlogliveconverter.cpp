@@ -90,7 +90,9 @@ qint64 VisionLogLiveConverter::processPacket(int packet, qint64 nextProcess)
                 m_worldParameters.handleVisionGeometry(wrapper.geometry(), SENDER_NAME_FOR_REFEREE);
             }
 
-            m_tracker.queuePacket(wrapper, header.first);
+            if (wrapper.has_detection()) {
+                m_tracker.queuePacket(wrapper.detection(), header.first);
+            }
 
             m_visionWrapperPackets.emplace_back(wrapper, header.first);
         }

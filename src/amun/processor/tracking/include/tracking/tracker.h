@@ -24,7 +24,7 @@
 #include "core/areaofinterest.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/debug.pb.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include <QMap>
 #include <QPair>
@@ -50,8 +50,8 @@ class Tracker : public QObject
 private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
     struct Packet {
-        Packet(const SSL_WrapperPacket &wrapper, qint64 time) : wrapper(wrapper), time(time) {}
-        SSL_WrapperPacket wrapper;
+        Packet(const SSL_DetectionFrame &detection, qint64 time) : detection(detection), time(time) {}
+        SSL_DetectionFrame detection;
         qint64 time;
     };
 
@@ -67,7 +67,7 @@ public:
     bool injectDebugValues(qint64 currentTime, amun::DebugValues *debug);
     void clearDebugValues();
 
-    void queuePacket(const SSL_WrapperPacket &wrapper, qint64 time);
+    void queuePacket(const SSL_DetectionFrame &detection, qint64 time);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command, qint64 time);
     void reset();

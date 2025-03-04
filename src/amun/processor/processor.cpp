@@ -562,9 +562,13 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
         m_worldParameters->handleVisionGeometry(wrapper.geometry(), sender);
     }
 
-    m_tracker->queuePacket(wrapper, time);
-    m_speedTracker->queuePacket(wrapper, time);
-    m_simpleTracker->queuePacket(wrapper, time);
+    if (wrapper.has_detection()) {
+        const auto& detection = wrapper.detection();
+
+        m_tracker->queuePacket(detection, time);
+        m_speedTracker->queuePacket(detection, time);
+        m_simpleTracker->queuePacket(detection, time);
+    }
 }
 
 void Processor::handleSimulatorExtraVision(const QByteArray &data)

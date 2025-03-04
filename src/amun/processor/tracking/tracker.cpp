@@ -20,7 +20,8 @@
 
 #include "tracker.h"
 #include "balltracker.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_geometry.pb.h"
 #include "robotfilter.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/geometry.h"
@@ -86,13 +87,7 @@ void Tracker::process(qint64 currentTime)
     invalidateRobots(m_robotFilterBlue, currentTime);
 
     for (const Packet &p : m_visionPackets) {
-        const auto &wrapper = p.wrapper;
-
-        if (!wrapper.has_detection()) {
-            continue;
-        }
-
-        const SSL_DetectionFrame &detection = wrapper.detection();
+        const SSL_DetectionFrame &detection = p.detection;
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
 
         /* Misconfigured or slow vision computers may produce detection frames
@@ -634,9 +629,9 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     }
 }
 
-void Tracker::queuePacket(const SSL_WrapperPacket &wrapper, qint64 time)
+void Tracker::queuePacket(const SSL_DetectionFrame &detection, qint64 time)
 {
-    m_visionPackets.append(Packet(wrapper, time));
+    m_visionPackets.append(Packet(detection, time));
 }
 
 void Tracker::queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time)
