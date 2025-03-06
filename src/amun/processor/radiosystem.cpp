@@ -62,6 +62,17 @@ static Radio::Generation uintToGeneration(uint pbGeneration) {
     qFatal("Invalid generation %u", pbGeneration);
 }
 
+// normalizes to [-pi, pi)
+static float normalizeAngle(float angle) {
+    while (angle < -std::numbers::pi) {
+        angle += std::numbers::pi * 2;
+    }
+    while (angle >= std::numbers::pi) {
+        angle -= std::numbers::pi * 2;
+    }
+    return angle;
+}
+
 /* Used for RadioSystem::m_transceivers  to select the generation */
 constexpr size_t IndexGen2014 = 0;
 constexpr size_t IndexGenPasta = 1;
@@ -571,13 +582,7 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
         data.cur_v_s = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
         data.cur_v_f = qBound<qint32>(-RADIOCOMMANDPASTA_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMANDPASTA_V_MAX);
 
-        float phi = command.cur_phi();
-        while (phi < -std::numbers::pi) {
-            phi += std::numbers::pi * 2;
-        }
-        while (phi >= std::numbers::pi) {
-            phi -= std::numbers::pi * 2;
-        }
+        float phi = normalizeAngle(command.cur_phi());
         data.cur_phi = qBound<qint32>(-RADIOCOMMANDPASTA_PHI_MAX, phi * RADIOCOMMANDPASTA_PHI_MAX / std::numbers::pi, RADIOCOMMANDPASTA_PHI_MAX);
     } else {
         data.cur_v_s = RADIOCOMMANDPASTA_INVALID_SPEED;
