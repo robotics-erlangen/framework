@@ -21,6 +21,7 @@
 add_library(tracking STATIC
     include/tracking/latency.h
     include/tracking/tracker.h
+    include/tracking/visionframetime.h
     include/tracking/visionprocessingtime.h
     include/tracking/worldparameters.h
 
@@ -39,6 +40,7 @@ add_library(tracking STATIC
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
+    visionframetime.cpp
     visionprocessingtime.cpp
     worldparameters.cpp
 )

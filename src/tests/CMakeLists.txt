@@ -40,6 +40,7 @@ add_executable(cpptests
     amun/simulator/simulator.cpp
     amun/processor/radio_address.cpp
     amun/processor/tracking/ballgroundcollisionfilter.cpp
+    amun/processor/tracking/visionframetime.cpp
     amun/processor/tracking/visionprocessingtime.cpp
 )
 
