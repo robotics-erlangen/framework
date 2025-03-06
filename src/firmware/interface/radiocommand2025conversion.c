@@ -73,9 +73,16 @@ void write_common(const RadioCommand2025Common *common, RegularCommandPayload202
     cmd->charge = common->charge;
     cmd->force_kick = common->force_kick;
 
-    cmd->detection_pos_x = map_to_signed(common->detection.coords.x, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->detection_pos_y = map_to_signed(common->detection.coords.y, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->detection_phi = map_to_signed(normalize_angle(common->detection.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->has_detection = common->has_detection;
+    if (common->has_detection) {
+        cmd->detection_pos_x = map_to_signed(common->detection.coords.x, -POS_MAX, POS_MAX, POS_BITS);
+        cmd->detection_pos_y = map_to_signed(common->detection.coords.y, -POS_MAX, POS_MAX, POS_BITS);
+        cmd->detection_phi = map_to_signed(normalize_angle(common->detection.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    } else {
+        cmd->detection_pos_x = 0;
+        cmd->detection_pos_y = 0;
+        cmd->detection_phi = 0;
+    }
 }
 
 void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025 *cmd) {
@@ -89,9 +96,16 @@ void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025
     common->charge = cmd->charge;
     common->force_kick = cmd->force_kick;
 
-    common->detection.coords.x = map_from_signed(cmd->detection_pos_x, POS_BITS, -POS_MAX, POS_MAX);
-    common->detection.coords.y = map_from_signed(cmd->detection_pos_y, POS_BITS, -POS_MAX, POS_MAX);
-    common->detection.angle = map_from_signed(cmd->detection_phi, ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
+    common->has_detection = cmd->has_detection;
+    if (cmd->has_detection) {
+        common->detection.coords.x = map_from_signed(cmd->detection_pos_x, POS_BITS, -POS_MAX, POS_MAX);
+        common->detection.coords.y = map_from_signed(cmd->detection_pos_y, POS_BITS, -POS_MAX, POS_MAX);
+        common->detection.angle = map_from_signed(cmd->detection_phi, ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
+    } else {
+        common->detection.coords.x = NAN;
+        common->detection.coords.y = NAN;
+        common->detection.angle = NAN;
+    }
 }
 
 void set_halt(RegularCommandPayload2025 *cmd) {

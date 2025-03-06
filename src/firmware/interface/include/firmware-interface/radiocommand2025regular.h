@@ -99,11 +99,12 @@ typedef struct {
     bool standby:1;
     bool eject_sd_card:1;
 
+    bool has_detection:1;
     int16_t detection_pos_x:POS_BITS;
     int16_t detection_pos_y:POS_BITS;
     int16_t detection_phi:ANGLE_BITS;
 
-    uint8_t unused:8;
+    uint8_t unused:7;
 
     TrajectoryType2025 traj_type:4;
     Trajectory2025 traj;

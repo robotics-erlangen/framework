@@ -44,6 +44,7 @@ typedef struct {
     bool charge;  // false: discharge kick capacitors, true: charge kick capacitors
     bool force_kick;  // false: kick on break beam detection, true: force kick right now
 
+    bool has_detection; // true: robot was detected by the vision and detection contains it, false: robot wasn't detected by the vision
     RadioCommand2025State detection;  // [m] and [rad], current state of the robot, as detected by the vision, without any further processing
 } RadioCommand2025Common;
 

@@ -737,12 +737,13 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         .charge = charge,
         .force_kick = command.force_kick(),
 
+        .has_detection = lastDetection.has_x() && lastDetection.has_y() && lastDetection.has_phi(),
         .detection = {
             .coords = {
-                .x = lastDetection.has_x() ? lastDetection.x() : 0,
-                .y = lastDetection.has_y() ? lastDetection.y() : 0,
+                .x = lastDetection.x(),
+                .y = lastDetection.y(),
             },
-            .angle = lastDetection.has_phi() ? normalizeAngle(lastDetection.phi()) : 0,
+            .angle = normalizeAngle(lastDetection.phi()),
         },
     };
     write_common(&common, &data.payload.regular);

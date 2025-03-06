@@ -66,6 +66,7 @@ RadioCommand2025Common static randomCommon(RNG &rng) {
         .charge = randomBool(rng),
         .force_kick = randomBool(rng),
 
+        .has_detection = randomBool(rng),
         .detection = randomState(rng, POS_MAX, ANGLE_MAX),
     };
 }
@@ -135,11 +136,12 @@ static bool commonEq(const RadioCommand2025Common &a, const RadioCommand2025Comm
         && a.charge == b.charge
         && a.force_kick == b.force_kick
 
-        && stateEq(a.detection, b.detection, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS));
+        && a.has_detection == b.has_detection
+        && (!a.has_detection || stateEq(a.detection, b.detection, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS)));
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common &a) {
-    return out << "RadioCommand2025Common { "
+    out << "RadioCommand2025Common { "
         << ".time_offset=" << a.time_offset << ", "
         << ".standby=" << a.standby << ", "
         << ".eject_sd_card=" << a.eject_sd_card << ", "
@@ -149,8 +151,11 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common 
         << ".is_chip=" << a.is_chip << ", "
         << ".charge=" << a.charge << ", "
         << ".force_kick=" << a.force_kick << ", "
-
-        << ".detection=" << a.detection << " }";
+        << ".has_detection=" << a.has_detection;
+    if (a.has_detection) {
+        out << ", " << ".detection=" << a.detection;
+    }
+    return out << " }";
 }
 
 

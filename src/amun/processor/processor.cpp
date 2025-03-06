@@ -592,8 +592,11 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
 
         for (TeamColor color : { YELLOW, BLUE }) {
             auto &by_id = m_lastDetection[color];
-            const auto &robots = color == YELLOW ? detection.robots_yellow() : detection.robots_blue();
+            for (quint8 id = 0; id < MAX_ROBOT_ID; id++) {
+                by_id[id].Clear();
+            }
 
+            const auto &robots = color == YELLOW ? detection.robots_yellow() : detection.robots_blue();
             for (const SSL_DetectionRobot &robot : robots) {
                 if (robot.has_x() && robot.has_y() && robot.has_orientation()) {
                     robot::RobotDetection &detection = by_id[robot.robot_id()];
