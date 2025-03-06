@@ -77,6 +77,9 @@ extern "C" {
 void write_common(const RadioCommand2025Common *common, RegularCommandPayload2025 *cmd);
 void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025 *cmd);
 
+void set_halt(RegularCommandPayload2025 *cmd);
+bool is_halt(const RegularCommandPayload2025 *cmd);
+
 void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCommandPayload2025 *cmd);
 bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCommandPayload2025 *cmd);
 

@@ -94,6 +94,15 @@ void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025
     common->detection.angle = map_from_signed(cmd->detection_phi, ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
 }
 
+void set_halt(RegularCommandPayload2025 *cmd) {
+    cmd->traj_type = HALT;
+    cmd->traj.halt.unused = 0;
+}
+
+bool is_halt(const RegularCommandPayload2025 *cmd) {
+    return cmd->traj_type == HALT;
+}
+
 void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCommandPayload2025 *cmd) {
     cmd->traj_type = TRAJECTORY_PATH;
 

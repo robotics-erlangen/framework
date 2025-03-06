@@ -231,6 +231,18 @@ TEST(RadioCommand2025, ReadWriteCommon) {
     }
 }
 
+TEST(RadioCommand2025, SetHalt) {
+    RegularCommandPayload2025 cmd;
+    RadioCommand2025Spline ignoredSpline;
+    RadioCommand2025TrajectoryPath ignoredTrajectoryPath;
+
+    set_halt(&cmd);
+
+    ASSERT_TRUE(is_halt(&cmd));
+    ASSERT_FALSE(read_spline(&ignoredSpline, &cmd));
+    ASSERT_FALSE(read_trajectory_path(&ignoredTrajectoryPath, &cmd));
+}
+
 TEST(RadioCommand2025, ReadWriteTrajectoryPath) {
     for (uint32_t i = 0; i < NUM_TEST_ITERATIONS; i++) {
         RNG rng{i + 123};
@@ -238,6 +250,8 @@ TEST(RadioCommand2025, ReadWriteTrajectoryPath) {
 
         RadioCommand2025TrajectoryPath written = randomTrajectoryPath(rng);
         write_trajectory_path(&written, &cmd);
+
+        ASSERT_FALSE(is_halt(&cmd));
 
         RadioCommand2025Spline ignored;
         ASSERT_FALSE(read_spline(&ignored, &cmd));
@@ -255,6 +269,8 @@ TEST(RadioCommand2025, ReadWriteSpline) {
 
         RadioCommand2025Spline written = randomSpline(rng);
         write_spline(&written, &cmd);
+
+        ASSERT_FALSE(is_halt(&cmd));
 
         RadioCommand2025TrajectoryPath ignored;
         ASSERT_FALSE(read_trajectory_path(&ignored, &cmd));
@@ -283,6 +299,7 @@ TEST(RadioCommand2025, ReadWriteCombined) {
         ASSERT_COMMON_EQ(writtenCommon, readCommon);
 
         write_trajectory_path(&writtenTrajectoryPath, &cmd);
+        ASSERT_FALSE(is_halt(&cmd));
         ASSERT_FALSE(read_spline(&readSpline, &cmd));
         ASSERT_TRUE(read_trajectory_path(&readTrajectoryPath, &cmd));
         ASSERT_TRAJECTORY_PATH_EQ(writtenTrajectoryPath, readTrajectoryPath);
@@ -291,9 +308,18 @@ TEST(RadioCommand2025, ReadWriteCombined) {
         ASSERT_COMMON_EQ(writtenCommon, readCommon);
 
         write_spline(&writtenSpline, &cmd);
+        ASSERT_FALSE(is_halt(&cmd));
         ASSERT_FALSE(read_trajectory_path(&readTrajectoryPath, &cmd));
         ASSERT_TRUE(read_spline(&readSpline, &cmd));
         ASSERT_SPLINE_EQ(writtenSpline, readSpline);
+
+        read_common(&readCommon, &cmd);
+        ASSERT_COMMON_EQ(writtenCommon, readCommon);
+
+        set_halt(&cmd);
+        ASSERT_FALSE(read_spline(&readSpline, &cmd));
+        ASSERT_FALSE(read_trajectory_path(&readTrajectoryPath, &cmd));
+        ASSERT_TRUE(is_halt(&cmd));
 
         read_common(&readCommon, &cmd);
         ASSERT_COMMON_EQ(writtenCommon, readCommon);

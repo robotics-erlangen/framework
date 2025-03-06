@@ -35,11 +35,15 @@
 
 
 typedef enum {
-    TRAJECTORY_PATH = 0,
-    SPLINE = 1,
+    HALT = 0,
+    TRAJECTORY_PATH = 1,
+    SPLINE = 2,
 } TrajectoryType2025;
 
 typedef union {
+    struct {
+        uint8_t unused; // required by the C standard
+    } __attribute__ ((packed)) halt;
     struct {
         int16_t start_pos_x:POS_BITS;
         int16_t start_pos_y:POS_BITS;

@@ -739,6 +739,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         },
     };
     write_common(&common, &data.payload.regular);
+    set_halt(&data.payload.regular);
 
     const robot::ControllerInput &controller = command.controller();
     writeTrajectoryPath(controller, data);
