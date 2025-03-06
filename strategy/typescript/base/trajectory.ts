@@ -145,7 +145,7 @@ export class TrajectoryManager {
 	 *
 	 * @param handlerType - must be a subclass of TrajectoryHandler
 	 * @param args - passed on to the update method of the trajectory handler
-	 * @returns destination and time as returned by the trajectory handler
+	 * @returns trajectory result returned by the trajectory handler
 	 */
 	public update<Args extends any[], Ret extends TrajectoryResult>(
 			handlerType: new (robot: RobotLike) => TrajectoryHandler<Args, Ret>,
