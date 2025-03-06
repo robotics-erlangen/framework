@@ -68,7 +68,7 @@ void SSLVisionTracked::createTrackedFrame(const world::State &state, gameControl
     frame->set_frame_number(m_trackedFrameCounter++);
     frame->set_timestamp(state.time() / NS_PER_SEC);
 
-    {
+    if (state.has_ball()) {
         auto ball = frame->add_balls();
         setVector3(ball->mutable_pos(), state.ball().p_x(), state.ball().p_y(), state.ball().p_z());
         setVector3(ball->mutable_vel(), state.ball().v_x(), state.ball().v_y(), state.ball().v_z());
