@@ -157,29 +157,21 @@ bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCom
 void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd) {
     cmd->traj_type = SPLINE;
 
-    cmd->traj.spline.x_a_0 = map_to_signed(spline->a_0.coords.x, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->traj.spline.y_a_0 = map_to_signed(spline->a_0.coords.y, -POS_MAX, POS_MAX, POS_BITS);
-    cmd->traj.spline.phi_a_0 = map_to_signed(normalize_angle(spline->a_0.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->traj.spline.x_pos = map_to_signed(spline->pos.coords.x, -POS_MAX, POS_MAX, POS_BITS);
+    cmd->traj.spline.y_pos = map_to_signed(spline->pos.coords.y, -POS_MAX, POS_MAX, POS_BITS);
+    cmd->traj.spline.phi_pos = map_to_signed(normalize_angle(spline->pos.angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
 
-    cmd->traj.spline.x_a_1 = map_to_signed(spline->a_1.coords.x, -VEL_MAX, VEL_MAX, VEL_BITS);
-    cmd->traj.spline.y_a_1 = map_to_signed(spline->a_1.coords.y, -VEL_MAX, VEL_MAX, VEL_BITS);
-    cmd->traj.spline.phi_a_1 = map_to_signed(spline->a_1.angle, -ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS);
+    cmd->traj.spline.x_vel = map_to_signed(spline->vel.coords.x, -VEL_MAX, VEL_MAX, VEL_BITS);
+    cmd->traj.spline.y_vel = map_to_signed(spline->vel.coords.y, -VEL_MAX, VEL_MAX, VEL_BITS);
+    cmd->traj.spline.phi_vel = map_to_signed(spline->vel.angle, -ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS);
 
-    // the /2 and /6 is there for the following reason:
-    // these are the second coefficient of the polynomial describing the robot position: a0 + a1*x + a2*x^2 + a3*x^3
-    // differentiating twice to get the acceleration leads to: 2*a2 + 6*a3*x
-    // differentiating another time to get the jeak leads to: 6*a3
-    //
-    // so even the acceleration the robot experiences is twice the value of the second coefficient,
-    // so the range of the second coefficient must be half that of the acceleration
-    // and the range of the third coefficient must be a sixth of the range of the jerk
-    cmd->traj.spline.x_a_2 = map_to_signed(spline->a_2.coords.x, -ACC_MAX / 2.0f, ACC_MAX / 2.0f, ACC_BITS);
-    cmd->traj.spline.y_a_2 = map_to_signed(spline->a_2.coords.y, -ACC_MAX / 2.0f, ACC_MAX / 2.0f, ACC_BITS);
-    cmd->traj.spline.phi_a_2 = map_to_signed(spline->a_2.angle, -ANGLE_ACC_MAX / 2.0f, ANGLE_ACC_MAX / 2.0f, ANGLE_ACC_BITS);
+    cmd->traj.spline.x_acc = map_to_signed(spline->acc.coords.x, -ACC_MAX, ACC_MAX, ACC_BITS);
+    cmd->traj.spline.y_acc = map_to_signed(spline->acc.coords.y, -ACC_MAX, ACC_MAX, ACC_BITS);
+    cmd->traj.spline.phi_acc = map_to_signed(spline->acc.angle, -ANGLE_ACC_MAX, ANGLE_ACC_MAX, ANGLE_ACC_BITS);
 
-    cmd->traj.spline.x_a_3 = map_to_signed(spline->a_3.coords.x, -JERK_MAX / 6.0f, JERK_MAX / 6.0f, JERK_BITS);
-    cmd->traj.spline.y_a_3 = map_to_signed(spline->a_3.coords.y, -JERK_MAX / 6.0f, JERK_MAX / 6.0f, JERK_BITS);
-    cmd->traj.spline.phi_a_3 = map_to_signed(spline->a_3.angle, -ANGLE_JERK_MAX / 6.0f, ANGLE_JERK_MAX / 6.0f, ANGLE_JERK_BITS);
+    cmd->traj.spline.x_jerk = map_to_signed(spline->jerk.coords.x, -JERK_MAX, JERK_MAX, JERK_BITS);
+    cmd->traj.spline.y_jerk = map_to_signed(spline->jerk.coords.y, -JERK_MAX, JERK_MAX, JERK_BITS);
+    cmd->traj.spline.phi_jerk = map_to_signed(spline->jerk.angle, -ANGLE_JERK_MAX, ANGLE_JERK_MAX, ANGLE_JERK_BITS);
 }
 
 bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd) {
@@ -187,28 +179,20 @@ bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025
         return false;
     }
 
-    spline->a_0.coords.x = map_from_signed(cmd->traj.spline.x_a_0, POS_BITS, -POS_MAX, POS_MAX);
-    spline->a_0.coords.y = map_from_signed(cmd->traj.spline.y_a_0, POS_BITS, -POS_MAX, POS_MAX);
-    spline->a_0.angle = map_from_signed(cmd->traj.spline.phi_a_0, ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
+    spline->pos.coords.x = map_from_signed(cmd->traj.spline.x_pos, POS_BITS, -POS_MAX, POS_MAX);
+    spline->pos.coords.y = map_from_signed(cmd->traj.spline.y_pos, POS_BITS, -POS_MAX, POS_MAX);
+    spline->pos.angle = map_from_signed(cmd->traj.spline.phi_pos, ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
 
-    spline->a_1.coords.x = map_from_signed(cmd->traj.spline.x_a_1, VEL_BITS, -VEL_MAX, VEL_MAX);
-    spline->a_1.coords.y = map_from_signed(cmd->traj.spline.y_a_1, VEL_BITS, -VEL_MAX, VEL_MAX);
-    spline->a_1.angle = map_from_signed(cmd->traj.spline.phi_a_1, ANGLE_VEL_BITS, -ANGLE_VEL_MAX, ANGLE_VEL_MAX);
+    spline->vel.coords.x = map_from_signed(cmd->traj.spline.x_vel, VEL_BITS, -VEL_MAX, VEL_MAX);
+    spline->vel.coords.y = map_from_signed(cmd->traj.spline.y_vel, VEL_BITS, -VEL_MAX, VEL_MAX);
+    spline->vel.angle = map_from_signed(cmd->traj.spline.phi_vel, ANGLE_VEL_BITS, -ANGLE_VEL_MAX, ANGLE_VEL_MAX);
 
-    // the /2 and /6 is there for the following reason:
-    // these are the second coefficient of the polynomial describing the robot position: a0 + a1*x + a2*x^2 + a3*x^3
-    // differentiating twice to get the acceleration leads to: 2*a2 + 6*a3*x
-    // differentiating another time to get the jeak leads to: 6*a3
-    //
-    // so even the acceleration the robot experiences is twice the value of the second coefficient,
-    // so the range of the second coefficient must be half that of the acceleration
-    // and the range of the third coefficient must be a sixth of the range of the jerk
-    spline->a_2.coords.x = map_from_signed(cmd->traj.spline.x_a_2, ACC_BITS, -ACC_MAX / 2.0f, ACC_MAX / 2.0f);
-    spline->a_2.coords.y = map_from_signed(cmd->traj.spline.y_a_2, ACC_BITS, -ACC_MAX / 2.0f, ACC_MAX / 2.0f);
-    spline->a_2.angle = map_from_signed(cmd->traj.spline.phi_a_2, ANGLE_ACC_BITS, -ANGLE_ACC_MAX / 2.0f, ANGLE_ACC_MAX / 2.0f);
+    spline->acc.coords.x = map_from_signed(cmd->traj.spline.x_acc, ACC_BITS, -ACC_MAX, ACC_MAX);
+    spline->acc.coords.y = map_from_signed(cmd->traj.spline.y_acc, ACC_BITS, -ACC_MAX, ACC_MAX);
+    spline->acc.angle = map_from_signed(cmd->traj.spline.phi_acc, ANGLE_ACC_BITS, -ANGLE_ACC_MAX, ANGLE_ACC_MAX);
 
-    spline->a_3.coords.x = map_from_signed(cmd->traj.spline.x_a_3, JERK_BITS, -JERK_MAX / 6.0f, JERK_MAX / 6.0f);
-    spline->a_3.coords.y = map_from_signed(cmd->traj.spline.y_a_3, JERK_BITS, -JERK_MAX / 6.0f, JERK_MAX / 6.0f);
-    spline->a_3.angle = map_from_signed(cmd->traj.spline.phi_a_3, ANGLE_JERK_BITS, -ANGLE_JERK_MAX / 6.0f, ANGLE_JERK_MAX / 6.0f);
+    spline->jerk.coords.x = map_from_signed(cmd->traj.spline.x_jerk, JERK_BITS, -JERK_MAX, JERK_MAX);
+    spline->jerk.coords.y = map_from_signed(cmd->traj.spline.y_jerk, JERK_BITS, -JERK_MAX, JERK_MAX);
+    spline->jerk.angle = map_from_signed(cmd->traj.spline.phi_jerk, ANGLE_JERK_BITS, -ANGLE_JERK_MAX, ANGLE_JERK_MAX);
     return true;
 }

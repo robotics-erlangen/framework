@@ -67,6 +67,13 @@ message Team
 
 message Polynomial
 {
+    // Here, a0, a1, a2 and a3 do NOT represent position, velocity, acceleration and jerk
+    // and instead are the raw polynomial coefficients:
+    //    a0 + a1*t + a2*t^2 + a3*t^3 == x + v*t + (1/2)*a*t^2 + (1/6)*j*t^3
+    // where x is the position, v the velocity, a the acceleration and j the jerk.
+    // So it follows:
+    //    a0 = x, a1 = v, a2 = a/2, a3 = j/6
+
     required float a0 = 1;
     required float a1 = 2;
     required float a2 = 3;

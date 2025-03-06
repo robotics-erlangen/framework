@@ -67,20 +67,20 @@ typedef union {
         bool is_fast_endspeed:1;
     } __attribute__ ((packed)) trajectory_path;
     struct {
-        int32_t x_a_0:POS_BITS;
-        int32_t x_a_1:VEL_BITS;
-        int32_t x_a_2:ACC_BITS;
-        int32_t x_a_3:JERK_BITS;
+        int32_t x_pos:POS_BITS;
+        int32_t x_vel:VEL_BITS;
+        int32_t x_acc:ACC_BITS;
+        int32_t x_jerk:JERK_BITS;
 
-        int32_t y_a_0:POS_BITS;
-        int32_t y_a_1:VEL_BITS;
-        int32_t y_a_2:ACC_BITS;
-        int32_t y_a_3:JERK_BITS;
+        int32_t y_pos:POS_BITS;
+        int32_t y_vel:VEL_BITS;
+        int32_t y_acc:ACC_BITS;
+        int32_t y_jerk:JERK_BITS;
 
-        int32_t phi_a_0:ANGLE_BITS;
-        int32_t phi_a_1:ANGLE_VEL_BITS;
-        int32_t phi_a_2:ANGLE_ACC_BITS;
-        int32_t phi_a_3:ANGLE_JERK_BITS;
+        int32_t phi_pos:ANGLE_BITS;
+        int32_t phi_vel:ANGLE_VEL_BITS;
+        int32_t phi_acc:ANGLE_ACC_BITS;
+        int32_t phi_jerk:ANGLE_JERK_BITS;
     } __attribute__ ((packed)) spline;
 } Trajectory2025;
 

@@ -63,10 +63,10 @@ typedef struct {
 } RadioCommand2025TrajectoryPath;
 
 typedef struct {
-    RadioCommand2025State a_0;  // [m] and [rad]
-    RadioCommand2025State a_1;  // [m/s] and [rad/s]
-    RadioCommand2025State a_2;  // [m/s^2] and [rad/s^2]
-    RadioCommand2025State a_3;  // [m/s^3] and [rad/s^3]
+    RadioCommand2025State pos;  // [m] and [rad]
+    RadioCommand2025State vel;  // [m/s] and [rad/s]
+    RadioCommand2025State acc;  // [m/s^2] and [rad/s^2]
+    RadioCommand2025State jerk;  // [m/s^3] and [rad/s^3]
 } RadioCommand2025Spline;
 
 

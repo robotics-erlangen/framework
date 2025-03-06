@@ -673,34 +673,41 @@ bool static writeSpline(robot::ControllerInput const &controller, RadioCommand20
         return false;
     }
     robot::Spline spline0 = controller.spline(0);
+    // The spline is a polynomial in time with vector (x, y, phi) coefficients
+    // descripting the position of the robot at a certain time:
+    //     pos(t) = a0 + a1 * t + a2 * t^2 + a3 * t^3
+    // To get the the speed, acceleration and jerk, we need to differentiate once, twice or thrice and set t=0:
+    //     vel(t) = a1 + 2 * a2 * t + 3 * a3 * t^2
+    //     acc(t) = 2 * a2 + 6 * a3 * t
+    //     jerk(t) = 6 * a3
     RadioCommand2025Spline spline = {
-        .a_0 = {
+        .pos = {
             .coords = {
                 .x = spline0.x().a0(),
                 .y = spline0.y().a0(),
             },
             .angle = spline0.phi().a0(),
         },
-        .a_1 = {
+        .vel = {
             .coords = {
                 .x = spline0.x().a1(),
                 .y = spline0.y().a1(),
             },
             .angle = spline0.phi().a1(),
         },
-        .a_2 {
+        .acc {
             .coords = {
-                .x = spline0.x().a2(),
-                .y = spline0.y().a2(),
+                .x = 2 * spline0.x().a2(),
+                .y = 2 * spline0.y().a2(),
             },
-            .angle = spline0.phi().a2(),
+            .angle = 2 * spline0.phi().a2(),
         },
-        .a_3 {
+        .jerk {
             .coords = {
-                .x = spline0.x().a3(),
-                .y = spline0.y().a3(),
+                .x = 6 * spline0.x().a3(),
+                .y = 6 * spline0.y().a3(),
             },
-            .angle = spline0.phi().a3(),
+            .angle = 6 * spline0.phi().a3(),
         },
     };
     write_spline(&spline, &radioCommand.payload.regular);

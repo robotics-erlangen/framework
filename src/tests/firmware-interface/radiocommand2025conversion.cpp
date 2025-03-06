@@ -94,22 +94,10 @@ RadioCommand2025Spline static randomSpline(RNG &rng) {
     RadioCommand2025State jerk = randomState(rng, JERK_MAX, ANGLE_JERK_MAX);
 
     return {
-        .a_0 = pos, // 0! = 1
-        .a_1 = vel, // 1! = 1
-        .a_2 = { // 2! = 2
-            .coords = {
-                .x = acc.coords.x / 2.0f,
-                .y = acc.coords.y / 2.0f,
-            },
-            .angle = acc.angle / 2.0f,
-        },
-        .a_3 = { // 3! = 6
-            .coords = {
-                .x = jerk.coords.x / 6.0f,
-                .y = jerk.coords.y / 6.0f,
-            },
-            .angle = jerk.angle / 6.0f,
-        },
+        .pos = pos,
+        .vel = vel,
+        .acc = acc,
+        .jerk = jerk,
     };
 }
 
@@ -200,18 +188,18 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Traject
 
 #define ASSERT_SPLINE_EQ(a, b) ASSERT_PRED2(splineEq, a, b)
 static bool splineEq(const RadioCommand2025Spline &a, const RadioCommand2025Spline &b) {
-    return stateEq(a.a_0, b.a_0, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
-        && stateEq(a.a_1, b.a_1, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
-        && stateEq(a.a_2, b.a_2, ABS_ERROR(0, ACC_MAX, ACC_BITS), ABS_ERROR(0, ANGLE_ACC_MAX, ANGLE_ACC_BITS))
-        && stateEq(a.a_3, b.a_3, ABS_ERROR(0, JERK_MAX, JERK_BITS), ABS_ERROR(0, ANGLE_JERK_MAX, ANGLE_JERK_BITS));
+    return stateEq(a.pos, b.pos, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && stateEq(a.vel, b.vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
+        && stateEq(a.acc, b.acc, ABS_ERROR(-ACC_MAX, ACC_MAX, ACC_BITS), ABS_ERROR(-ANGLE_ACC_MAX, ANGLE_ACC_MAX, ANGLE_ACC_BITS))
+        && stateEq(a.jerk, b.jerk, ABS_ERROR(-JERK_MAX, JERK_MAX, JERK_BITS), ABS_ERROR(-ANGLE_JERK_MAX, ANGLE_JERK_MAX, ANGLE_JERK_BITS));
 }
 
 static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Spline &a) {
     return out << "RadioCommand2025Spline { "
-        << ".a_0=" << a.a_0 << ", "
-        << ".a_1=" << a.a_1 << ", "
-        << ".a_2=" << a.a_2 << ", "
-        << ".a_3=" << a.a_3 << " }";
+        << ".pos=" << a.pos << ", "
+        << ".vel=" << a.vel << ", "
+        << ".acc=" << a.acc << ", "
+        << ".jerk=" << a.jerk << " }";
 }
 
 
