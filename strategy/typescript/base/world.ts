@@ -236,10 +236,6 @@ export function _init() {
  * @returns false if no vision data was received since strategy start
  */
 export function update() {
-	if (SelectedOptions == undefined) {
-		// TODO: getSelectedOptions is not yet implemented for typescript
-		// SelectedOptions = amunLocal.getSelectedOptions();
-	}
 	let hasVisionData = _updateWorld(amunLocal.getWorldState());
 	_updateGameState(amunLocal.getGameState());
 	_updateUserInput(amunLocal.getUserInput());
