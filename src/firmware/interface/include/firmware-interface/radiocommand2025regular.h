@@ -37,7 +37,8 @@
 typedef enum {
     HALT = 0,
     TRAJECTORY_PATH = 1,
-    SPLINE = 2,
+    GLOBAL_SPLINE = 2,
+    LOCAL_SPLINE = 3,
 } TrajectoryType2025;
 
 typedef union {

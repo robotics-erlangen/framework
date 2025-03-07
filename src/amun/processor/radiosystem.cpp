@@ -669,10 +669,12 @@ bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioC
 }
 
 bool static writeSpline(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand) {
-    if (controller.spline_size() == 0) {
+    if (controller.global_spline_size() == 0 && controller.local_spline_size() == 0) {
         return false;
     }
-    robot::Spline spline0 = controller.spline(0);
+
+    bool isLocal = controller.local_spline_size() > 0;
+    robot::Spline spline0 = isLocal ? controller.local_spline(0) : controller.global_spline(0);
     // The spline is a polynomial in time with vector (x, y, phi) coefficients
     // descripting the position of the robot at a certain time:
     //     pos(t) = a0 + a1 * t + a2 * t^2 + a3 * t^3
@@ -710,7 +712,7 @@ bool static writeSpline(robot::ControllerInput const &controller, RadioCommand20
             .angle = 6 * spline0.phi().a3(),
         },
     };
-    write_spline(&spline, &radioCommand.payload.regular);
+    write_spline(&spline, &radioCommand.payload.regular, isLocal);
     return true;
 }
 

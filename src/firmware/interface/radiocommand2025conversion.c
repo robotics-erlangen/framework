@@ -168,8 +168,8 @@ bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCom
     return true;
 }
 
-void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd) {
-    cmd->traj_type = SPLINE;
+void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd, const bool is_local) {
+    cmd->traj_type = is_local ? LOCAL_SPLINE : GLOBAL_SPLINE;
 
     cmd->traj.spline.x_pos = map_to_signed(spline->pos.coords.x, -POS_MAX, POS_MAX, POS_BITS);
     cmd->traj.spline.y_pos = map_to_signed(spline->pos.coords.y, -POS_MAX, POS_MAX, POS_BITS);
@@ -188,8 +188,8 @@ void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload202
     cmd->traj.spline.phi_jerk = map_to_signed(spline->jerk.angle, -ANGLE_JERK_MAX, ANGLE_JERK_MAX, ANGLE_JERK_BITS);
 }
 
-bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd) {
-    if (cmd->traj_type != SPLINE) {
+bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd, const bool is_local) {
+    if (cmd->traj_type != (is_local ? LOCAL_SPLINE : GLOBAL_SPLINE)) {
         return false;
     }
 

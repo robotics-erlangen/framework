@@ -232,7 +232,8 @@ TEST(RadioCommand2025, SetHalt) {
     set_halt(&cmd);
 
     ASSERT_TRUE(is_halt(&cmd));
-    ASSERT_FALSE(read_spline(&ignoredSpline, &cmd));
+    ASSERT_FALSE(read_spline(&ignoredSpline, &cmd, false));
+    ASSERT_FALSE(read_spline(&ignoredSpline, &cmd, true));
     ASSERT_FALSE(read_trajectory_path(&ignoredTrajectoryPath, &cmd));
 }
 
@@ -247,7 +248,8 @@ TEST(RadioCommand2025, ReadWriteTrajectoryPath) {
         ASSERT_FALSE(is_halt(&cmd));
 
         RadioCommand2025Spline ignored;
-        ASSERT_FALSE(read_spline(&ignored, &cmd));
+        ASSERT_FALSE(read_spline(&ignored, &cmd, false));
+        ASSERT_FALSE(read_spline(&ignored, &cmd, true));
 
         RadioCommand2025TrajectoryPath read;
         ASSERT_TRUE(read_trajectory_path(&read, &cmd));
@@ -261,16 +263,19 @@ TEST(RadioCommand2025, ReadWriteSpline) {
         RegularCommandPayload2025 cmd;
 
         RadioCommand2025Spline written = randomSpline(rng);
-        write_spline(&written, &cmd);
+        for (const bool isLocal : {false, true}) {
+            write_spline(&written, &cmd, isLocal);
 
-        ASSERT_FALSE(is_halt(&cmd));
+            ASSERT_FALSE(is_halt(&cmd));
 
-        RadioCommand2025TrajectoryPath ignored;
-        ASSERT_FALSE(read_trajectory_path(&ignored, &cmd));
+            RadioCommand2025TrajectoryPath ignored;
+            ASSERT_FALSE(read_trajectory_path(&ignored, &cmd));
 
-        RadioCommand2025Spline read;
-        ASSERT_TRUE(read_spline(&read, &cmd));
-        ASSERT_SPLINE_EQ(written, read);
+            RadioCommand2025Spline read;
+            ASSERT_FALSE(read_spline(&read, &cmd, !isLocal));
+            ASSERT_TRUE(read_spline(&read, &cmd, isLocal));
+            ASSERT_SPLINE_EQ(written, read);
+        }
     }
 }
 
@@ -282,6 +287,7 @@ TEST(RadioCommand2025, ReadWriteCombined) {
         RadioCommand2025Common writtenCommon = randomCommon(rng);
         RadioCommand2025TrajectoryPath writtenTrajectoryPath = randomTrajectoryPath(rng);
         RadioCommand2025Spline writtenSpline = randomSpline(rng);
+        bool isLocal = randomBool(rng);
 
         RadioCommand2025Common readCommon;
         RadioCommand2025TrajectoryPath readTrajectoryPath;
@@ -293,24 +299,27 @@ TEST(RadioCommand2025, ReadWriteCombined) {
 
         write_trajectory_path(&writtenTrajectoryPath, &cmd);
         ASSERT_FALSE(is_halt(&cmd));
-        ASSERT_FALSE(read_spline(&readSpline, &cmd));
+        ASSERT_FALSE(read_spline(&readSpline, &cmd, false));
+        ASSERT_FALSE(read_spline(&readSpline, &cmd, true));
         ASSERT_TRUE(read_trajectory_path(&readTrajectoryPath, &cmd));
         ASSERT_TRAJECTORY_PATH_EQ(writtenTrajectoryPath, readTrajectoryPath);
 
         read_common(&readCommon, &cmd);
         ASSERT_COMMON_EQ(writtenCommon, readCommon);
 
-        write_spline(&writtenSpline, &cmd);
+        write_spline(&writtenSpline, &cmd, isLocal);
         ASSERT_FALSE(is_halt(&cmd));
+        ASSERT_FALSE(read_spline(&readSpline, &cmd, !isLocal));
         ASSERT_FALSE(read_trajectory_path(&readTrajectoryPath, &cmd));
-        ASSERT_TRUE(read_spline(&readSpline, &cmd));
+        ASSERT_TRUE(read_spline(&readSpline, &cmd, isLocal));
         ASSERT_SPLINE_EQ(writtenSpline, readSpline);
 
         read_common(&readCommon, &cmd);
         ASSERT_COMMON_EQ(writtenCommon, readCommon);
 
         set_halt(&cmd);
-        ASSERT_FALSE(read_spline(&readSpline, &cmd));
+        ASSERT_FALSE(read_spline(&readSpline, &cmd, false));
+        ASSERT_FALSE(read_spline(&readSpline, &cmd, true));
         ASSERT_FALSE(read_trajectory_path(&readTrajectoryPath, &cmd));
         ASSERT_TRUE(is_halt(&cmd));
 

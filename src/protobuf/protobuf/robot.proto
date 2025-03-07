@@ -118,7 +118,12 @@ message AlphaTimeTrajectory {
 
 message ControllerInput
 {
-    repeated Spline spline = 1;
+    // a parameterization of the robot position in the global xy-coordinate system
+    // with the origin being the center of the field
+    repeated Spline global_spline = 1;
+    // a parameterization of the robot position in the global sf-coordinate system
+    // with the origin being the position of the robot
+    repeated Spline local_spline = 3;  // the x polynomial is for sideward direction, y polynomial for forward direction
     repeated AlphaTimeTrajectory trajectory = 2;
 };
 

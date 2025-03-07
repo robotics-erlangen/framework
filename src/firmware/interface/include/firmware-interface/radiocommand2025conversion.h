@@ -23,9 +23,11 @@
 #define TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX 1.0f
 
 
+// if this vector is in the context of a local coordinate system,
+// x is sideward, and y is forward
 typedef struct {
-    float x;
-    float y;
+    float x;  // or sideward
+    float y;  // or forward
 } RadioCommand2025Vector;
 
 typedef struct {
@@ -84,8 +86,8 @@ bool is_halt(const RegularCommandPayload2025 *cmd);
 void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCommandPayload2025 *cmd);
 bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCommandPayload2025 *cmd);
 
-void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd);
-bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd);
+void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd, const bool is_local);
+bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd, const bool is_local);
 
 #ifdef __cplusplus
 }
