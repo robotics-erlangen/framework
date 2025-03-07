@@ -463,7 +463,7 @@ export class FriendlyRobot extends Robot {
 			result.controller = {};
 		} else {
 			result.controller = {
-				spline: this._controllerInput.spline,
+				global_spline: this._controllerInput.spline,
 				trajectory: this._controllerInput.trajectory,
 			};
 			result.v_f = this._controllerInput.v_f;
