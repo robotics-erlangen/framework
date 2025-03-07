@@ -280,7 +280,7 @@ export class Shoot {
 			World.Ball.radius + this._robot.shootRadius);
 		let ballTimeToDribbler = Physics.checkedBallRollTime(World.Ball, dribblerPos);
 		if (!Ball.wasShot(0.5) && futureBall.speed.length() < wobblingBallSpeed &&
-				!(this._state === ShootState.StopBall && ballTimeToDribbler < 0.1)) {
+				!(this._state === ShootState.StopBall && (ballTimeToDribbler < 0.1 || this._ballInDribbler))) {
 			return ShootState.StationaryBall;
 		}
 
