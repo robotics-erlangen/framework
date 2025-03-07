@@ -51,7 +51,7 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
 {
     std::vector<std::unique_ptr<TransceiverLayer>> transceivers;
     std::vector<TransceiverError> errors;
-#ifdef USB_FOUND
+
     const auto baseName = QString {"HBC"};
     constexpr auto vidForKind = [](Kind kind) {
         return HBC_VENDOR_ID;
@@ -105,9 +105,6 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
         }
     }
 
-#else
-    errors.emplace_back("T2015|HBC", "Compiled without libusb support!");
-#endif // USB_FOUND
     return {std::move(transceivers), std::move(errors)};
 }
 

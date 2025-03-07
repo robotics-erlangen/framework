@@ -41,10 +41,6 @@ add_library(processor STATIC
     radiosystem.cpp
     integrator.cpp
     trackingreplay.cpp
-    transceiver2015.cpp
-    transceiver2015.h
-    transceiverHBC.cpp
-    transceiverHBC.h
     transceiverlayer.h
 )
 target_link_libraries(processor
@@ -67,6 +63,11 @@ if(TARGET lib::usb)
         usbdevice.h
         usbthread.cpp
         usbthread.h
+
+        transceiver2015.cpp
+        transceiver2015.h
+        transceiverHBC.cpp
+        transceiverHBC.h
     )
     target_link_libraries(processor PRIVATE lib::usb)
     target_compile_definitions(processor PRIVATE USB_FOUND)

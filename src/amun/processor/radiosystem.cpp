@@ -24,16 +24,20 @@
 #include "firmware-interface/radiocommand2014.h"
 #include "firmware-interface/radiocommandpasta.h"
 #include "radiosystem.h"
-#include "transceiver2015.h"
-#include "transceiverHBC.h"
-#include "usbdevice.h"
-#include "usbthread.h"
+#include "transceiverlayer.h"
 #include <QByteArray>
 #include <QList>
 #include <QTimer>
 #include <algorithm>
 #include <array>
 #include <numbers>
+
+#ifdef USB_FOUND
+#include "transceiver2015.h"
+#include "transceiverHBC.h"
+#include "usbdevice.h"
+#include "usbthread.h"
+#endif
 
 using namespace Radio;
 
@@ -62,7 +66,11 @@ RadioSystem::RadioSystem(const Timer *timer) :
     m_onlyRestartAfterTimestamp(0),
     m_timer(timer),
     m_droppedCommands(0),
+#ifdef USB_FOUND
     m_context(new USBThread())
+#else
+    m_context(nullptr)
+#endif // USB_FOUND
 {
     m_timeoutTimer = new QTimer(this);
     m_timeoutTimer->setSingleShot(true);
@@ -77,7 +85,9 @@ RadioSystem::~RadioSystem()
 {
     // make sure to close all transceiver connections to avoid race conditions with the desctructor of m_context
     closeTransceiver();
+#ifdef USB_FOUND
     delete m_context;
+#endif // USB_FOUND
 }
 
 void RadioSystem::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
@@ -155,6 +165,8 @@ void RadioSystem::handleTeam(const robot::Team &team)
 void RadioSystem::openTransceiver()
 {
     m_transceivers = {};
+
+#ifdef USB_FOUND
     auto [transceivers2015, errors2015] = Transceiver2015::tryOpen(m_context, m_timer, this);
     auto [transceiversHBC, errorsHBC] = TransceiverHBC::tryOpen(m_context, m_timer, this);
 
@@ -183,6 +195,9 @@ void RadioSystem::openTransceiver()
     } else {
         transceiverErrorOccurred("T2015|HBC", "No devices found!", 0);
     }
+#else
+    transceiverErrorOccurred("USB", "No USB Support", 0);
+#endif // USB_FOUND
 }
 
 void RadioSystem::closeTransceiver()

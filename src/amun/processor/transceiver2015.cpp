@@ -51,7 +51,7 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
 {
     std::vector<std::unique_ptr<TransceiverLayer>> transceivers;
     std::vector<TransceiverError> errors;
-#ifdef USB_FOUND
+
     const auto baseName = QString {"T15"};
 
     QList<USBDevice*> devices = USBDevice::getDevices(TRANSCEIVER2015_VENDOR_ID, TRANSCEIVER2015_PRODUCT_ID, context);
@@ -79,9 +79,6 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
         transceivers.clear();
     }
 
-#else
-    errors.emplace_back("T2015|HBC", "Compiled without libusb support!");
-#endif // USB_FOUND
     return {std::move(transceivers), std::move(errors)};
 }
 
@@ -137,9 +134,7 @@ std::optional<std::vector<TransceiverError>> Transceiver2015::tryConnect(QObject
 
 Transceiver2015::~Transceiver2015()
 {
-#ifdef USB_FOUND
     delete m_device;
-#endif
 }
 
 void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len)
@@ -233,17 +228,14 @@ void Transceiver2015::handleCommand(const Command &command)
 
 void Transceiver2015::onReadyRead()
 {
-#ifdef USB_FOUND
     const auto readError = read();
     if (readError.has_value()) {
         emit errorOccurred(readError->m_deviceName, readError->m_errorMessage, readError->m_restartDelayInNs);
     }
-#endif // USB_FOUND
 }
 
 std::optional<TransceiverError> Transceiver2015::read()
 {
-#ifdef USB_FOUND
     const int maxSize = 512;
     char buffer[maxSize];
     QList<QByteArray> rawResponses;
@@ -300,20 +292,19 @@ std::optional<TransceiverError> Transceiver2015::read()
     }
 
     emit sendRawRadioResponses(receiveTime, rawResponses);
-#endif // USB_FOUND
+
     return {};
 }
 
 std::optional<TransceiverError> Transceiver2015::write(const QByteArray &packet)
 {
-#ifdef USB_FOUND
     // close radio link on errors
     // transmission usually either succeeds completely or fails horribly
     // write does not actually guarantee complete delivery!
     if (m_device->write(packet) < 0) {
         return TransceiverError(m_debugName, m_device->errorString());
     }
-#endif // USB_FOUND
+
     return {};
 }
 
