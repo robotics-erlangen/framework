@@ -26,10 +26,12 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
+#include "visionprocessingtime.h"
 #include <QMap>
 #include <QPair>
 #include <QByteArray>
 #include <QObject>
+#include <chrono>
 
 class BallTracker;
 class RobotFilter;
@@ -83,9 +85,9 @@ private:
     void invalidateRobots(RobotMap &map, qint64 currentTime);
 
     QList<RobotFilter*> getBestRobots(qint64 currentTime, int desiredCamera);
-    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, qint64 visionProcessingDelay);
-    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId, qint64 visionProcessingDelay,
-                    bool teamIsYellow);
+    void trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, std::chrono::nanoseconds visionProcessingDelay);
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId,
+                    std::chrono::nanoseconds visionProcessingDelay, bool teamIsYellow);
 
     BallTracker* bestBallFilter();
     void prioritizeBallFilters();
@@ -104,10 +106,7 @@ private:
     QMap<qint32, qint64> m_lastUpdateTime; // indexed by camera id
     QList<Packet> m_visionPackets;
 
-    /** The last time a slow vision frame was received. Timestamp on a local clock */
-    qint64 m_lastSlowVisionFrame;
-    /** The number of slow vision frames received in the recent past */
-    int m_numSlowVisionFrames;
+    VisionProcessingTime m_visionProcessingTime;
 
     QList<BallTracker*> m_ballFilter;
     BallTracker* m_currentBallFilter;

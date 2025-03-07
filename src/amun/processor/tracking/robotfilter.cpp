@@ -20,6 +20,9 @@
 
 #include "robotfilter.h"
 #include "core/timer.h"
+#include <chrono>
+
+using namespace std::chrono;
 
 const qint64 PROCESSOR_TICK_DURATION = 10 * 1000 * 1000;
 const float MAX_LINEAR_ACCELERATION = 10.;
@@ -286,7 +289,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_p_y(frame.detection.x() / 1000.0);
     p.set_phi(pRotLimited + diff);
     p.set_camera_id(frame.cameraId);
-    p.set_vision_processing_time(frame.visionProcessingTime);
+    p.set_vision_processing_time(frame.visionProcessingTime.count());
     m_measurements.append(p);
 
     m_kalman->z(0) = p.p_x();
@@ -386,7 +389,7 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     return (b - p).norm();
 }
 
-void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime, bool switchCamera)
+void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, nanoseconds visionProcessingTime, bool switchCamera)
 {
     m_visionFrames.append(VisionFrame(cameraId, robot, time, visionProcessingTime, switchCamera));
     // only count frames for the primary camera

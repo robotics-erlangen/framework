@@ -167,7 +167,7 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
 
         raw->set_camera_id(frame.cameraId);
         raw->set_area(frame.ballArea);
-        raw->set_vision_processing_time(frame.visionProcessingTime);
+        raw->set_vision_processing_time(frame.visionProcessingTime.count());
     }
     if (resetRaw) {
         m_rawMeasurements.clear();

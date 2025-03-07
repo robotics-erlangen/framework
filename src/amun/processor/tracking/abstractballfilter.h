@@ -31,11 +31,12 @@
 #include <QMap>
 #include <QString>
 #include <QVector>
+#include <chrono>
 
 struct VisionFrame
 {
     // rotate position and convert to meter
-    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r, qint64 vPT, qint64 captureTime)
+    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r, std::chrono::nanoseconds vPT, qint64 captureTime)
         : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), captureTime(captureTime),
           robot(r), visionProcessingTime(vPT) {}
     // b.area is optional in the protobuf but defaults to 0, so nothing bad can happen
@@ -46,7 +47,7 @@ struct VisionFrame
     qint64 time;
     qint64 captureTime;
     RobotInfo robot;
-    qint64 visionProcessingTime;
+    std::chrono::nanoseconds visionProcessingTime;
 };
 
 struct CameraInfo {

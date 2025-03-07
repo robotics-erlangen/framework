@@ -23,6 +23,7 @@ add_library(core STATIC
     include/core/deprecated.h
     include/core/fieldtransform.h
     include/core/rng.h
+    include/core/timeconversion.h
     include/core/timer.h
     include/core/vector.h
     include/core/protobuffilesaver.h

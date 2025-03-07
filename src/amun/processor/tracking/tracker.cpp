@@ -29,14 +29,16 @@
 #include "core/fieldtransform.h"
 #include "worldparameters.h"
 #include <QDebug>
+#include <QtGlobal>
+#include <chrono>
 #include <limits>
+
+using namespace std::chrono;
 
 Tracker::Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldParameters) :
     m_cameraInfo(new CameraInfo),
     m_visionTransmissionDelay(0),
     m_timeSinceLastReset(0),
-    m_lastSlowVisionFrame(0),
-    m_numSlowVisionFrames(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
     m_worldParameters(m_worldParameters),
@@ -88,44 +90,15 @@ void Tracker::process(qint64 currentTime)
 
     for (const Packet &p : m_visionPackets) {
         const SSL_DetectionFrame &detection = p.detection;
-        const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
 
-        /* Misconfigured or slow vision computers may produce detection frames
-         * with a large processing time. We discard these frames later since
-         * they are considered too old to be relevant.
-         */
-        auto isVisionProcessingSlow = [this, currentTime, visionProcessingTime]() -> bool {
-            constexpr qint64 VISION_WARN_TIME = 40 * 1E6; // 40ms to ns
-            if (visionProcessingTime >= VISION_WARN_TIME) {
-                m_numSlowVisionFrames++;
-                m_lastSlowVisionFrame = currentTime;
-            }
+        const auto [visionProcessingTime, visionProcessingTimeError] = m_visionProcessingTime.get(detection, currentTime);
 
-            /* There may be outliers on the vision computer. We only want to warn
-             * if the delay is continously high
-             */
-            if (m_lastSlowVisionFrame + 10E9 < currentTime) {
-                m_numSlowVisionFrames = 0;
-            }
-
-            /* There should be around 75 detections per second, warn if one third
-             * is bad (25 per second) for around five seconds in a ten second
-             * period
-             */
-            return m_numSlowVisionFrames > 125;
-        };
-
-        if (isVisionProcessingSlow()) {
-            m_errorMessages.append(QString(
-                "<font color=\"red\">WARNING:</font> Multiple vision detection frames with a high processing time. These may be discarded."
-            ));
-
-            // Reset to avoid log spam
-            m_numSlowVisionFrames = 0;
+        if (Q_UNLIKELY(visionProcessingTimeError)) {
+            m_errorMessages.append(visionProcessingTimeError);
         }
 
         // time on the field for which the frame was captured as seen by this computers clock
-        const qint64 sourceTime = p.time - visionProcessingTime - m_visionTransmissionDelay;
+        const qint64 sourceTime = p.time - duration_cast<nanoseconds>(visionProcessingTime).count() - m_visionTransmissionDelay;
 
         // delayed reset to clear frames older than the reset command
         if (sourceTime > m_timeToReset) {
@@ -483,7 +456,7 @@ static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_
     return nearestRobot;
 }
 
-void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, qint64 visionProcessingDelay)
+void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, nanoseconds visionProcessingDelay)
 {
     const qint64 captureTime = frame.t_capture() * 1E9;
     const quint32 cameraId = frame.camera_id();
@@ -565,7 +538,7 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 source
 }
 
 void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId,
-                         qint64 visionProcessingDelay, bool teamIsYellow)
+                         nanoseconds visionProcessingDelay, bool teamIsYellow)
 {
     if (!robot.has_robot_id()) {
         return;

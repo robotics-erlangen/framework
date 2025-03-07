@@ -20,6 +20,7 @@
 
 add_library(tracking STATIC
     include/tracking/tracker.h
+    include/tracking/visionprocessingtime.h
     include/tracking/worldparameters.h
 
     abstractballfilter.h
@@ -37,6 +38,7 @@ add_library(tracking STATIC
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
+    visionprocessingtime.cpp
     worldparameters.cpp
 )
 target_link_libraries(tracking

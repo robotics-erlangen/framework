@@ -30,6 +30,7 @@
 #include <QList>
 #include <QMap>
 #include <QPair>
+#include <chrono>
 
 class SSL_DetectionRobot;
 
@@ -55,7 +56,7 @@ public:
     void update(qint64 time);
     void get(world::Robot *robot, const FieldTransform &transform, bool noRawData);
 
-    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime, bool switchCamera);
+    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, std::chrono::nanoseconds visionProcessingTime, bool switchCamera);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
@@ -64,12 +65,12 @@ public:
 private:
     struct VisionFrame
     {
-        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time, qint64 vPT, bool switchCam)
+        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time, std::chrono::nanoseconds vPT, bool switchCam)
             : cameraId(cameraId), detection(detection), time(time), visionProcessingTime(vPT), switchCamera(switchCam) {}
         qint32 cameraId;
         SSL_DetectionRobot detection;
         qint64 time;
-        qint64 visionProcessingTime;
+        std::chrono::nanoseconds visionProcessingTime;
         bool switchCamera;
     };
     typedef QPair<robot::Command, qint64> RadioCommand;

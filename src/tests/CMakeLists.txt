@@ -24,6 +24,7 @@ add_executable(cpptests
     core/vector.cpp
     core/rng.cpp
     core/run_out_of_scope.cpp
+    core/timeconversion.cpp
     core/coordinates.cpp
     amun/strategy/path/boundingbox.cpp
     amun/strategy/path/alphatimetrajectory.cpp
@@ -38,6 +39,7 @@ add_executable(cpptests
     amun/simulator/simulator.cpp
     amun/processor/radio_address.cpp
     amun/processor/tracking/ballgroundcollisionfilter.cpp
+    amun/processor/tracking/visionprocessingtime.cpp
 )
 
 target_compile_definitions(cpptests PRIVATE AMUNCLI_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
