@@ -86,6 +86,90 @@ namespace latency {
      * relatively small and errors are acceptable.
      */
     constexpr auto VISION_TO_RA_INPUT = 600us;
+
+    /*! \brief Estimated latency between the start of a processor tick and the
+     * resulting command being sent to the transceiver
+     *
+     * This currently includes the time for the tracking, processor-side
+     * controller and radio preparation code. Measured by instrumenting the
+     * processor and radio code, and by looking at old logs.
+     *
+     * \note
+     * On average, this latency is actually lower, but we use the 95%
+     * percentile.
+     */
+    constexpr auto PROCESSOR_START_TO_RA_OUTPUT = 1100us;
+
+    /*! \brief Latency between a radio command being sent by Amun and it being
+     * fully received by the radio master.
+     *
+     * This latency can be measured using usbmon, which outputs timestamps for
+     * each host controller driver (HCD) event. For each operation (in our case
+     * bulk write) the HCD reports both a submission event and a completion
+     * event.
+     *
+     * Comparisons to user-space timestamps can be made by using a timer
+     * implementation similar to that of usbmon (by reviewing its source code)
+     * and correlating timestamps. This process is relatively straightforward
+     * since, for our 100Hz write rate, the sequence of events for output
+     * operations always follows:
+     *
+     * 1. User-space command preparation
+     * 2. HCD submission
+     * 3. HCD completion
+     * 4. Return to user-space
+     *
+     * The latency corresponds to the 90% percentile of the measured difference
+     * between steps 1 and 3.
+     *
+     * \note
+     * Since XHCI (eXtensible Host Controller Interface) supports IOC
+     * (Interrupt On Completion), which triggers when a transfer is complete,
+     * and the Linux kernel XHCI driver bulk output code includes paths that
+     * set this flag, we assume that the completion event is fired once the
+     * radio command has been fully transmitted. This assumption has not been
+     * verified for older host controller versions, but we expect the same
+     * principle to apply.
+     *
+     * \see https://docs.kernel.org/usb/usbmon.html
+     */
+    constexpr auto RA_OUTPUT_TO_RADIO_MASTER = 850us;
+
+    /*! \brief Estimated half-latency introduced by the HBC radio master.
+     *
+     * The HBC radio master operates in 10ms cycles, transmitting the latest
+     * radio data it has received from Amun. Since the two systems are not
+     * synchronized, the transmitted data may be anywhere from 0 to 10ms old.
+     * As an approximation, we assume the middle of this range.
+     */
+    constexpr auto HBC_MASTER_HALF_LATENCY = 10ms / 2;
+
+    /*! \brief Latency between a radio command being sent to the HBC module
+     * on the master side and fully received on the robot side.
+     *
+     * This latency can be measured using a logic analyzer connected to both
+     * the master and the robot. The connected pins should be pulled high at
+     * the start and end of the transmission to capture the duration.
+     */
+    constexpr auto HBC_TRANSMISSION_LATENCY = 2ms;
+
+    /*! \brief Latency between a robot receiving a command and it acting on it
+     *
+     * This is estimated from the period of the robot's control loops. In
+     * particular, the mainboard control loop (either for position or velocity
+     * control) has a 2000us period, while the motorboard RPM control loop has
+     * a 1000us period. On average, commands take half the period to be acted
+     * on.
+     *
+     * Many other factors are likely to be small enough to allow us to ignore
+     * them. For example, the SPI transmission between the mainboard and
+     * motorboard should take around 52.8us max for 66 bytes at 10Mbit/s.
+     *
+     * \note
+     * This latency could be measured more accurately by utilizing a logic
+     * analyzer.
+     */
+    constexpr auto ROBOT_INPUT_TO_ACTION_VISIBLE = 2ms;
 }
 
 #endif //TRACKING_LATENCY_H

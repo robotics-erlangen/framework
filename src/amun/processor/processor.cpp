@@ -28,15 +28,19 @@
 #include "core/timer.h"
 #include "core/configuration.h"
 #include "gamecontroller/internalgamecontroller.h"
+#include "tracking/latency.h"
 #include "tracking/tracker.h"
 #include "tracking/worldparameters.h"
 #include "config/config.h"
 #include <cmath>
 #include <QTimer>
 #include <QFile>
+#include <chrono>
 #include <cstdint>
 #include <google/protobuf/text_format.h>
 #include <optional>
+
+using namespace std::chrono;
 
 struct Processor::Robot
 {
@@ -216,7 +220,7 @@ Status Processor::assembleStatus(qint64 time, bool resetRaw)
     // writing) only use the radio command in the Processor, but assemble the
     // world state in the Tracker.
     Q_ASSERT(!status->world_state().has_radio_command_delay());
-    status->mutable_world_state()->set_radio_command_delay(m_trackingRadioCommandDelay);
+    status->mutable_world_state()->set_radio_command_delay(m_customRadioDelay.count());
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
@@ -307,16 +311,34 @@ void Processor::process(qint64 overwriteTime)
     // the controller runs with 100 Hz -> 10ms ticks
     const qint64 tickDuration = 1000 * 1000 * 1000 / FREQUENCY;
 
+    // The time it takes from the start of the processor tick to the action
+    // that is to be performed by the robot being visible on the field.
+    const nanoseconds radioCommandDelay =
+        // We need some time for tracking, control and radio preparation. We
+        // could measure this dynamically, but we use a fixed value for now.
+          latency::PROCESSOR_START_TO_RA_OUTPUT
+        // The time it takes for the radio command to leave Amun and reach the
+        // radio module.
+        + latency::RA_OUTPUT_TO_RADIO_MASTER
+        // Account for local buffering on the radio module
+        + latency::HBC_MASTER_HALF_LATENCY
+        // Account for latency of the radio chips
+        + latency::HBC_TRANSMISSION_LATENCY
+        // Account for control delays on the robot
+        + latency::ROBOT_INPUT_TO_ACTION_VISIBLE
+        // Allow to add a custom delay to account for unforeseen circumstances
+        + m_customRadioDelay;
+
     // We have these three different times to consider for each processing step.
     // currentTime is the time we have *now*, which is used to compute the world state in this point in time.
     const qint64 currentTime = overwriteTime == -1 ? m_timer->currentTime() : overwriteTime;
     // controllerTime is supposed to be the time at which the command we will send out in this call arrives
     // at the robot and the robot can actually act on it
-    const qint64 controllerTime = currentTime + m_trackingRadioCommandDelay;
+    const qint64 controllerTime = currentTime + radioCommandDelay.count();
     // This is controllerTime for the next process call. This is relevant, because the strategy needs a world
     // state that predicts the state at the time at which its commands reach the robot and the decision the
     // strategy makes will be converted into a radio command at the next process call.
-    const qint64 nextProcessControllerTime = currentTime + tickDuration + m_trackingRadioCommandDelay;
+    const qint64 nextProcessControllerTime = currentTime + tickDuration + radioCommandDelay.count();
 
     // run tracking
     m_tracker->process(currentTime);
@@ -385,7 +407,7 @@ void Processor::process(qint64 overwriteTime)
         // tracking expects the command to take effect.
         // Previous behavior was to just add 1 nanosecond to make sure that it is higher than m_futureTime of the robot filter, so it definitely
         // gets applied to the future kalman.
-        m_tracker->queueRadioCommands(radio_commands_prio, currentTime + std::max(m_trackingRadioCommandDelay, static_cast<uint64_t>(1)));
+        m_tracker->queueRadioCommands(radio_commands_prio, currentTime + std::max(radioCommandDelay.count(), static_cast<int64_t>(1)));
     }
 
     // prediction which accounts for the strategy runtime
@@ -651,7 +673,7 @@ void Processor::handleCommand(const Command &command)
         m_simpleTracker->handleCommand(command->tracking(), currentTime);
 
         if (command->tracking().has_radio_command_delay()) {
-            m_trackingRadioCommandDelay = command->tracking().radio_command_delay();
+            m_customRadioDelay = nanoseconds { command->tracking().radio_command_delay() };
         }
     }
 

@@ -335,9 +335,9 @@
            </widget>
           </item>
           <item row="1" column="1">
-           <widget class="QSpinBox" name="commandDelayBox">
+           <widget class="QSpinBox" name="customRadioDelayBox">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delay between a tracker predicting the world state for the strategy and a robot being able to act on that command (i.e. robot receives command and had time to match the desired accelerations).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom value to add to the calculated delay between a processor tick starting and a robot acting on the commands produced during that tick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="suffix">
              <string> ms</string>
@@ -350,10 +350,10 @@
           <item row="1" column="0">
            <widget class="QLabel" name="label_12">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Delay between a tracker predicting the world state for the strategy and a robot being able to act on that command (i.e. robot receives command and had time to match the desired accelerations).&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom value to add to the calculated delay between a processor tick starting and a robot acting on the commands produced during that tick.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Command delay</string>
+             <string>Custom Radio Delay</string>
             </property>
            </widget>
           </item>
