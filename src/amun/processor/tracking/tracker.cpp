@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#include "latency.h"
 #include "tracker.h"
 #include "balltracker.h"
 #include "protobuf/ssl_detection.pb.h"
@@ -37,7 +38,6 @@ using namespace std::chrono;
 
 Tracker::Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldParameters) :
     m_cameraInfo(new CameraInfo),
-    m_visionTransmissionDelay(0),
     m_timeSinceLastReset(0),
     m_currentBallFilter(nullptr),
     m_aoiEnabled(false),
@@ -97,8 +97,25 @@ void Tracker::process(qint64 currentTime)
             m_errorMessages.append(visionProcessingTimeError);
         }
 
+        m_visionFrameTime.update(detection);
+
+        const nanoseconds sourceToReceiveLatency = m_isInternallySimulated
+            // The internal simulator currently does not simulate latency
+            ? visionProcessingTime + m_customVisionDelay
+            : (
+                // Account for shutter latency
+                  latency::HALF_EXPOSURE_TIME
+                // Account for the latency of the frame being transmitted from the
+                // camera to the vision system
+                + m_visionFrameTime.get(detection.camera_id())
+                + visionProcessingTime
+                + latency::VISION_TO_RA_INPUT
+                // Add user-configurable latency
+                + m_customVisionDelay
+            );
+
         // time on the field for which the frame was captured as seen by this computers clock
-        const qint64 sourceTime = p.time - duration_cast<nanoseconds>(visionProcessingTime).count() - m_visionTransmissionDelay;
+        const qint64 sourceTime = p.time - sourceToReceiveLatency.count();
 
         // delayed reset to clear frames older than the reset command
         if (sourceTime > m_timeToReset) {
@@ -216,7 +233,7 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
 
     // create world state for the given time
     worldState->set_time(currentTime);
-    worldState->set_vision_transmission_delay(m_visionTransmissionDelay);
+    worldState->set_vision_transmission_delay(m_customVisionDelay.count());
 
     if (!m_robotsOnly) {
         BallTracker *ball = bestBallFilter();
@@ -640,7 +657,7 @@ void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
     }
 
     if (command.has_vision_transmission_delay()) {
-        m_visionTransmissionDelay = command.vision_transmission_delay();
+        m_customVisionDelay = nanoseconds { command.vision_transmission_delay() };
     }
 
     // allows resetting by the strategy

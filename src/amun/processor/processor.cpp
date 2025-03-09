@@ -668,6 +668,10 @@ void Processor::handleCommand(const Command &command)
     if (command->has_tracking()) {
         m_worldParameters->handleCommand(command->tracking(), m_simulatorEnabled);
     }
+
+    m_tracker->setInternallySimulated(m_internalSimulatorEnabled);
+    m_speedTracker->setInternallySimulated(m_internalSimulatorEnabled);
+    m_simpleTracker->setInternallySimulated(m_internalSimulatorEnabled);
 }
 
 void Processor::resetTracking()

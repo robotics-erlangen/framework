@@ -26,6 +26,7 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
+#include "visionframetime.h"
 #include "visionprocessingtime.h"
 #include <QMap>
 #include <QPair>
@@ -75,6 +76,8 @@ public:
     void reset();
     void updateTeam(const robot::Team &team, bool isBlue);
 
+    void setInternallySimulated(bool isInternallySimulated) { m_isInternallySimulated = isInternallySimulated; }
+
 public slots:
     void setBallModel(const world::BallModel &ballModel) { m_ballModel.CopyFrom(ballModel); }
     void updateCamera(const SSL_GeometryCameraCalibration &c, const QString &sender);
@@ -96,7 +99,7 @@ private:
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
     CameraInfo * const m_cameraInfo;
 
-    qint64 m_visionTransmissionDelay;
+    std::chrono::nanoseconds m_customVisionDelay { 0 };
     qint64 m_timeSinceLastReset;
     // used to delay the reset, to avoid accepting invalid vision frames that were sent before reset was triggered
     qint64 m_timeToReset = std::numeric_limits<qint64>::max();
@@ -107,6 +110,8 @@ private:
     QList<Packet> m_visionPackets;
 
     VisionProcessingTime m_visionProcessingTime;
+    VisionFrameTime m_visionFrameTime;
+    bool m_isInternallySimulated = false;
 
     QList<BallTracker*> m_ballFilter;
     BallTracker* m_currentBallFilter;

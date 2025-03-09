@@ -308,15 +308,15 @@
           <item row="0" column="0">
            <widget class="QLabel" name="label_2">
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Models the delay between &quot;photon hits robot&quot; to &quot;vision package is received&quot;, but without the time the vision needed to process.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom value to add to the calculated delay between &quot;photon hits robot&quot; to &quot;vision package is received by Ra&quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="text">
-             <string>Vision transmission delay</string>
+             <string>Custom Vision delay</string>
             </property>
            </widget>
           </item>
           <item row="0" column="1">
-           <widget class="QSpinBox" name="visionTransmissionDelayBox">
+           <widget class="QSpinBox" name="customVisionDelayBox">
             <property name="sizePolicy">
              <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
               <horstretch>0</horstretch>
@@ -324,13 +324,13 @@
              </sizepolicy>
             </property>
             <property name="toolTip">
-             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Models the delay between &quot;photon hits robot&quot; to &quot;vision package is received&quot;, but without the time the vision needed to process.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Custom value to add to the calculated delay between &quot;photon hits robot&quot; to &quot;vision package is received by Ra&quot;.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
             </property>
             <property name="suffix">
              <string> ms</string>
             </property>
             <property name="value">
-             <number>30</number>
+             <number>0</number>
             </property>
            </widget>
           </item>

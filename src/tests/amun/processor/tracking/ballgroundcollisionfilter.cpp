@@ -103,6 +103,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
     world::BallModel ballModel;
     loadConfiguration("cpptests/ballmodel", &ballModel, false);
     m_tracker.setBallModel(ballModel);
+    m_tracker.setInternallySimulated(true);
 
     Command c(new amun::Command);
     c->mutable_simulator()->set_enable(true);
