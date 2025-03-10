@@ -1617,11 +1617,9 @@ void FieldWidget::updateAOI()
 
     QRectF transformedVirtualFieldRect;
     if (m_usingVirtualField) {
-        // transform real field rect to virtual field space
-        QPointF virtualAoiOffset(0.3f, 0.3f); // subtract a small offset from the aoi to protect field borders etc.
-        QPointF topLeft = m_virtualFieldTransform.applyPosition(m_realFieldRect.topLeft() + virtualAoiOffset);
-        QPointF bottomRight = m_virtualFieldTransform.applyPosition(m_realFieldRect.bottomRight() - virtualAoiOffset);
-        transformedVirtualFieldRect = QRectF(topLeft, bottomRight);
+        auto maxX = m_virtualFieldGeometry.field_width() * 0.5 + m_virtualFieldGeometry.boundary_width();
+        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width();
+        transformedVirtualFieldRect = QRectF(QPointF(-maxX, -maxY), QPointF(maxX, maxY));
         QPainterPath realPath;
         realPath.addPolygon(polygon.subtracted(QPolygonF(transformedVirtualFieldRect)));
         m_virtualFieldAoiItem->setPath(realPath);
