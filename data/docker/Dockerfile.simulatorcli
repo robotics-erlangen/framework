@@ -1,15 +1,15 @@
 #
 # Build stage
 #
-FROM ubuntu:20.04 AS build-stage
+FROM ubuntu:24.04 AS build-stage
 
 ARG DEBIAN_FRONTEND=noninteractive
 # Install dependencies
 RUN set -xe; \
 	apt-get update; \
 	apt-get install --no-install-recommends -y \
-		cmake make g++ protobuf-compiler patch \
-		qtbase5-dev libqt5opengl5-dev libprotobuf-dev; \
+		cmake make g++ protobuf-compiler libprotobuf-dev \
+		qtbase5-dev libqt5opengl5-dev libssl-dev patch; \
 	apt-get clean -y; \
 	rm -rf /var/lib/apt/lists/*;
 
@@ -27,7 +27,7 @@ RUN set -xe; \
 #
 # Run stage
 #
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 LABEL maintainer="Robotics Erlangen e.V. <info@robotics-erlangen.de>"
 
@@ -56,4 +56,3 @@ COPY --chown=default:default --from=build-stage /home/default/build build
 # 10301: Blue    - Accepts robot commands by the blue team
 # 10302: Yellow  - Accepts robot commands by the yellow team
 EXPOSE 10300 10301 10302
-
