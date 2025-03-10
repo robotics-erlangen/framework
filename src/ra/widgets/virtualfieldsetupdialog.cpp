@@ -28,7 +28,6 @@ VirtualFieldSetupDialog::VirtualFieldSetupDialog(const VirtualFieldConfiguration
     ui(new Ui::VirtualFieldSetupDialog)
 {
     ui->setupUi(this);
-    setFixedSize(width(), height());
     connect(ui->quadSizeWidth, &QRadioButton::toggled, [this](bool set){ if (set) ui->widthSpinBox->setValue(QUAD_SIZE_WIDTH); });
     connect(ui->doubleSizeWidth, &QRadioButton::toggled, [this](bool set){ if (set) ui->widthSpinBox->setValue(DOUBLE_SIZE_WIDTH); });
     connect(ui->quadSizeHeight, &QRadioButton::toggled, [this](bool set){ if (set) ui->heightSpinBox->setValue(QUAD_SIZE_HEIGHT); });
