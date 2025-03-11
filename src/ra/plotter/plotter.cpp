@@ -330,7 +330,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
 
             const QString rawParent = QString(QStringLiteral("Yellow.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
-                const world::RobotPosition &p = robot.raw(i);
+                const world::TransformedRobotMeasurement &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
         }
@@ -345,7 +345,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
 
             const QString rawParent = QString(QStringLiteral("Blue.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
-                const world::RobotPosition &p = robot.raw(i);
+                const world::TransformedRobotMeasurement &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
         }

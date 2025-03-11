@@ -86,7 +86,7 @@ message Ball {
     repeated BallPosition raw = 5;
 }
 
-message RobotPosition {
+message TransformedRobotMeasurement {
     required int64 time = 1;
     required float p_x = 2;
     required float p_y = 3;
@@ -110,7 +110,7 @@ message Robot {
     required float v_x = 5;
     required float v_y = 6;
     required float omega = 7;
-    repeated RobotPosition raw = 8;
+    repeated TransformedRobotMeasurement raw = 8;
 }
 
 message TrackingAOI {

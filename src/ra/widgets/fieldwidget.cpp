@@ -1411,7 +1411,7 @@ void FieldWidget::addRobotTrace(qint64 time, const world::Robot &robot, Trace &r
 {
     if (m_actionShowRobotTraces->isChecked()) {
         for (int i = 0; i < robot.raw_size(); ++i) {
-            const world::RobotPosition &p = robot.raw(i);
+            const world::TransformedRobotMeasurement &p = robot.raw(i);
             addTrace(robotRawTrace, QPointF(p.p_x(), p.p_y()), p.time());
         }
         addTrace(robotTrace, QPointF(robot.p_x(), robot.p_y()), time);

@@ -287,7 +287,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     float diff = limitAngle(rot - pRotLimited);
 
     // keep for debugging
-    world::RobotPosition p;
+    world::TransformedRobotMeasurement p;
     p.set_time(frame.time);
     p.set_p_x(-frame.detection.y() / 1000.0);
     p.set_p_y(frame.detection.x() / 1000.0);
@@ -348,8 +348,8 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
     robot->set_v_y(vy);
     robot->set_omega(omega);
 
-    foreach (const world::RobotPosition &p, m_measurements) {
-        world::RobotPosition *np = robot->add_raw();
+    for (const world::TransformedRobotMeasurement &p : m_measurements) {
+        world::TransformedRobotMeasurement *np = robot->add_raw();
         np->set_time(p.time());
         float rot;
         np->set_p_x(transform.applyPosX(p.p_x(), p.p_y()));
@@ -359,7 +359,7 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
         np->set_camera_id(p.camera_id());
         np->set_vision_processing_time(p.vision_processing_time());
 
-        const world::RobotPosition &prevPos = m_lastRaw[np->camera_id()];
+        const world::TransformedRobotMeasurement &prevPos = m_lastRaw[np->camera_id()];
 
         if (prevPos.IsInitialized() && np->time() > prevPos.time()
                 && prevPos.time() + 200*1000*1000 > np->time()) {

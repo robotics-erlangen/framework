@@ -88,8 +88,8 @@ private:
     uint m_id;
     bool m_teamIsYellow;
     // for debugging
-    QMap<int, world::RobotPosition> m_lastRaw;
-    QList<world::RobotPosition> m_measurements;
+    QMap<int, world::TransformedRobotMeasurement> m_lastRaw;
+    QList<world::TransformedRobotMeasurement> m_measurements;
 
     // use a custom holder for the copy constructor
     // WARNING: the Kalman object must not be directly put into the object,
