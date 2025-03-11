@@ -742,10 +742,10 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         .has_detection = lastDetection.has_x() && lastDetection.has_y() && lastDetection.has_phi(),
         .detection = {
             .coords = {
-                .x = lastDetection.x(),
-                .y = lastDetection.y(),
+                .x = lastDetection.has_x() ? lastDetection.x() : 0,
+                .y = lastDetection.has_y() ? lastDetection.y() : 0,
             },
-            .angle = normalizeAngle(lastDetection.phi()),
+            .angle = normalizeAngle(lastDetection.has_phi() ? lastDetection.phi() : 0),
         },
     };
     write_common(&common, &data.payload.regular);
