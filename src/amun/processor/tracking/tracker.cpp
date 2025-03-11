@@ -248,7 +248,7 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
             robot->update(currentTime, m_worldParameters->fieldTransform());
-            robot->get(worldState->add_yellow(), m_worldParameters->fieldTransform(), false);
+            robot->get(worldState->add_yellow(), m_worldParameters->fieldTransform());
             robotInfos.append(robot->getRobotInfo());
         }
     }
@@ -257,7 +257,7 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
             robot->update(currentTime, m_worldParameters->fieldTransform());
-            robot->get(worldState->add_blue(), m_worldParameters->fieldTransform(), false);
+            robot->get(worldState->add_blue(), m_worldParameters->fieldTransform());
             robotInfos.append(robot->getRobotInfo());
         }
     }

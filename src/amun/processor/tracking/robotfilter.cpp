@@ -320,7 +320,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     m_kalman->update();
 }
 
-void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool noRawData)
+void RobotFilter::get(world::Robot *robot, const FieldTransform &transform)
 {
     float px = m_futureKalman->state()(0);
     float py = m_futureKalman->state()(1);
@@ -347,10 +347,6 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
     robot->set_v_x(vx);
     robot->set_v_y(vy);
     robot->set_omega(omega);
-
-    if (noRawData) {
-        return;
-    }
 
     foreach (const world::RobotPosition &p, m_measurements) {
         world::RobotPosition *np = robot->add_raw();
