@@ -20,7 +20,9 @@
 
 #include "alphatimetrajectory.h"
 #include "parameterization.h"
+#ifndef FIRMWARE
 #include <QDebug>
+#endif // !FIRMWARE
 
 // helper functions
 static float sign(float x)

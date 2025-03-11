@@ -28,7 +28,7 @@
 #include <optional>
 
 #ifdef TESTING
-    #include "gtest/gtest.h"
+#include "gtest/gtest.h"
 #endif
 
 // WARNING: generated trajectories may exceed the maximum velocity by a factor of up to sqrt(2) in rare cases
@@ -38,7 +38,6 @@ class AlphaTimeTrajectory
     FRIEND_TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant);
 #endif
 
-private:
     // helper functions
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, EndSpeed endSpeedType);
     static Vector minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime);
