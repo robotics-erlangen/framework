@@ -51,6 +51,7 @@ typedef struct {
 } RadioCommand2025Common;
 
 typedef struct {
+    // in global coordinates
     RadioCommand2025State start_state;  // [m] and [rad]
     RadioCommand2025Vector start_vel;  // [m/s]
     float end_angle;  // [rad]
@@ -66,6 +67,7 @@ typedef struct {
 } RadioCommand2025TrajectoryPath;
 
 typedef struct {
+    // in global coordinates
     RadioCommand2025State pos;  // [m] and [rad]
     RadioCommand2025State vel;  // [m/s] and [rad/s]
     RadioCommand2025State acc;  // [m/s^2] and [rad/s^2]
