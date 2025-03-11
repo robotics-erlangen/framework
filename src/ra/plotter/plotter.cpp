@@ -333,6 +333,10 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
                 const world::TransformedRobotMeasurement &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
             }
+
+            if (robot.has_primary_detection()) {
+                parseMessage(robot.primary_detection(), QString(QStringLiteral("Yellow.%1.primary detection")).arg(robot.id()), time);
+            }
         }
         for (int i = 0; i < worldState.simple_tracking_yellow_size(); i++) {
             const world::Robot &robot = worldState.simple_tracking_yellow(i);
@@ -347,6 +351,10 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             for (int i = 0; i < robot.raw_size(); i++) {
                 const world::TransformedRobotMeasurement &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) * 1E-9f);
+            }
+
+            if (robot.has_primary_detection()) {
+                parseMessage(robot.primary_detection(), QString(QStringLiteral("Blue.%1.primary detection")).arg(robot.id()), time);
             }
         }
         for (int i = 0; i < worldState.simple_tracking_blue_size(); i++) {

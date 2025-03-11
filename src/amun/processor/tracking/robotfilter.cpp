@@ -372,6 +372,25 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
         m_lastRaw[np->camera_id()] = *np;
     }
 
+    auto addPrimaryDetection = [&robot](const world::TransformedRobotMeasurement &p) {
+        auto* primaryDetection = robot->mutable_primary_detection();
+
+        primaryDetection->set_x(p.p_x());
+        primaryDetection->set_y(p.p_y());
+        primaryDetection->set_phi(p.phi());
+    };
+
+    if (m_measurements.length() == 1) {
+        addPrimaryDetection(m_measurements.first());
+    } else if (
+        auto it = std::find_if(m_measurements.cbegin(), m_measurements.cend(), [this](const world::TransformedRobotMeasurement &p) {
+            return p.camera_id() == m_primaryCamera;
+        });
+        it != m_measurements.cend()
+    ) {
+        addPrimaryDetection(*it);
+    }
+
     if (resetRaw) {
         m_measurements.clear();
     }

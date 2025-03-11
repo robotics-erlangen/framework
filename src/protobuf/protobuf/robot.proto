@@ -137,8 +137,11 @@ message SpeedVector
 };
 
 message RobotDetection {
+    // x-Position [m] of the robot in the global coordinate system
     optional float x = 1;
+    // y-Position [m] of the robot in the global coordinate system
     optional float y = 2;
+    // Rotation [rad] of the robot in the global coordinate system
     optional float phi = 3;
 };
 
