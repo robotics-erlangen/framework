@@ -54,7 +54,7 @@ public:
     RobotFilter(const SSL_DetectionRobot &robot, qint64 lastTime, bool teamIsYellow);
 
     void update(qint64 time, const FieldTransform &transform);
-    void get(world::Robot *robot, const FieldTransform &transform);
+    void get(world::Robot *robot, const FieldTransform &transform, bool resetRaw);
 
     void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, std::chrono::nanoseconds visionProcessingTime, bool switchCamera);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);

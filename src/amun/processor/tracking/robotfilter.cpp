@@ -320,7 +320,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     m_kalman->update();
 }
 
-void RobotFilter::get(world::Robot *robot, const FieldTransform &transform)
+void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool resetRaw)
 {
     float px = m_futureKalman->state()(0);
     float py = m_futureKalman->state()(1);
@@ -372,7 +372,9 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform)
         m_lastRaw[np->camera_id()] = *np;
     }
 
-    m_measurements.clear();
+    if (resetRaw) {
+        m_measurements.clear();
+    }
 }
 
 // uses the tracked position only based on vision data!!!

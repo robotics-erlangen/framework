@@ -368,7 +368,9 @@ void Processor::process(qint64 overwriteTime)
         // compute world state and speed for the time at which the command reaches the robot
         world::State commandWorldState, radioWorldState;
         m_tracker->worldState(&commandWorldState, controllerTime, false);
-        m_speedTracker->worldState(&radioWorldState, controllerTime, false);
+        // Reset raw here, as this is the last time we call worldState on the
+        // speedTracker
+        m_speedTracker->worldState(&radioWorldState, controllerTime, true);
 
         processTeam(m_blueTeam, true, commandWorldState.blue(), radio_commands_prio, radio_commands,
                     status, controllerTime, radioWorldState.blue(), debug);
