@@ -103,7 +103,12 @@ public:
     static std::optional<AlphaTimeTrajectory> find(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, EndSpeed endSpeedType);
 
     // speed profile output
-    Trajectory const &getTrajectory();
+    Trajectory const &getTrajectory() {
+        if (!trajectory.has_value()) {
+            trajectory = calculateTrajectory(start, v1, time, angle, acc, vMax, slowDownTime, endSpeedType, minTime);
+        }
+        return trajectory.value();
+    }
 
     void setStartPos(const Vector pos) {
         start.pos = pos;

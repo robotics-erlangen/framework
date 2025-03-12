@@ -195,13 +195,6 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
     return Trajectory{x, y, start.pos, slowDownTime};
 }
 
-Trajectory const &AlphaTimeTrajectory::getTrajectory() {
-    if (!trajectory.has_value()) {
-        trajectory = calculateTrajectory(start, v1, time, angle, acc, vMax, slowDownTime, endSpeedType, minTime);
-    }
-    return trajectory.value();
-}
-
 // functions for position search
 static Vector centerTimePos(const RobotState &start, Vector endSpeed, float time, EndSpeed endSpeedType)
 {
