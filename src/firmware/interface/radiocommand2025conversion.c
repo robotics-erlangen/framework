@@ -2,6 +2,10 @@
 #include "firmware-interface/radiocommand2025regular.h"
 #include <math.h>
 
+
+#define EPSILON (1e-8)
+
+
 static int32_t min(int32_t a, int32_t b) {
     return (a < b) ? a : b;
 }
@@ -26,7 +30,12 @@ static int32_t map_to_interval(float x, float x_min, float x_max, int32_t y_min,
     // min and max are inclusive
 
     x = fmaxf(fminf(x_max, x), x_min);
-    int32_t y = roundf(y_min + (y_max - y_min) * (x - x_min) / (x_max - x_min));
+
+    // To just slightly tip the rounding towards +inf, we add EPSILON.
+    // That way, when mapping 0 from a symmetric interval [-a, a] to a N bit signed integer interval,
+    // 0 is mapped to 0 instead of -1. Because otherwise the call below would result in roundf(-.5f),
+    // which equals -1.
+    int32_t y = roundf(y_min + (y_max - y_min) * (x - x_min) / (x_max - x_min) + EPSILON);
     return max(min(y_max, y), y_min);
 }
 
