@@ -84,7 +84,7 @@ public:
       , vMax(vMax)
       , slowDownTime(slowDownTime)
       , endSpeedType(endSpeedType)
-      , minTime(minTime)
+      , minTime(minimumTime(start.speed, v1, acc, endSpeedType))
     {}
 
 private:
@@ -96,7 +96,7 @@ private:
     float vMax;
     float slowDownTime;
     EndSpeed endSpeedType;
-    std::optional<float> minTime;
+    float minTime;
     std::optional<Trajectory> trajectory;
 
 public:

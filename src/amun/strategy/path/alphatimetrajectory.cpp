@@ -196,11 +196,8 @@ Trajectory AlphaTimeTrajectory::calculateTrajectory(const RobotState &start, Vec
 }
 
 Trajectory const &AlphaTimeTrajectory::getTrajectory() {
-    if (!minTime.has_value()) {
-        minTime = minimumTime(start.speed, v1, acc, endSpeedType);
-    }
     if (!trajectory.has_value()) {
-        trajectory = calculateTrajectory(start, v1, time, angle, acc, vMax, slowDownTime, endSpeedType, minTime.value());
+        trajectory = calculateTrajectory(start, v1, time, angle, acc, vMax, slowDownTime, endSpeedType, minTime);
     }
     return trajectory.value();
 }
