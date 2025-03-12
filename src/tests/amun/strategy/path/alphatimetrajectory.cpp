@@ -270,8 +270,9 @@ TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant) {
         const float slowDown = useSlowDown ? rng.uniformFloat(0, SlowdownAcceleration::SLOW_DOWN_TIME) : 0;
         const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::EXACT : EndSpeed::FAST;
 
-        const auto profile = AlphaTimeTrajectory::calculateTrajectory(start, v1, time, angle, acc, maxSpeed, slowDown, endSpeedType);
-        const auto posInfo = AlphaTimeTrajectory::calculatePosition(start, v1, time, angle, acc, maxSpeed, endSpeedType);
+        AlphaTimeTrajectory traj{start, v1, time, angle, acc, maxSpeed, slowDown, endSpeedType};
+        const auto profile = traj.getTrajectory();
+        const auto posInfo = traj.calculatePosInfo();
 
         const auto trajEndPos = profile.endPosition();
         const auto infoEndPos = posInfo.endPos;

@@ -42,20 +42,6 @@ class AlphaTimeTrajectory
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, EndSpeed endSpeedType);
     static Vector minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime);
 
-    // any input is valid as long as time is not negative
-    // if minTime is given, it must be the value of minTimeFastEndSped(v0, v1, acc)
-    static Trajectory calculateTrajectory(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
-                                            float slowDownTime, EndSpeed endSpeedType, float minTime = -1);
-
-    struct TrajectoryPosInfo2D {
-        Vector endPos;
-        Vector increaseAtSpeed;
-    };
-
-    // pos only
-    // WARNING: assumes that the input is valid and solvable
-    static TrajectoryPosInfo2D calculatePosition(const RobotState &start, Vector v1, float time, float angle, float acc, float vMax,
-                                                 EndSpeed endSpeedType, float minTime = -1);
     static std::optional<Trajectory> tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime);
     static Trajectory minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime);
 
@@ -74,8 +60,7 @@ public:
         float acc,
         float vMax,
         float slowDownTime,
-        EndSpeed endSpeedType,
-        std::optional<float> minTime = {}
+        EndSpeed endSpeedType
     ) : start(start)
       , v1(v1)
       , time(time)
@@ -85,7 +70,11 @@ public:
       , slowDownTime(slowDownTime)
       , endSpeedType(endSpeedType)
       , minTime(minimumTime(start.speed, v1, acc, endSpeedType))
-    {}
+    {
+        assert(time >= 0);
+    }
+
+    static std::optional<AlphaTimeTrajectory> find(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, EndSpeed endSpeedType);
 
 private:
     RobotState start;
@@ -99,13 +88,20 @@ private:
     float minTime;
     std::optional<Trajectory> trajectory;
 
-public:
-    static std::optional<AlphaTimeTrajectory> find(const RobotState &start, const RobotState &target, float acc, float vMax, float slowDownTime, EndSpeed endSpeedType);
+private:
+    struct TrajectoryPosInfo {
+        Vector endPos;
+        Vector increaseAtSpeed;
+    };
+    TrajectoryPosInfo calculatePosInfo() const;
 
+    Trajectory calculateTrajectory() const;
+
+public:
     // speed profile output
     Trajectory const &getTrajectory() {
         if (!trajectory.has_value()) {
-            trajectory = calculateTrajectory(start, v1, time, angle, acc, vMax, slowDownTime, endSpeedType, minTime);
+            trajectory = calculateTrajectory();
         }
         return trajectory.value();
     }
