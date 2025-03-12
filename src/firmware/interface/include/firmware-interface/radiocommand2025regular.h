@@ -19,7 +19,7 @@
 #define TRAJECTORY_PATH_T_BITS 15
 #define TRAJECTORY_PATH_ACC_BITS 12
 #define TRAJECTORY_PATH_MAX_VEL_BITS 12
-#define TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS 9
+#define TRAJECTORY_PATH_SLOW_DOWN_TIME_BITS 9
 
 #define TIME_OFFSET_BITS 8
 
@@ -64,7 +64,7 @@ typedef union {
         uint16_t acceleration:TRAJECTORY_PATH_ACC_BITS;
         uint16_t v_max:TRAJECTORY_PATH_MAX_VEL_BITS;
 
-        uint16_t slow_down_time:TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS;
+        uint16_t slow_down_time:TRAJECTORY_PATH_SLOW_DOWN_TIME_BITS;
         bool is_fast_endspeed:1;
     } __attribute__ ((packed)) trajectory_path;
     struct {

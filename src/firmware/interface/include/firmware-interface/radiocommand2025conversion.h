@@ -3,6 +3,7 @@
 #include "radiocommand2025.h"
 #include <assert.h>
 
+#define PI 3.14159265358979323846
 
 #define TIME_OFFSET_MAX 0.01f
 
@@ -14,13 +15,13 @@
 #define VEL_MAX 6.0f
 #define ACC_MAX 15.0f
 #define JERK_MAX 100.0f
-#define ANGLE_MAX 3.14159265358979323846f
-#define ANGLE_VEL_MAX 15000.0f
+#define ANGLE_MAX PI
+#define ANGLE_VEL_MAX 10 * 2 * PI
 #define ANGLE_ACC_MAX 15000.0f
 #define ANGLE_JERK_MAX 400000.0f
 
 #define TRAJECTORY_PATH_T_MAX 40.0f
-#define TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX 1.0f
+#define TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX 1.0f
 
 
 // if this vector is in the context of a local coordinate system,

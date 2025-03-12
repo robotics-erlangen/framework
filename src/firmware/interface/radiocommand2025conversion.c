@@ -127,7 +127,7 @@ void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCo
     cmd->traj.trajectory_path.start_vel_x = map_to_signed(traj->start_vel.x, -VEL_MAX, VEL_MAX, VEL_BITS);
     cmd->traj.trajectory_path.start_vel_y = map_to_signed(traj->start_vel.y, -VEL_MAX, VEL_MAX, VEL_BITS);
 
-    cmd->traj.trajectory_path.end_phi = map_to_signed(traj->end_angle, -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
+    cmd->traj.trajectory_path.end_phi = map_to_signed(normalize_angle(traj->end_angle), -ANGLE_MAX, ANGLE_MAX, ANGLE_BITS);
 
     cmd->traj.trajectory_path.end_vel_x = map_to_signed(traj->end_vel.x, -VEL_MAX, VEL_MAX, VEL_BITS);
     cmd->traj.trajectory_path.end_vel_y = map_to_signed(traj->end_vel.y, -VEL_MAX, VEL_MAX, VEL_BITS);
@@ -137,7 +137,7 @@ void write_trajectory_path(const RadioCommand2025TrajectoryPath *traj, RegularCo
     cmd->traj.trajectory_path.acceleration = map_to_unsigned(traj->acceleration, 0, ACC_MAX, TRAJECTORY_PATH_ACC_BITS);
     cmd->traj.trajectory_path.v_max = map_to_unsigned(traj->v_max, 0, VEL_MAX, TRAJECTORY_PATH_MAX_VEL_BITS);
 
-    cmd->traj.trajectory_path.slow_down_time = map_to_unsigned(traj->slow_down_time, 0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX, TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS);
+    cmd->traj.trajectory_path.slow_down_time = map_to_unsigned(traj->slow_down_time, 0, TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX, TRAJECTORY_PATH_SLOW_DOWN_TIME_BITS);
     cmd->traj.trajectory_path.is_fast_endspeed = traj->is_fast_endspeed;
 }
 
@@ -163,7 +163,7 @@ bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCom
     traj->acceleration = map_from_unsigned(cmd->traj.trajectory_path.acceleration, TRAJECTORY_PATH_ACC_BITS, 0, ACC_MAX);
     traj->v_max = map_from_unsigned(cmd->traj.trajectory_path.v_max, TRAJECTORY_PATH_MAX_VEL_BITS, 0, VEL_MAX);
 
-    traj->slow_down_time = map_from_unsigned(cmd->traj.trajectory_path.slow_down_time, TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS, 0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX);
+    traj->slow_down_time = map_from_unsigned(cmd->traj.trajectory_path.slow_down_time, TRAJECTORY_PATH_SLOW_DOWN_TIME_BITS, 0, TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX);
     traj->is_fast_endspeed = cmd->traj.trajectory_path.is_fast_endspeed;
     return true;
 }

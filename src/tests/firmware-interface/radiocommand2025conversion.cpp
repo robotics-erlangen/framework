@@ -83,7 +83,7 @@ RadioCommand2025TrajectoryPath static randomTrajectoryPath(RNG &rng) {
         .acceleration = rng.uniformFloat(0, ACC_MAX),
         .v_max = rng.uniformFloat(0, VEL_MAX),
 
-        .slow_down_time = rng.uniformFloat(0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX),
+        .slow_down_time = rng.uniformFloat(0, TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX),
         .is_fast_endspeed = randomBool(rng),
     };
 }
@@ -171,7 +171,7 @@ static bool trajectoryPathEq(const RadioCommand2025TrajectoryPath &a, const Radi
         && approxEq(a.acceleration, b.acceleration, 0, ABS_ERROR(0, ACC_MAX, TRAJECTORY_PATH_ACC_BITS))
         && approxEq(a.v_max, b.v_max, 0, ABS_ERROR(0, VEL_MAX, TRAJECTORY_PATH_MAX_VEL_BITS))
 
-        && approxEq(a.slow_down_time, b.slow_down_time, 0, ABS_ERROR(0, TRAJECTORY_PATH_SLOT_DOWN_TIME_MAX, TRAJECTORY_PATH_SLOT_DOWN_TIME_BITS))
+        && approxEq(a.slow_down_time, b.slow_down_time, 0, ABS_ERROR(0, TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX, TRAJECTORY_PATH_SLOW_DOWN_TIME_BITS))
         && a.is_fast_endspeed == b.is_fast_endspeed;
 }
 
