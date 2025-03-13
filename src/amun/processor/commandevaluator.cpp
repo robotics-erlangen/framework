@@ -108,8 +108,8 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
         clearInput();
         if (hasRobot) {
             GlobalSpeed manualSpeed = command.local()
-                ? evaluateGlobalManualControl(command)
-                : evaluateLocalManualControl(command).toGlobal(robotTheta);
+                ? evaluateLocalManualControl(command).toGlobal(robotTheta)
+                : evaluateGlobalManualControl(command);
 
             GlobalSpeed limitedManualSpeed = limitAcceleration(robotTheta, manualSpeed, 1, hasManualCommand);
 
@@ -117,38 +117,40 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
             float yPos = robot->p_y();
             float phi = robot->phi();
 
-            float xVel = m_baseSpeed.v_x;
-            float yVel = m_baseSpeed.v_y;
-            float omega = m_baseSpeed.omega;
-
-            float xAcc = limitedManualSpeed.v_x - xVel;
-            float yAcc = limitedManualSpeed.v_y - yVel;
-            float alpha = limitedManualSpeed.omega - omega;
+            float xVel = manualSpeed.v_x;
+            float yVel = manualSpeed.v_y;
+            float omega = manualSpeed.omega;
 
             robot::Spline *spline = m_input.add_global_spline();
+            spline->set_t_start(0);
+            spline->set_t_end(INFINITY);
+
             robot::Polynomial *xSpline = spline->mutable_x();
             xSpline->set_a0(xPos);
             xSpline->set_a1(xVel);
-            xSpline->set_a2(xAcc / 2.0f);
+            xSpline->set_a2(0);
             xSpline->set_a3(0);
 
             robot::Polynomial *ySpline = spline->mutable_y();
             ySpline->set_a0(yPos);
             ySpline->set_a1(yVel);
-            xSpline->set_a2(yAcc / 2.0f);
+            xSpline->set_a2(0);
             xSpline->set_a3(0);
 
             robot::Polynomial *phiSpline = spline->mutable_phi();
             phiSpline->set_a0(phi);
             phiSpline->set_a1(omega);
-            phiSpline->set_a2(alpha / 2.0f);
+            phiSpline->set_a2(0);
             phiSpline->set_a3(0);
+            drawSpline(debug);
         } else {
             LocalSpeed manualSpeed = command.local()
                 ? evaluateLocalManualControl(command)
                 : LocalSpeed(0, 0, 0);
 
             robot::Spline *spline = m_input.add_local_spline();
+            spline->set_t_start(0);
+            spline->set_t_end(INFINITY);
 
             robot::Polynomial *sSpline = spline->mutable_x();
             sSpline->set_a0(0);
@@ -176,7 +178,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     LocalSpeed localOutputBase = outputBase.toLocal(robotThetaBase);
 
     const qint64 worldTimeOne = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputOne = evaluateInput(hasRobot, robotTheta, robotPhi, worldTimeOne, command, debug, hasManualCommand); // TODO
+    GlobalSpeed outputOne = evaluateInput(hasRobot, robotPhi, worldTimeOne, command, debug, hasManualCommand); // TODO
     const float timeStepOne = (worldTimeOne - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
     GlobalSpeed limitedOutputOne = limitAcceleration(robotThetaBase, outputOne, timeStepOne, hasManualCommand);
     // predict robot rotation, assume the robot managed to follow the command
@@ -193,7 +195,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     m_baseSpeedTime = worldTimeOne;
 
     const qint64 worldTimeTwo = worldTimeOne + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotTheta, robotPhi, worldTimeTwo, command, debug, hasManualCommand);
+    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhi, worldTimeTwo, command, debug, hasManualCommand);
     const float timeStepTwo = CONTROL_STEP;
     GlobalSpeed limitedOutputTwo = limitAcceleration(robotThetaOne, outputTwo, timeStepTwo, hasManualCommand);
     const float robotThetaTwo = robotThetaOne + (localOutputOne.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
@@ -248,19 +250,16 @@ float CommandEvaluator::robotToTheta(const world::Robot *robot)
     return robot == nullptr ? 0 : (robot->phi() - std::numbers::pi / 2);
 }
 
-GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotTheta, float robotPhi, qint64 worldTime, const robot::Command &command,
+GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command,
                                             amun::DebugValues *debug, bool hasManualCommand)
 {
     // default to stopping
     GlobalSpeed output(0, 0, 0);
 
-    const bool isGlobal = !command.local() && hasTrackedRobot;
-    if (hasManualCommand && isGlobal) {
-        output = evaluateGlobalManualControl(command);
-    } else if (hasManualCommand) {
-        output = evaluateLocalManualControl(command).toGlobal(robotTheta);
+    if (m_input.local_spline_size() > 0) {
+        output = evaluateSplineAtTime(m_input.local_spline(), worldTime);
     } else if (hasTrackedRobot && m_input.global_spline_size() > 0) {
-        output = evaluateSplineAtTime(worldTime);
+        output = evaluateSplineAtTime(m_input.global_spline(), worldTime);
     } else if (hasTrackedRobot && m_trajs.size() > 0) {
         output = evaluateAlphaTimeTrajectoryAtTime(worldTime, robotPhi);
     }
@@ -290,26 +289,24 @@ GlobalSpeed CommandEvaluator::evaluateGlobalManualControl(const robot::Command &
     return GlobalSpeed(v_x, v_y, omega);
 }
 
-GlobalSpeed CommandEvaluator::evaluateSplineAtTime(const qint64 worldTime)
+GlobalSpeed CommandEvaluator::evaluateSplineAtTime(const google::protobuf::RepeatedPtrField<robot::Spline> &splines, const qint64 worldTime)
 {
     float timeElapsed = (worldTime - m_startTime) * 1E-9f;
-    int activeSplineIndex = findActiveSpline(timeElapsed);
-    if (activeSplineIndex >= 0) {
-        // generate the desired state
-        return evaluateSplinePartAtTime(m_input.global_spline(activeSplineIndex), timeElapsed);
+    const robot::Spline *activeSpline = findActiveSpline(splines, timeElapsed);
+    if (activeSpline == nullptr) {
+        return GlobalSpeed(0, 0, 0);
     }
-    return GlobalSpeed(0, 0, 0);
+    return evaluateSplinePartAtTime(*activeSpline, timeElapsed);
 }
 
-int CommandEvaluator::findActiveSpline(const float time)
+const robot::Spline *CommandEvaluator::findActiveSpline(const google::protobuf::RepeatedPtrField<robot::Spline> &splines, const float time)
 {
-    for (int i = 0; i < m_input.global_spline_size(); i++) {
-        const robot::Spline &spline = m_input.global_spline(i);
+    for (const auto &spline : splines) {
         if (spline.t_start() <= time && time < spline.t_end()) {
-            return i;
+            return &spline;
         }
     }
-    return -1;
+    return nullptr;
 }
 
 GlobalSpeed CommandEvaluator::evaluateSplinePartAtTime(const robot::Spline &spline, const float t)

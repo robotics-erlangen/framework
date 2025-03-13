@@ -52,11 +52,11 @@ public:
 
 private:
     static float robotToTheta(const world::Robot *robot);
-    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotTheta, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug, bool hasManualCommand);
+    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug, bool hasManualCommand);
     LocalSpeed evaluateLocalManualControl(const robot::Command &command);
     GlobalSpeed evaluateGlobalManualControl(const robot::Command &command);
-    GlobalSpeed evaluateSplineAtTime(const qint64 worldTime);
-    int findActiveSpline(const float time);
+    GlobalSpeed evaluateSplineAtTime(const google::protobuf::RepeatedPtrField<robot::Spline> &splines, const qint64 worldTime);
+    const robot::Spline *findActiveSpline(const google::protobuf::RepeatedPtrField<robot::Spline> &splines, const float time);
     GlobalSpeed evaluateSplinePartAtTime(const robot::Spline &spline, const float t);
     GlobalSpeed evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime, const float robotPhi);
 
