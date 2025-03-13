@@ -39,6 +39,18 @@ RefereeInfoWidget::~RefereeInfoWidget()
 
 void RefereeInfoWidget::handleStatus(const Status &status)
 {
+    bool currentRobotCountChanged = false;
+    if (status->has_world_state()) {
+        if (m_currentRobotCountBlue != status->world_state().blue_size()) {
+            m_currentRobotCountBlue = status->world_state().blue_size();
+            currentRobotCountChanged = true;
+        }
+        if (m_currentRobotCountYellow != status->world_state().yellow_size()) {
+            m_currentRobotCountYellow = status->world_state().yellow_size();
+            currentRobotCountChanged = true;
+        }
+    }
+
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
 
@@ -50,6 +62,19 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         const uint blueRedCards = state.blue().red_cards();
         const uint yellowFouls = state.yellow().foul_counter();
         const uint blueFouls = state.blue().foul_counter();
+
+        // TODO check if game controller sends maximum amount of robots
+        const int allowedRobotsYellow = 11 - (yellowYellowCards + yellowRedCards);
+        const int allowedRobotsBlue = 11 - (blueYellowCards + blueRedCards);
+
+        currentRobotCountChanged |= allowedRobotsYellow != m_allowedRobotCountYellow;
+        currentRobotCountChanged |= allowedRobotsBlue != m_allowedRobotCountBlue;
+        m_allowedRobotCountYellow = allowedRobotsYellow;
+        m_allowedRobotCountBlue = allowedRobotsBlue;
+        if (currentRobotCountChanged) {
+            ui->allowedBotsBlue->setText(QString("%1/%2").arg(m_currentRobotCountBlue).arg(m_allowedRobotCountBlue));
+            ui->allowedBotsYellow->setText(QString("%1/%2").arg(m_currentRobotCountYellow).arg(m_allowedRobotCountYellow));
+        }
 
         if (yellowKeeperId != m_yellowKeeperId) {
             m_yellowKeeperId = yellowKeeperId;
@@ -198,6 +223,8 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
         yellow = createStyleSheet(UI_YELLOW_COLOR_LIGHT);
         blue = createStyleSheet(UI_BLUE_COLOR_LIGHT);
     }
+    ui->allowedBotsLabelBlue->setStyleSheet(blue);
+    ui->allowedBotsBlue->setStyleSheet(blue);
     ui->keeperIdBlue->setStyleSheet(blue);
     ui->keeperTextLabelBlue->setStyleSheet(blue);
     ui->numberOfCardsBlue->setStyleSheet(blue);
@@ -211,6 +238,8 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->timeoutsLeftLabelBlue->setStyleSheet(blue);
     ui->timeoutsLeftBlue->setStyleSheet(blue);
 
+    ui->allowedBotsLabelYellow->setStyleSheet(yellow);
+    ui->allowedBotsYellow->setStyleSheet(yellow);
     ui->keeperIdYellow->setStyleSheet(yellow);
     ui->keeperTextLabelYellow->setStyleSheet(yellow);
     ui->numberOfCardsYellow->setStyleSheet(yellow);

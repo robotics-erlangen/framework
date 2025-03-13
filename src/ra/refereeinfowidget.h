@@ -52,6 +52,11 @@ private:
     uint m_yellowKeeperId = 0;
     uint m_blueKeeperId = 0;
 
+    int m_currentRobotCountBlue = 0;
+    int m_currentRobotCountYellow = 0;
+    int m_allowedRobotCountBlue = 0;
+    int m_allowedRobotCountYellow = 0;
+
     uint m_yellowYellowCards = 0;
     uint m_blueYellowCards = 0;
     uint m_yellowRedCards = 0;

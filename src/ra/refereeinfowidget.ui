@@ -35,6 +35,27 @@
         <number>0</number>
        </property>
        <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_7">
+         <item>
+          <widget class="QLabel" name="allowedBotsLabelYellow">
+           <property name="text">
+            <string>Allowed Bots:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="allowedBotsYellow">
+           <property name="text">
+            <string>11/11</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
         <widget class="QGroupBox" name="yellowCardGroupYellow">
          <property name="title">
           <string>Yellow Cards</string>
@@ -213,6 +234,27 @@
        <property name="rightMargin">
         <number>0</number>
        </property>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_6">
+         <item>
+          <widget class="QLabel" name="allowedBotsLabelBlue">
+           <property name="text">
+            <string>Allowed Bots:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="allowedBotsBlue">
+           <property name="text">
+            <string>11/11</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
        <item>
         <widget class="QGroupBox" name="yellowCardGroupBlue">
          <property name="sizePolicy">
