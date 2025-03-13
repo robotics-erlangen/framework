@@ -91,6 +91,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
 
     const bool hasRobot = (robot != nullptr);
     const float robotTheta = robotToTheta(robot);
+    const float robotPhi = hasRobot ? robot->phi() : 0;
 
     // if the command contains desired speeds, the robot is being controlled manually
     // if command.local() is set to false and the robot is tracked, v_[sf] is actually v_[xy]
@@ -175,7 +176,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     LocalSpeed localOutputBase = outputBase.toLocal(robotThetaBase);
 
     const qint64 worldTimeOne = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputOne = evaluateInput(hasRobot, robotThetaBase, worldTimeOne, command, debug, hasManualCommand);
+    GlobalSpeed outputOne = evaluateInput(hasRobot, robotTheta, robotPhi, worldTimeOne, command, debug, hasManualCommand); // TODO
     const float timeStepOne = (worldTimeOne - m_baseSpeedTime) * 1E-9; // = CONTROL_STEP as long as the robot is tracked
     GlobalSpeed limitedOutputOne = limitAcceleration(robotThetaBase, outputOne, timeStepOne, hasManualCommand);
     // predict robot rotation, assume the robot managed to follow the command
@@ -192,7 +193,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     m_baseSpeedTime = worldTimeOne;
 
     const qint64 worldTimeTwo = worldTimeOne + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotThetaOne, worldTimeTwo, command, debug, hasManualCommand);
+    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotTheta, robotPhi, worldTimeTwo, command, debug, hasManualCommand);
     const float timeStepTwo = CONTROL_STEP;
     GlobalSpeed limitedOutputTwo = limitAcceleration(robotThetaOne, outputTwo, timeStepTwo, hasManualCommand);
     const float robotThetaTwo = robotThetaOne + (localOutputOne.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
@@ -214,7 +215,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     limitedOutputOne.copyToSpeedVector(*command.mutable_output1());
     limitedOutputTwo.copyToSpeedVector(*command.mutable_output2());
 
-    command.set_cur_phi(hasRobot ? robot->phi() : 0);
+    command.set_cur_phi(robotPhi);
 }
 
 float CommandEvaluator::robotToTheta(const world::Robot *robot)
@@ -247,7 +248,7 @@ float CommandEvaluator::robotToTheta(const world::Robot *robot)
     return robot == nullptr ? 0 : (robot->phi() - std::numbers::pi / 2);
 }
 
-GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotTheta, qint64 worldTime, const robot::Command &command,
+GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotTheta, float robotPhi, qint64 worldTime, const robot::Command &command,
                                             amun::DebugValues *debug, bool hasManualCommand)
 {
     // default to stopping
@@ -261,7 +262,7 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotThe
     } else if (hasTrackedRobot && m_input.global_spline_size() > 0) {
         output = evaluateSplineAtTime(worldTime);
     } else if (hasTrackedRobot && m_trajs.size() > 0) {
-        output = evaluateAlphaTimeTrajectoryAtTime(worldTime);
+        output = evaluateAlphaTimeTrajectoryAtTime(worldTime, robotPhi);
     }
 
     if (!output.isValid()) {
@@ -319,13 +320,33 @@ GlobalSpeed CommandEvaluator::evaluateSplinePartAtTime(const robot::Spline &spli
     return GlobalSpeed(v_x, v_y, omega);
 }
 
-GlobalSpeed CommandEvaluator::evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime)
+// normalizes to [-pi, pi)
+static float normalizeAngle(float angle) {
+    while (angle < -std::numbers::pi) {
+        angle += std::numbers::pi;
+    }
+    while (angle >= std::numbers::pi) {
+        angle -= std::numbers::pi;
+    }
+    return angle;
+}
+
+GlobalSpeed CommandEvaluator::evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime, const float robotPhi)
 {
     float timeElapsed = (worldTime - m_startTime) * 1E-9f;
+    const float targetPhi = m_input.trajectory(0).end_angle();
     for (AlphaTimeTrajectory &traj : m_trajs) {
         if (timeElapsed < traj.endTime()) {
+            const float deltaPhi = normalizeAngle(targetPhi - robotPhi);
+
+            // This is pretty hacky, but this rotation speed is not sent to the robot,
+            // as the full trajectory information is sent instead. This speed is only
+            // used in the command converter for the simulator and the tracking, where
+            // this should suffice (for now).
+            const float omega = deltaPhi;
+
             const RobotState state = traj.stateAtTime(timeElapsed);
-            return GlobalSpeed(state.speed.x, state.speed.y, 0);
+            return GlobalSpeed(state.speed.x, state.speed.y, omega);
         } else {
             timeElapsed -= traj.endTime();
         }
