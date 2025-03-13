@@ -105,13 +105,12 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     }
 
     if (hasManualCommand) {
-        clearInput();
+        command.clear_controller();
+        robot::ControllerInput *controller = command.mutable_controller();
         if (hasRobot) {
             GlobalSpeed manualSpeed = command.local()
                 ? evaluateLocalManualControl(command).toGlobal(robotTheta)
                 : evaluateGlobalManualControl(command);
-
-            GlobalSpeed limitedManualSpeed = limitAcceleration(robotTheta, manualSpeed, 1, hasManualCommand);
 
             float xPos = robot->p_x();
             float yPos = robot->p_y();
@@ -121,7 +120,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
             float yVel = manualSpeed.v_y;
             float omega = manualSpeed.omega;
 
-            robot::Spline *spline = m_input.add_global_spline();
+            robot::Spline *spline = controller->add_global_spline();
             spline->set_t_start(0);
             spline->set_t_end(INFINITY);
 
@@ -142,13 +141,12 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
             phiSpline->set_a1(omega);
             phiSpline->set_a2(0);
             phiSpline->set_a3(0);
-            drawSpline(debug);
         } else {
             LocalSpeed manualSpeed = command.local()
                 ? evaluateLocalManualControl(command)
                 : LocalSpeed(0, 0, 0);
 
-            robot::Spline *spline = m_input.add_local_spline();
+            robot::Spline *spline = controller->add_local_spline();
             spline->set_t_start(0);
             spline->set_t_end(INFINITY);
 
@@ -170,6 +168,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
             phiSpline->set_a2(0);
             phiSpline->set_a3(0);
         }
+        setInput(*controller, worldTime);
     }
 
     GlobalSpeed outputBase = m_baseSpeed;
