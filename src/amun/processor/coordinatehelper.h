@@ -33,7 +33,7 @@ public:
     std::optional<LocalSpeed> fromSpeedVector(const robot::SpeedVector &vector);
     void copyToSpeedVector(robot::SpeedVector &vector) const;
 
-    GlobalSpeed toGlobal(float phi) const;
+    GlobalSpeed toGlobal(float theta) const;
 
     float v_s;
     float v_f;
@@ -47,7 +47,7 @@ public:
     std::optional<GlobalSpeed> fromSpeedVector(const robot::SpeedVector &vector);
     void copyToSpeedVector(robot::SpeedVector &vector) const;
 
-    LocalSpeed toLocal(float phi) const;
+    LocalSpeed toLocal(float theta) const;
     bool isValid() const;
 
     float v_x;
@@ -58,7 +58,7 @@ public:
 class LocalAcceleration {
 public:
     LocalAcceleration(float a_s, float a_f, float a_phi);
-    GlobalAcceleration toGlobal(float phi) const;
+    GlobalAcceleration toGlobal(float theta) const;
 
     float a_s;
     float a_f;
@@ -68,7 +68,7 @@ public:
 class GlobalAcceleration {
 public:
     GlobalAcceleration(float a_x, float a_y, float a_phi);
-    LocalAcceleration toLocal(float phi) const;
+    LocalAcceleration toLocal(float theta) const;
 
     float a_x;
     float a_y;

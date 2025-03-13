@@ -38,10 +38,10 @@ void LocalSpeed::copyToSpeedVector(robot::SpeedVector &vector) const {
     vector.set_omega(omega);
 }
 
-GlobalSpeed LocalSpeed::toGlobal(float phi) const {
+GlobalSpeed LocalSpeed::toGlobal(float theta) const {
     // rotate ccw
-    const float v_x = std::cos(phi) * v_s - std::sin(phi) * v_f;
-    const float v_y = std::sin(phi) * v_s + std::cos(phi) * v_f;
+    const float v_x = std::cos(theta) * v_s - std::sin(theta) * v_f;
+    const float v_y = std::sin(theta) * v_s + std::cos(theta) * v_f;
     return GlobalSpeed(v_x, v_y, omega);
 }
 
@@ -61,10 +61,10 @@ void GlobalSpeed::copyToSpeedVector(robot::SpeedVector &vector) const {
     vector.set_omega(omega);
 }
 
-LocalSpeed GlobalSpeed::toLocal(float phi) const {
+LocalSpeed GlobalSpeed::toLocal(float theta) const {
     // rotate cw
-    const float v_s = std::cos(-phi) * v_x - std::sin(-phi) * v_y;
-    const float v_f = std::sin(-phi) * v_x + std::cos(-phi) * v_y;
+    const float v_s = std::cos(-theta) * v_x - std::sin(-theta) * v_y;
+    const float v_f = std::sin(-theta) * v_x + std::cos(-theta) * v_y;
     return LocalSpeed(v_s, v_f, omega);
 }
 
@@ -77,19 +77,19 @@ bool GlobalSpeed::isValid() const {
 
 LocalAcceleration::LocalAcceleration(float a_s, float a_f, float a_phi) : a_s(a_s), a_f(a_f), a_phi(a_phi) {}
 
-GlobalAcceleration LocalAcceleration::toGlobal(float phi) const {
+GlobalAcceleration LocalAcceleration::toGlobal(float theta) const {
     // rotate ccw
-    const float a_x = std::cos(phi) * a_s - std::sin(phi) * a_f;
-    const float a_y = std::sin(phi) * a_s + std::cos(phi) * a_f;
+    const float a_x = std::cos(theta) * a_s - std::sin(theta) * a_f;
+    const float a_y = std::sin(theta) * a_s + std::cos(theta) * a_f;
     return GlobalAcceleration(a_x, a_y, a_phi);
 }
 
 
 GlobalAcceleration::GlobalAcceleration(float a_x, float a_y, float a_phi) : a_x(a_x), a_y(a_y), a_phi(a_phi) {}
 
-LocalAcceleration GlobalAcceleration::toLocal(float phi) const {
+LocalAcceleration GlobalAcceleration::toLocal(float theta) const {
     // rotate cw
-    const float a_s = std::cos(-phi) * a_x - std::sin(-phi) * a_y;
-    const float a_f = std::sin(-phi) * a_x + std::cos(-phi) * a_y;
+    const float a_s = std::cos(-theta) * a_x - std::sin(-theta) * a_y;
+    const float a_f = std::sin(-theta) * a_x + std::cos(-theta) * a_y;
     return LocalAcceleration(a_s, a_f, a_phi);
 }

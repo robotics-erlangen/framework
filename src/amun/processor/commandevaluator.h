@@ -51,8 +51,8 @@ public:
     qint64 startTime() const{ return m_startTime; }
 
 private:
-    static float robotToPhi(const world::Robot *robot);
-    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug, bool hasManualCommand);
+    static float robotToTheta(const world::Robot *robot);
+    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotTheta, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug, bool hasManualCommand);
     LocalSpeed evaluateLocalManualControl(const robot::Command &command);
     GlobalSpeed evaluateGlobalManualControl(const robot::Command &command);
     GlobalSpeed evaluateSplineAtTime(const qint64 worldTime);
@@ -63,7 +63,7 @@ private:
     void logInvalidCommand(amun::DebugValues *debug, qint64 worldTime);
     void drawSpline(amun::DebugValues *debug);
 
-    GlobalSpeed limitAcceleration(float robotPhi, const GlobalSpeed &command, float timeStep, bool hasManualCommand);
+    GlobalSpeed limitAcceleration(float robotTheta, const GlobalSpeed &command, float timeStep, bool hasManualCommand);
     float boundAcceleration(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
     void drawSpeed(const world::Robot *robot, const GlobalSpeed &output, amun::DebugValues *debug);
 
