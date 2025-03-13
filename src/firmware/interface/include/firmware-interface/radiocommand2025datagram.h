@@ -16,6 +16,10 @@
  */
 
 typedef struct {
+    uint8_t data[100];
+} __attribute__ ((packed)) EchoDatagram;
+
+typedef struct {
     float kcoupling_val1;
     float kcoupling_val2;
     float kcoupling_val3;
@@ -37,14 +41,16 @@ typedef struct {
 } __attribute__ ((packed)) ConfigParamsDatagram;
 
 typedef enum {
+    ECHO_COMMAND,
     READ_ID_COMMAND,
     READ_CONFIG_COMMAND,
     WRITE_CONFIG_COMMAND
 } CommandDatagramType2025;
 
 typedef enum {
+    ECHO_RESPONSE,
     ID_RESPONSE,
-    CONFIG_RESPONSE,
+    CONFIG_RESPONSE
 } ResponseDatagramType2025;
 
 typedef struct {
