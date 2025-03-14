@@ -102,6 +102,62 @@ RadioCommand2025Spline static randomSpline(RNG &rng) {
     };
 }
 
+MotorStatusFlags2025 static randomMotorStatus(RNG &rng) {
+    return {
+        .error = randomBool(rng),
+        .overheated = randomBool(rng),
+        .encoder_error = randomBool(rng),
+    };
+}
+
+KickerStatusFlags2025 static randomKickerStatus(RNG &rng) {
+    return {
+        .error = randomBool(rng),
+        .break_beam_error = randomBool(rng),
+    };
+}
+
+IMUStatusFlags2025 static randomIMUStatus(RNG &rng) {
+    return {
+        .error = randomBool(rng),
+    };
+}
+
+SDStatusFlags2025 static randomSDStatus(RNG &rng) {
+    return {
+        .error = randomBool(rng),
+        .mounted = randomBool(rng),
+        .full = randomBool(rng),
+    };
+}
+
+RadioCommand2025Response static randomResponse(RNG &rng) {
+    RadioCommand2025Response response {
+        .battery = rng.uniformFloat(0, 1),
+        .packet_loss = rng.uniformFloat(0, 1),
+
+        .kicker_status = randomKickerStatus(rng),
+        .imu_status = randomIMUStatus(rng),
+        .sd_status = randomSDStatus(rng),
+
+        .measured_pos = randomState(rng, POS_MAX, ANGLE_MAX),
+        .measured_vel = randomState(rng, VEL_MAX, ANGLE_VEL_MAX),
+
+        .power_enabled = randomBool(rng),
+        .ball_detected = randomBool(rng),
+    };
+
+    response.main_board_id = rng.uniformInt() % UINT8_MAX;
+    response.kicker_board_id = rng.uniformInt() % UINT8_MAX;
+
+    for (uint32_t i = 0; i < RadioCommand2025MotorIndex::NUM_MOTORS; i++) {
+        response.motor_status[i] = randomMotorStatus(rng);
+        response.motor_load_torque[i] = rng.uniformFloat(-LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+    }
+
+    return response;
+}
+
 static bool vectorEq(const RadioCommand2025Vector &a, const RadioCommand2025Vector &b, float error) {
     // setting the relative error to 0 disables it, only the absolute error is of interest here
     return approxEq(a.x, b.x, 0, error)
@@ -205,6 +261,84 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Spline 
         << ".vel=" << a.vel << ", "
         << ".acc=" << a.acc << ", "
         << ".jerk=" << a.jerk << " }";
+}
+
+static bool motorStatusEq(const MotorStatusFlags2025 a, const MotorStatusFlags2025 b) {
+    return a.error == b.error
+        && a.overheated == b.overheated
+        && a.encoder_error == b.encoder_error;
+}
+
+static std::ostream &operator<<(std::ostream &out, const MotorStatusFlags2025 &a) {
+    return out << "MotorStatusFlags2025 {"
+        << ".error=" << a.error << ", "
+        << ".overheated=" << a.overheated << ", "
+        << ".encoder_error=" << a.encoder_error << " }";
+}
+
+static bool kickerStatusEq(const KickerStatusFlags2025 a, const KickerStatusFlags2025 b) {
+    return a.error == b.error
+        && a.break_beam_error == b.break_beam_error;
+}
+
+static std::ostream &operator<<(std::ostream &out, const KickerStatusFlags2025 &a) {
+    return out << "KickerStatusFlags2025 {"
+        << ".error=" << a.error << ", "
+        << ".break_beam_error=" << a.break_beam_error << " }";
+}
+
+static bool imuStatusEq(const IMUStatusFlags2025 a, const IMUStatusFlags2025 b) {
+    return a.error == b.error;
+}
+
+static std::ostream &operator<<(std::ostream &out, const IMUStatusFlags2025 &a) {
+    return out << "IMUStatusFlags2025 {"
+        << ".error=" << a.error << " }";
+}
+
+static bool sdStatusEq(const SDStatusFlags2025 a, const SDStatusFlags2025 b) {
+    return a.error == b.error
+        && a.mounted == b.mounted
+        && a.full == b.full;
+}
+
+static std::ostream &operator<<(std::ostream &out, const SDStatusFlags2025 &a) {
+    return out << "SDStatusFlags2025 {"
+        << ".error=" << a.error << ", "
+        << ".mounted=" << a.mounted << ", "
+        << ".full=" << a.full << " }";
+}
+
+#define ASSERT_RESPONSE_EQ(a, b) ASSERT_PRED2(responseEq, a, b)
+static bool responseEq(const RadioCommand2025Response a, const RadioCommand2025Response b) {
+    return approxEq(a.battery, b.battery, 0, ABS_ERROR(0, 1, BATTERY_BITS))
+        && approxEq(a.packet_loss, b.packet_loss, 0, ABS_ERROR(0, 1, PACKET_LOSS_BITS))
+
+        && kickerStatusEq(a.kicker_status, b.kicker_status)
+        && imuStatusEq(a.imu_status, b.imu_status)
+        && sdStatusEq(a.sd_status, b.sd_status)
+
+        && stateEq(a.measured_pos, b.measured_pos, ABS_ERROR(-POS_MAX, POS_MAX, POS_BITS), ABS_ERROR(-ANGLE_MAX, ANGLE_MAX, ANGLE_BITS))
+        && stateEq(a.measured_vel, b.measured_vel, ABS_ERROR(-VEL_MAX, VEL_MAX, VEL_BITS), ABS_ERROR(-ANGLE_VEL_MAX, ANGLE_VEL_MAX, ANGLE_VEL_BITS))
+
+        && a.power_enabled == b.power_enabled
+        && a.ball_detected == b.ball_detected;
+}
+
+static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Response &a) {
+    return out << "RadioCommand2025Response { "
+        << ".battery=" << a.battery << ", "
+        << ".packet_loss=" << a.packet_loss << ", "
+
+        << ".kicker_status=" << a.kicker_status << ", "
+        << ".imu_status=" << a.imu_status << ", "
+        << ".sd_status=" << a.sd_status << ", "
+
+        << ".measured_pos=" << a.measured_pos << ", "
+        << ".measured_vel=" << a.measured_vel << ", "
+
+        << ".power_enabled=" << a.power_enabled << ", "
+        << ".ball_detected=" << a.ball_detected << " }";
 }
 
 
@@ -325,5 +459,19 @@ TEST(RadioCommand2025, ReadWriteCombined) {
 
         read_common(&readCommon, &cmd);
         ASSERT_COMMON_EQ(writtenCommon, readCommon);
+    }
+}
+
+TEST(RadioCommand2025, ReadWriteRespone) {
+    for (uint32_t i = 0; i < NUM_TEST_ITERATIONS; i++) {
+        RNG rng{i + 123};
+        RegularResponsePayload2025 response;
+
+        RadioCommand2025Response written = randomResponse(rng);
+        write_response(&written, &response);
+
+        RadioCommand2025Response read;
+        read_response(&read, &response);
+        ASSERT_RESPONSE_EQ(written, read);
     }
 }

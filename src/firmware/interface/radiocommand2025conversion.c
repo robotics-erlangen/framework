@@ -219,3 +219,69 @@ bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025
     spline->jerk.angle = map_from_signed(cmd->traj.spline.phi_jerk, ANGLE_JERK_BITS, -ANGLE_JERK_MAX, ANGLE_JERK_MAX);
     return true;
 }
+
+void write_response(const RadioCommand2025Response *response, RegularResponsePayload2025 *payload) {
+    payload->battery = map_to_unsigned(response->battery, 0.0f, 1.0f, BATTERY_BITS);
+    payload->packet_loss = map_to_unsigned(response->packet_loss, 0.0f, 1.0f, PACKET_LOSS_BITS);
+
+    payload->motor0_status = response->motor_status[MOTOR_FR];
+    payload->motor1_status = response->motor_status[MOTOR_FL];
+    payload->motor2_status = response->motor_status[MOTOR_BR];
+    payload->motor3_status = response->motor_status[MOTOR_BL];
+    payload->dribbler_status = response->motor_status[DRIBBLER];
+    payload->kicker_status = response->kicker_status;
+    payload->imu_status = response->imu_status;
+    payload->sd_status = response->sd_status;
+
+    payload->main_board_id = response->main_board_id;
+    payload->kicker_board_id = response->kicker_board_id;
+
+    payload->motor0_load_torque = map_to_signed(response->motor_load_torque[MOTOR_FR], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
+    payload->motor1_load_torque = map_to_signed(response->motor_load_torque[MOTOR_FL], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
+    payload->motor2_load_torque = map_to_signed(response->motor_load_torque[MOTOR_BR], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
+    payload->motor3_load_torque = map_to_signed(response->motor_load_torque[MOTOR_BL], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
+    payload->dribbler_load_torque = map_to_signed(response->motor_load_torque[DRIBBLER], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
+
+    payload->measured_pos_x = map_to_signed(response->measured_pos.coords.x, -POS_MAX, POS_MAX, MEASURED_POS_BITS);
+    payload->measured_pos_y = map_to_signed(response->measured_pos.coords.y, -POS_MAX, POS_MAX, MEASURED_POS_BITS);
+    payload->measured_phi = map_to_signed(response->measured_pos.angle, -ANGLE_MAX, ANGLE_MAX, MEASURED_ANGLE_BITS);
+    payload->measured_vel_x = map_to_signed(response->measured_vel.coords.x, -VEL_MAX, VEL_MAX, MEASURED_VEL_BITS);
+    payload->measured_vel_y = map_to_signed(response->measured_vel.coords.y, -VEL_MAX, VEL_MAX, MEASURED_VEL_BITS);
+    payload->measured_omega = map_to_signed(response->measured_vel.angle, -ANGLE_VEL_MAX, ANGLE_VEL_MAX, MEASURED_ANGLE_VEL_BITS);
+
+    payload->power_enabled = response->power_enabled;
+    payload->ball_detected = response->ball_detected;
+}
+
+void read_response(RadioCommand2025Response *response, const RegularResponsePayload2025 *payload) {
+    response->battery = map_from_unsigned(payload->battery, BATTERY_BITS, 0.0f, 1.0f);
+    response->packet_loss = map_from_unsigned(payload->packet_loss, PACKET_LOSS_BITS, 0.0f, 1.0f);
+
+    response->motor_status[MOTOR_FR] = payload->motor0_status;
+    response->motor_status[MOTOR_FL] = payload->motor1_status;
+    response->motor_status[MOTOR_BR] = payload->motor2_status;
+    response->motor_status[MOTOR_BL] = payload->motor3_status;
+    response->motor_status[DRIBBLER] = payload->dribbler_status;
+    response->kicker_status = payload->kicker_status;
+    response->imu_status = payload->imu_status;
+    response->sd_status = payload->sd_status;
+
+    response->main_board_id = payload->main_board_id;
+    response->kicker_board_id = payload->kicker_board_id;
+
+    response->motor_load_torque[MOTOR_FR] = map_from_signed(payload->motor0_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+    response->motor_load_torque[MOTOR_FL] = map_from_signed(payload->motor1_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+    response->motor_load_torque[MOTOR_BR] = map_from_signed(payload->motor2_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+    response->motor_load_torque[MOTOR_BL] = map_from_signed(payload->motor3_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+    response->motor_load_torque[DRIBBLER] = map_from_signed(payload->dribbler_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
+
+    response->measured_pos.coords.x = map_from_signed(payload->measured_pos_x, MEASURED_POS_BITS, -POS_MAX, POS_MAX);
+    response->measured_pos.coords.y = map_from_signed(payload->measured_pos_y, MEASURED_POS_BITS, -POS_MAX, POS_MAX);
+    response->measured_pos.angle = map_from_signed(payload->measured_phi, MEASURED_ANGLE_BITS, -ANGLE_MAX, ANGLE_MAX);
+    response->measured_vel.coords.x = map_from_signed(payload->measured_vel_x, MEASURED_VEL_BITS, -VEL_MAX, VEL_MAX);
+    response->measured_vel.coords.y = map_from_signed(payload->measured_vel_y, MEASURED_VEL_BITS, -VEL_MAX, VEL_MAX);
+    response->measured_vel.angle = map_from_signed(payload->measured_omega, MEASURED_ANGLE_VEL_BITS, -ANGLE_VEL_MAX, ANGLE_VEL_MAX);
+
+    response->power_enabled = payload->power_enabled;
+    response->ball_detected = payload->ball_detected;
+}

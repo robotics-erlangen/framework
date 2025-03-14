@@ -26,6 +26,9 @@
 #define SHOT_POWER_BITS 8
 #define DRIBBLER_BITS 8
 
+#define BATTERY_BITS 8
+#define PACKET_LOSS_BITS 8
+
 #define LOAD_TORQUE_BITS 8
 
 #define MEASURED_POS_BITS 14
@@ -141,13 +144,13 @@ typedef struct {
  * @brief Structure for status response from robot (without header)
  */
 typedef struct {
-    uint8_t battery;
-    uint8_t packet_loss;
+    uint8_t battery:BATTERY_BITS;
+    uint8_t packet_loss:PACKET_LOSS_BITS;
 
+    MotorStatusFlags2025 motor0_status;
     MotorStatusFlags2025 motor1_status;
     MotorStatusFlags2025 motor2_status;
     MotorStatusFlags2025 motor3_status;
-    MotorStatusFlags2025 motor4_status;
     MotorStatusFlags2025 dribbler_status;
     KickerStatusFlags2025 kicker_status;
     IMUStatusFlags2025 imu_status;
@@ -156,18 +159,18 @@ typedef struct {
     uint8_t main_board_id;
     uint8_t kicker_board_id;
 
-    uint8_t motor1_load_torque:LOAD_TORQUE_BITS;
-    uint8_t motor2_load_torque:LOAD_TORQUE_BITS;
-    uint8_t motor3_load_torque:LOAD_TORQUE_BITS;
-    uint8_t motor4_load_torque:LOAD_TORQUE_BITS;
-    uint8_t dribbler_load_torque:LOAD_TORQUE_BITS;
+    int16_t motor0_load_torque:LOAD_TORQUE_BITS;
+    int16_t motor1_load_torque:LOAD_TORQUE_BITS;
+    int16_t motor2_load_torque:LOAD_TORQUE_BITS;
+    int16_t motor3_load_torque:LOAD_TORQUE_BITS;
+    int16_t dribbler_load_torque:LOAD_TORQUE_BITS;
 
-    uint16_t measured_pos_x:MEASURED_POS_BITS;
-    uint16_t measured_pos_y:MEASURED_POS_BITS;
-    uint16_t measured_phi:MEASURED_ANGLE_BITS;
-    uint16_t measured_vel_x:MEASURED_VEL_BITS;
-    uint16_t measured_vel_y:MEASURED_VEL_BITS;
-    uint16_t measured_omega:MEASURED_ANGLE_VEL_BITS;
+    int16_t measured_pos_x:MEASURED_POS_BITS;
+    int16_t measured_pos_y:MEASURED_POS_BITS;
+    int16_t measured_phi:MEASURED_ANGLE_BITS;
+    int16_t measured_vel_x:MEASURED_VEL_BITS;
+    int16_t measured_vel_y:MEASURED_VEL_BITS;
+    int16_t measured_omega:MEASURED_ANGLE_VEL_BITS;
 
     bool power_enabled:1;
     bool ball_detected:1;

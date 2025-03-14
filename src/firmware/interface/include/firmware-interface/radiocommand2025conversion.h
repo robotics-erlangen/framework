@@ -23,6 +23,8 @@
 #define TRAJECTORY_PATH_T_MAX 40.0f
 #define TRAJECTORY_PATH_SLOW_DOWN_TIME_MAX 1.0f
 
+#define LOAD_TORQUE_MAX 10.0f
+
 
 // if this vector is in the context of a local coordinate system,
 // x is sideward, and y is forward
@@ -75,6 +77,36 @@ typedef struct {
     RadioCommand2025State jerk;  // [m/s^3] and [rad/s^3]
 } RadioCommand2025Spline;
 
+typedef enum {
+    MOTOR_FR,
+    MOTOR_FL,
+    MOTOR_BR,
+    MOTOR_BL,
+    DRIBBLER,
+    NUM_MOTORS, // must be the last member in the enum
+} RadioCommand2025MotorIndex;
+
+typedef struct {
+    float battery;  // [%]
+    float packet_loss;  // [%] calculated over the last 100 packets
+
+    MotorStatusFlags2025 motor_status[NUM_MOTORS];
+    KickerStatusFlags2025 kicker_status;
+    IMUStatusFlags2025 imu_status;
+    SDStatusFlags2025 sd_status;
+
+    uint8_t main_board_id;
+    uint8_t kicker_board_id;
+
+    float motor_load_torque[NUM_MOTORS];  // [Nm]
+
+    RadioCommand2025State measured_pos;  // [m] and [rad]
+    RadioCommand2025State measured_vel;  // [m/s] and [rad/s]
+
+    bool power_enabled;
+    bool ball_detected;
+} RadioCommand2025Response;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,6 +123,9 @@ bool read_trajectory_path(RadioCommand2025TrajectoryPath *traj, const RegularCom
 
 void write_spline(const RadioCommand2025Spline *spline, RegularCommandPayload2025 *cmd, const bool is_local);
 bool read_spline(RadioCommand2025Spline *spline, const RegularCommandPayload2025 *cmd, const bool is_local);
+
+void write_response(const RadioCommand2025Response *response, RegularResponsePayload2025 *payload);
+void read_response(RadioCommand2025Response *response, const RegularResponsePayload2025 *payload);
 
 #ifdef __cplusplus
 }
