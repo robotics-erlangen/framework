@@ -101,9 +101,9 @@ export class CenterBack extends Task {
 			this._forceShoot.doForceShoot();
 
 			if (ballShotFastAtRobot(this._robot)) {
-				this._robot.chip(1.5);
+				this._robot.chip(2.5);
 			} else {
-				this._robot.chip(2);
+				this._robot.chip(3);
 			}
 		}
 
