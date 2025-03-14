@@ -445,7 +445,7 @@ export class FriendlyRobot extends Robot {
 	/** Construct the command for what the corresponding actual robot should do based on the current state of this FriendlyRobot */
 	// eslint-disable-next-line @typescript-eslint/naming-convention
 	public _command(): pb.robot.Command {
-		const STANDBY_DELAY = 30;
+		const STANDBY_DELAY = 10;
 		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
 		let result: pb.robot.Command = {
@@ -573,6 +573,7 @@ export class FriendlyRobot extends Robot {
 
 	/** Halts robot */
 	public halt() {
+		this.setStandby(true);
 		this.path.setHalted();
 		this.setControllerInput(HALT);
 	}
