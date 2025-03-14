@@ -80,6 +80,8 @@ protected:
     [[nodiscard]] std::optional<TransceiverError> sendInitPacket();
     [[nodiscard]] std::optional<std::vector<TransceiverError>> tryConnect(QObject* parent);
 
+    virtual QByteArray buildRawRadioResponse(const char *data, uint size);
+
 private:
     [[nodiscard]] std::optional<TransceiverError> write(const QByteArray &packet);
 

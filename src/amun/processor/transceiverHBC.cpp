@@ -24,12 +24,14 @@
 #include "core/timer.h"
 #include "radio_address.h"
 #include "transceiver2015.h"
+#include "firmware-interface/radiocommand.h"
 #include "transceiverlayer.h"
 #include "usbdevice.h"
 #include "usbthread.h"
 #include <QByteArray>
 #include <QString>
 #include <QtGlobal>
+#include <cstring>
 #include <libusb.h>
 #include <memory>
 #include <qeventloop.h>
@@ -125,3 +127,12 @@ void TransceiverHBC::addSendCommand(const Radio::Address &target, size_t expecte
 
     Transceiver2015::addSendCommand(target, expectedResponseSize, data, len);
 }
+
+QByteArray TransceiverHBC::buildRawRadioResponse(const char *data, uint size) {
+    QByteArray rawRadioResponse{(int)size + 1, 0};
+    char *rawRadioResponseData = rawRadioResponse.data();
+    rawRadioResponse[0] = ResponseCommand::RESPONSE_2025_DEFAULT;
+    std::memcpy(rawRadioResponseData + 1, data, size);
+    return rawRadioResponse;
+}
+

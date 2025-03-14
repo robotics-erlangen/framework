@@ -37,7 +37,8 @@ typedef struct
 enum ResponseCommand {
     // RESPONSE_2012_DEFAULT = 0x01,
     RESPONSE_2014_DEFAULT = 0x02,
-    RESPONSE_PASTA_DEFAULT = 0x03
+    RESPONSE_PASTA_DEFAULT = 0x03,
+    RESPONSE_2025_DEFAULT = 0x04
 };
 
 // Radiodatagrams are merged into a data stream

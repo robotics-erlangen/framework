@@ -50,6 +50,9 @@ public:
 
     void addSendCommand(const Radio::Address &target, size_t expectedResponseSize, const char *data, size_t len) final;
 
+protected:
+    QByteArray buildRawRadioResponse(const char *data, uint size) override;
+
 private:
     static std::variant<TransceiverHBC, TransceiverError> tryOpen(USBThread * context, Kind kind, const Timer *timer, QObject *parent = nullptr);
     explicit TransceiverHBC(USBDevice *device, const Timer *timer, QString debugName, Kind kind);

@@ -239,6 +239,10 @@ void Transceiver2015::onReadyRead()
     }
 }
 
+QByteArray Transceiver2015::buildRawRadioResponse(const char *data, uint size) {
+    return QByteArray { data, (int)size };
+}
+
 std::optional<TransceiverError> Transceiver2015::read()
 {
     const int maxSize = 512;
@@ -286,7 +290,7 @@ std::optional<TransceiverError> Transceiver2015::read()
             handleStatusPacket(&buffer[pos], header->size);
             break;
         case COMMAND_REPLY_FROM_ROBOT:
-            rawResponses.append(QByteArray { &buffer[pos], header->size });
+            rawResponses.append(buildRawRadioResponse(&buffer[pos], header->size));
             break;
         case COMMAND_DATAGRAM_RECEIVED:
             handleDatagramPacket(&buffer[pos], header->size);

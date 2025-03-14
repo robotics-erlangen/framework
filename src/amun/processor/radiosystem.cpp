@@ -439,6 +439,24 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
         }
         responses.append(r);
+    } else if (header->command == RESPONSE_2025_DEFAULT && size == sizeof(RadioResponse2025)) {
+        const uint8_t id = data[0];
+        size -= sizeof(uint8_t);
+        data += sizeof(uint8_t);
+
+        const RadioResponse2025 *response = (const RadioResponse2025*)data;
+        if (response->header.datagram) {
+            // TODO handle datagrams?
+        } else {
+            const RegularResponsePayload2025 *regular = &response->payload.regular;
+
+            robot::RadioResponse r;
+            r.set_time(time);
+            r.set_generation((uint)Radio::Generation::GenPasta);
+            r.set_id(id);
+
+            responses.append(r);
+        }
     }
 }
 
