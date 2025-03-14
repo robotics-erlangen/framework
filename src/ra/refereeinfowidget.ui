@@ -39,7 +39,7 @@
          <item>
           <widget class="QLabel" name="allowedBotsLabelYellow">
            <property name="text">
-            <string>Allowed Bots:</string>
+            <string>Visible/Allowed</string>
            </property>
           </widget>
          </item>
@@ -145,7 +145,7 @@
          <item>
           <widget class="QLabel" name="timeoutsLeftLabelYellow">
            <property name="text">
-            <string>Timeouts Left:</string>
+            <string>Timeouts:</string>
            </property>
           </widget>
          </item>
@@ -239,7 +239,7 @@
          <item>
           <widget class="QLabel" name="allowedBotsLabelBlue">
            <property name="text">
-            <string>Allowed Bots:</string>
+            <string>Visible/Allowed</string>
            </property>
           </widget>
          </item>
@@ -348,7 +348,7 @@
          <item>
           <widget class="QLabel" name="timeoutsLeftLabelBlue">
            <property name="text">
-            <string>Timeouts Left:</string>
+            <string>Timeouts:</string>
            </property>
           </widget>
          </item>
