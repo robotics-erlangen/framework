@@ -25,8 +25,8 @@
 
 
 // the maximum absolute error is half the resolution plus a little extra for floating point inaccuracies
-#define ABS_ERROR(min, max, bits) (RESOLUTION(min, max, bits) / 2 * 1.005f)
-#define RESOLUTION(min, max, bits) (((max) - (min)) / (1 << (bits)))
+#define ABS_ERROR(min, max, bits) (RESOLUTION(min, max, bits) / 2.0f * 1.005f)
+#define RESOLUTION(min, max, bits) ((float)((max) - (min)) / (float)(1 << (bits)))
 
 
 bool static randomBool(RNG &rng) {
