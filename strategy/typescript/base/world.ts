@@ -599,7 +599,7 @@ function _updateGameState(state: pb.amun.GameState) {
 }
 
 /** update and handle user inputs set for own robots */
-export function _updateUserInput(input: pb.amun.UserInput) {
+function _updateUserInput(input: pb.amun.UserInput) {
 	if (input.radio_command) {
 		for (let robot of FriendlyRobotsAll) {
 			robot._updateUserControl(undefined); // clear
@@ -636,7 +636,6 @@ export function _updateUserInput(input: pb.amun.UserInput) {
 export function haltOwnRobots() {
 	for (let robot of FriendlyRobotsAll) {
 		if (robot.moveCommand == undefined) {
-			robot.setStandby(true);
 			robot.halt();
 		}
 	}
