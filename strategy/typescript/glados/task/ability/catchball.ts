@@ -15,6 +15,7 @@ import * as Physics from "glados/observer/physics";
 import { Task } from "glados/task/base";
 import { CurvedMaxAccel } from "glados/trajectory/curvedmaxaccel";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import { ToTarget } from "glados/trajectory/totarget";
 import * as Volley from "glados/util/volley"; // only for calcPhi
 
 
@@ -233,9 +234,8 @@ export class CatchBall {
 
 
 		// move to the predicted ball
-		this._robot.trajectory.update(CurvedMaxAccel, moveDest, viewDir, maxSpeed);
+		const time = this._robot.trajectory.update(ToTarget, moveDest, viewDir, maxSpeed)[1];
 		this._robot.setDribblerSpeed(0.6);
-		let time = Physics.robotTimeToPos(this._robot, moveDest, new Vector(0, 0))[0];
 		this._messaging.sendBroadcast(MessageType.moveDest, moveDest);
 		this._messaging.sendBroadcast(MessageType.attackPosition, predictedBall.pos);
 
