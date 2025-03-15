@@ -91,7 +91,7 @@ export class CatchBall {
 	 * @param maxSpeed - Maximum speed of the robot
 	 * @returns [catchTime, catchPosition] - When we will catch the ball (relative Time) and the ball position then
 	 */
-	public catchBall(targetPos: Position, distanceToBall: number, targetSpeed?: number, maxSpeed?: number): [number, Position] {
+	public catchBall(targetPos: Position, distanceToBall: number = 0, targetSpeed?: number, maxSpeed?: number): [number, Position] {
 		let ball = World.Ball;
 		// update catch time
 		if (this._catchTime != undefined && !Ball.isAccelerating() && this._recalculateCatchTimeCounter < 20) {
@@ -137,9 +137,6 @@ export class CatchBall {
 			predictedBall = { pos: lastReasonableBallPos, speed: new Vector(0, 0), maxSpeed: ball.maxSpeed, radius: ball.radius };
 		}
 
-		// catching the ball only makes sense if we really try to
-		// a distance other than 0 is only useful for moving to a stopped ball
-		distanceToBall = distanceToBall || 0;
 		let viewDir = (targetPos - predictedBall.pos).angle();
 		if (targetSpeed != undefined && !Ball.isSlowBall()) {
 			let targetDir = Volley.calcPhi(this._robot, predictedBall.speed, predictedBall.pos,
