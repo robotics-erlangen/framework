@@ -18,64 +18,6 @@ import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
 
-// enables several visualizations for the state of the PID controller
-const VISUALIZE_PID_STATE = Option.addOption("Visualize PID controller state in strategy", false);
-
-class PID {
-	private _p: number;
-	private _i: number;
-	private _d: number;
-	private _name: string;
-	private _robot: RobotLike;
-
-	private _maxLength: number;
-
-	private _integral: Vector = new Vector(0, 0);
-	private _previousError: Vector = new Vector(0, 0);
-
-	public constructor(maxLength: number, p: number, i: number, d: number, name: string, robot: RobotLike) {
-		this._maxLength = maxLength;
-		this._p = p;
-		this._i = i;
-		this._d = d;
-		this._name = name + robot.id + (World.TeamIsBlue ? "b" : "y");
-		this._robot = robot;
-	}
-
-	public reset() {
-		this._integral = new Vector(0, 0);
-	}
-
-	public update(error: Vector) {
-		let timeDiff = World.TimeDiff;
-
-		let pOut = error * this._p;
-		this._integral = this._integral + error * timeDiff;
-		let iOut = this._integral * this._i;
-
-		let derivative = (error - this._previousError) / timeDiff;
-		let dOut = derivative * this._d;
-
-		let output = pOut + iOut + dOut;
-
-		if (output.length() > this._maxLength) {
-			output = output.withLength(this._maxLength);
-		}
-
-		if (VISUALIZE_PID_STATE) {
-			vis.addPath(`Position Control/${this._name}/integral`, [this._robot.pos, this._robot.pos + this._integral], vis.colors.cyan);
-			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + pOut], vis.colors.brown);
-			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + iOut], vis.colors.pink);
-			vis.addPath(`Position Control/${this._name}/output components`, [this._robot.pos, this._robot.pos + dOut], vis.colors.blue);
-			vis.addPath(`Position Control/${this._name}/output`, [this._robot.pos, this._robot.pos + output], vis.colors.white);
-			vis.addPath(`Position Control/${this._name}/error`, [this._robot.pos, this._robot.pos + error], vis.colors.red);
-		}
-
-		this._previousError = error;
-		return output;
-	}
-}
-
 // enables a more expensive, but also a little more
 // useful visualization for trajectories
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
@@ -275,8 +217,6 @@ export class TrajectoryPathResult extends ToTargetResult {
 
 export class TrajectoryPath extends TrajectoryHandler<[Position, number, number, Speed, number, boolean], TrajectoryPathResult> {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
-	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0, "speed", this._robot);
-	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1, "position", this._robot);
 	private _dribbleWarning = true;
 	private _slowSpeedHysteresis: boolean = false;
 
@@ -324,17 +264,6 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		let startSpeed = robotSpeed;
 		let futureStartPos = robotPos;
 		let futureStartSpeed = robotSpeed;
-		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2
-			&& World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE;
-		if (usePositionControl && this._lastResult !== undefined) {
-			let [testPos, testSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastResult, 0);
-			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
-			if (testPos.distanceTo(robotPos) < 0.1 && testSpeed.distanceTo(robotSpeed) < 0.3) {
-				startPos = testPos;
-				startSpeed = testSpeed;
-				[futureStartPos, futureStartSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastResult, 0.01);
-			}
-		}
 
 		// calculate acceleration (also used for braking)
 		let baseAcceleration = Math.min(Math.abs(this._robot.acceleration.aSpeedupFMax), Math.abs(this._robot.acceleration.aBrakeFMax));
@@ -424,17 +353,6 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 			speed = speed * 1.5;
 			acc = acc * 1.5;
 			vis.addCircle("Position Control", this._robot.pos, 0.2, vis.colors.red);
-		}
-
-		if (usePositionControl) {
-			let posDiff = this._positionPID.update(futureStartPos - robotPos);
-			let speedDiff = this._speedPID.update(futureStartSpeed - robotSpeed);
-			let controlSpeed = posDiff + speedDiff;
-			speed = speed.withLength(Math.max(0, speed.length() - controlSpeed.length()));
-			speed = speed + controlSpeed;
-			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speed], vis.colors.blue);
-			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + acc], vis.colors.orange);
-			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
 		}
 
 		const trajectory: pb.robot.AlphaTimeTrajectory[] = [];
