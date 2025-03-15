@@ -377,7 +377,7 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
 
         primaryDetection->set_x(p.p_x());
         primaryDetection->set_y(p.p_y());
-        primaryDetection->set_phi(p.phi());
+        primaryDetection->set_angle(p.phi());
     };
 
     if (m_measurements.length() == 1) {

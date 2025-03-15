@@ -110,7 +110,7 @@ message Robot {
     required float v_y = 6;
     required float omega = 7;
     repeated TransformedRobotMeasurement raw = 8;
-    optional robot.RobotDetection primary_detection = 9;
+    optional robot.RobotState primary_detection = 9;  // in [m] and [rad], in the global coordinate system
 }
 
 message TrackingAOI {

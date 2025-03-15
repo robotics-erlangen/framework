@@ -136,13 +136,10 @@ message SpeedVector
     optional float omega = 3;
 };
 
-message RobotDetection {
-    // x-Position [m] of the robot in the global coordinate system
+message RobotState {
     optional float x = 1;
-    // y-Position [m] of the robot in the global coordinate system
     optional float y = 2;
-    // Rotation [rad] of the robot in the global coordinate system
-    optional float phi = 3;
+    optional float angle = 3;
 };
 
 message Command
@@ -178,7 +175,7 @@ message Command
     optional SpeedVector output0 = 20;
     optional SpeedVector output1 = 21;  // this field is used by the command converter for the SSL sim protocol
     optional SpeedVector output2 = 22;
-    optional RobotDetection last_detection = 26;
+    optional RobotState last_detection = 26; // in [m] and [rad], in the global coordinate system
 }
 
 message RadioCommand

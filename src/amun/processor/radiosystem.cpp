@@ -749,7 +749,7 @@ void RadioSystem::addRobot2025Command(int id, const bool isBlue, const robot::Co
     data.header.acknum = 0; // TODO
     data.header.datagram = false;
 
-    robot::RobotDetection lastDetection = command.last_detection();
+    robot::RobotState lastDetection = command.last_detection();
     RadioCommand2025Common common = {
         // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
         .time_offset = fminf(2000.0f, processingDelay / 1000.0f), // TODO
@@ -763,13 +763,13 @@ void RadioSystem::addRobot2025Command(int id, const bool isBlue, const robot::Co
         .charge = charge,
         .force_kick = command.force_kick(),
 
-        .has_detection = lastDetection.has_x() && lastDetection.has_y() && lastDetection.has_phi(),
+        .has_detection = lastDetection.has_x() && lastDetection.has_y() && lastDetection.has_angle(),
         .detection = {
             .coords = {
                 .x = lastDetection.has_x() ? lastDetection.x() : 0,
                 .y = lastDetection.has_y() ? lastDetection.y() : 0,
             },
-            .angle = normalizeAngle(lastDetection.has_phi() ? lastDetection.phi() : 0),
+            .angle = normalizeAngle(lastDetection.has_angle() ? lastDetection.angle() : 0),
         },
     };
     write_common(&common, &data.payload.regular);
