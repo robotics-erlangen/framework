@@ -10,6 +10,7 @@ import { TrajectoryTiming as TrajectoryTimingTask } from "glados/task/test/traje
 import { DribbleTest } from "glados/test/move/dribbletest";
 import { FeintKeeperTest } from "glados/test/move/feintkeepertest";
 import { InterceptPassMove } from "glados/test/move/interceptpass";
+import { KickBackTest } from "glados/test/move/kickback";
 import { MovingObstacles } from "glados/test/move/movingobstacles";
 import { Race } from "glados/test/move/race";
 import { Rotate } from "glados/test/move/rotate";
@@ -39,7 +40,8 @@ let testMoves: (typeof Move)[] = [
 	makeSingleTaskMove(RotTest),
 	InterceptPassMove,
 	makeSingleTaskMove(TIGERsTestGoalShot),
-	FeintKeeperTest
+	FeintKeeperTest,
+	makeSingleTaskMove(KickBackTest),
 ];
 let victoryMoves: (typeof Move)[] = [
 	Circle,
