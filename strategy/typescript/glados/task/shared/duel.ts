@@ -49,7 +49,7 @@ export class Duel extends Task {
 	private _stayBehindOpp: boolean = false;
 	private _beforeOpp: boolean = false;
 	private _lastCloseToOpp: boolean = false;
-	private _futureBall: Position | undefined;
+	private _positionOfInterest: Position | undefined;
 	private _rotating: boolean = false;
 	private _isMainAttacker: boolean = false;
 	private _lastDefendGoal = false;
@@ -146,7 +146,7 @@ export class Duel extends Task {
 	 * @returns The near block position.
 	 */
 	private _moveToNearBlock(closestOpponentRobot: Robot): Position {
-		let futureBall = <Position> this._futureBall;
+		let futureBall = <Position> this._positionOfInterest;
 		// all decisions are made to keep the own goal covered
 		let baseDir = (futureBall - World.Geometry.FriendlyGoal).angle();
 		let oppViewDir = (futureBall - closestOpponentRobot.pos).angle();
@@ -184,14 +184,18 @@ export class Duel extends Task {
 
 		let moveTime = ObserverRobot.minTimeToBall(this._robot);
 		let minTime = Math.min(moveTime, shortestTimeToBall);
-		this._futureBall = Physics.ballAtTime(World.Ball, minTime).pos;
-		vis.addCircle("t/duel: future ball", this._futureBall, World.Ball.radius + 0.01, vis.colors.green);
+		this._positionOfInterest = Physics.ballAtTime(World.Ball, minTime).pos;
+		vis.addCircle("t/duel: future ball", this._positionOfInterest, World.Ball.radius + 0.01, vis.colors.green);
+		if (closestOpponentRobot) {
+			this._positionOfInterest = (this._positionOfInterest + closestOpponentRobot.pos) * 0.5;
+			vis.addCircle("t/duel: between future ball / oppBot", this._positionOfInterest, World.Ball.radius + 0.01, vis.colors.green);
+		}
 
 		// pos before the defense area; the possibility of crashing into centerbacks was considered
 		// but disregarded because blocking a shot on the goal is more important,
 		// and the probabilty of it being the final position is small
-		let intersectionDefenseArea = Field.intersectRayDefenseArea(this._futureBall,
-				World.Geometry.FriendlyGoal - this._futureBall,
+		let intersectionDefenseArea = Field.intersectRayDefenseArea(this._positionOfInterest,
+				World.Geometry.FriendlyGoal - this._positionOfInterest,
 				this._robot.radius + DEFENSE_AREA_MIN_DISTANCE, true)[0];
 		let basePos: Position;
 
@@ -201,7 +205,7 @@ export class Duel extends Task {
 			basePos = this._robot.pos;
 		}
 
-		let distToLine = this._robot.pos.distanceToLineSegment(basePos, this._futureBall);
+		let distToLine = this._robot.pos.distanceToLineSegment(basePos, this._positionOfInterest);
 		if (distToLine <= BLOCK_DIST_MAX) {
 			this._blockingBall = true;
 		} else if (distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HYSTERESIS) {
@@ -234,15 +238,15 @@ export class Duel extends Task {
 		let minTime = Math.min(moveTime, shortestTimeToBall);
 
 		if (minTime === Infinity) {
-			this._futureBall = Ball.getRealisticBallPos();
+			this._positionOfInterest = Ball.getRealisticBallPos();
 		}
-		let viewDir = (this._futureBall! - this._robot.pos).angle();
+		let viewDir = (this._positionOfInterest! - this._robot.pos).angle();
 
 		let moveDest: Position;
 		if (intersectionDefenseArea != undefined) {
 
 			// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
-			moveDest = this._futureBall! + (intersectionDefenseArea - this._futureBall!).withLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = this._positionOfInterest! + (intersectionDefenseArea - this._positionOfInterest!).withLength(this._robot.shootRadius + World.Ball.radius);
 			let defenseIntersectionRadius = this._robot.radius * 3 + OPPONENT_DEFENSE_AREA_MIN_DISTANCE;
 			if (Field.isInOpponentDefenseArea(moveDest, defenseIntersectionRadius)) {
 				let opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
@@ -259,7 +263,7 @@ export class Duel extends Task {
 							this._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA);
 		} else {
 			// case if there isn't an intersection with the defense area
-			moveDest = this._futureBall! + (this._robot.pos - this._futureBall!).withLength(this._robot.shootRadius + World.Ball.radius);
+			moveDest = this._positionOfInterest! + (this._robot.pos - this._positionOfInterest!).withLength(this._robot.shootRadius + World.Ball.radius);
 		}
 
 		// remember position for the next iteration
@@ -271,7 +275,7 @@ export class Duel extends Task {
 			if (closestOpponentRobot) {
 				moveDest = this._moveToNearBlock(closestOpponentRobot);
 			} else {
-				moveDest = this._futureBall! + (World.Geometry.FriendlyGoal - this._futureBall!).withLength(
+				moveDest = this._positionOfInterest! + (World.Geometry.FriendlyGoal - this._positionOfInterest!).withLength(
 					World.Ball.radius + this._robot.shootRadius);
 			}
 		}
@@ -290,13 +294,13 @@ export class Duel extends Task {
 		debug.set("moveDest dribbler", moveDest);
 
 		if (closestOpponentRobot && closestOpponentRobot.pos.y < 0) {
-			let defendedRatio = UtilAttack.goalDefenseRatio(this._futureBall!, this._robot, "t/duel: sightCone");
+			let defendedRatio = UtilAttack.goalDefenseRatio(this._positionOfInterest!, this._robot, "t/duel: sightCone");
 			debug.set("defendedRatio", defendedRatio);
 
 			defendedRatio += this._lastDefendGoal ? DEFEND_GOAL_HYSTERESIS : -DEFEND_GOAL_HYSTERESIS;
 			if (defendedRatio < 0.70) {
 				debug.set("duelMode", "agressive");
-				moveDest = this._futureBall!;
+				moveDest = this._positionOfInterest!;
 				this._lastDefendGoal = false;
 
 				// If we get too close to opponent change to contest to avoid collision
@@ -318,7 +322,7 @@ export class Duel extends Task {
 
 		// send the position of the ball
 		if (this._isMainAttacker) {
-			this._messaging.sendBroadcast(MessageType.attackPosition, this._futureBall!);
+			this._messaging.sendBroadcast(MessageType.attackPosition, this._positionOfInterest!);
 		}
 	}
 }
