@@ -247,7 +247,7 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
     for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
-            robot->update(currentTime);
+            robot->update(currentTime, m_worldParameters->fieldTransform());
             robot->get(worldState->add_yellow(), m_worldParameters->fieldTransform(), false);
             robotInfos.append(robot->getRobotInfo());
         }
@@ -256,7 +256,7 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
     for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount, m_desiredRobotCamera);
         if (robot != nullptr) {
-            robot->update(currentTime);
+            robot->update(currentTime, m_worldParameters->fieldTransform());
             robot->get(worldState->add_blue(), m_worldParameters->fieldTransform(), false);
             robotInfos.append(robot->getRobotInfo());
         }
@@ -440,14 +440,14 @@ QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime, int desiredCamer
     for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount, desiredCamera);
         if (robot != nullptr) {
-            robot->update(currentTime);
+            robot->update(currentTime, m_worldParameters->fieldTransform());
             filters.append(robot);
         }
     }
     for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount, desiredCamera);
         if (robot != nullptr) {
-            robot->update(currentTime);
+            robot->update(currentTime, m_worldParameters->fieldTransform());
             filters.append(robot);
         }
     }
@@ -578,7 +578,7 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
 
     QList<RobotFilter*>& list = robotMap[robot.robot_id()];
     for (RobotFilter *filter : list) {
-        filter->update(sourceTime);
+        filter->update(sourceTime, m_worldParameters->fieldTransform());
         const float dist = filter->distanceTo(robot);
         if (dist > MAX_DISTANCE) {
             continue;

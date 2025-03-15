@@ -53,7 +53,7 @@ class RobotFilter : public Filter
 public:
     RobotFilter(const SSL_DetectionRobot &robot, qint64 lastTime, bool teamIsYellow);
 
-    void update(qint64 time);
+    void update(qint64 time, const FieldTransform &transform);
     void get(world::Robot *robot, const FieldTransform &transform, bool noRawData);
 
     void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, std::chrono::nanoseconds visionProcessingTime, bool switchCamera);
@@ -77,7 +77,7 @@ private:
     typedef KalmanFilter<6, 3> Kalman;
 
     void resetFutureKalman();
-    void predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd);
+    void predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd, const FieldTransform &transform);
     void applyVisionFrame(const VisionFrame &frame);
     void invalidateRobotCommand(qint64 time);
     double limitAngle(double angle) const;

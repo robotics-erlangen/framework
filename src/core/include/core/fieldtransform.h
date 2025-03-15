@@ -51,6 +51,9 @@ public:
     float applyInversePosY(float x, float y) const;
     QPointF applyInversePosition(const QPointF &pos) const;
 
+    float applyInverseSpeedX(float x, float y) const;
+    float applyInverseSpeedY(float x, float y) const;
+
 private:
     bool m_lastFlipped;
     bool m_hasTransform;

@@ -69,7 +69,7 @@ void RobotFilter::resetFutureKalman()
 // increase monotonically. The same is true for the robot speed estimates,
 // with the exception that these are only applied temporarily if they are
 // newer than the newest vision frame
-void RobotFilter::update(qint64 time)
+void RobotFilter::update(qint64 time, const FieldTransform &transform)
 {
     // apply new vision frames
     bool isVisionUpdated = false;
@@ -85,12 +85,12 @@ void RobotFilter::update(qint64 time)
             if (commandTime > frame.time) {
                 break;
             }
-            predict(commandTime, false, true, false, m_lastRadioCommand);
+            predict(commandTime, false, true, false, m_lastRadioCommand, transform);
             m_lastRadioCommand = command;
         }
         invalidateRobotCommand(frame.time);
 
-        predict(frame.time, false, true, frame.switchCamera, m_lastRadioCommand);
+        predict(frame.time, false, true, frame.switchCamera, m_lastRadioCommand, transform);
         applyVisionFrame(frame);
 
         isVisionUpdated = true;
@@ -111,13 +111,13 @@ void RobotFilter::update(qint64 time)
         // only apply radio commands not used yet
         if (commandTime > m_futureTime) {
             // updates m_futureKalman
-            predict(commandTime, true, true, false, m_futureRadioCommand);
+            predict(commandTime, true, true, false, m_futureRadioCommand, transform);
             m_futureRadioCommand = command;
         }
     }
 
     // predict to requested timestep
-    predict(time, true, false, false, m_futureRadioCommand);
+    predict(time, true, false, false, m_futureRadioCommand, transform);
 }
 
 void RobotFilter::invalidateRobotCommand(qint64 time)
@@ -132,7 +132,7 @@ void RobotFilter::invalidateRobotCommand(qint64 time)
     }
 }
 
-void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd)
+void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd, const FieldTransform &transform)
 {
     // just assume that the prediction step is the same for now and the future
     KalmanHolder& kalman = (updateFuture) ? m_futureKalman : m_kalman;
@@ -141,7 +141,6 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     Q_ASSERT(timeDiff >= 0);
 
     // local and global coordinate system are rotated by 90 degree (see processor)
-    const float phi = kalman->baseState()(2) - M_PI_2;
     const float v_x = kalman->baseState()(3);
     const float v_y = kalman->baseState()(4);
     const float omega = kalman->baseState()(5);
@@ -163,16 +162,21 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         float cmd_interval = (float)std::max(PROCESSOR_TICK_DURATION*1E-9, timeDiff);
         float cmd_omega = cmd.first.output1().omega();
 
-        float cmd_v_s = cmd.first.output1().v_s();
-        float cmd_v_f = cmd.first.output1().v_f();
+        // Global meaning that they are as seen from the yellow team
+        const float cmd_v_x_global = cmd.first.output1().v_x();
+        const float cmd_v_y_global = cmd.first.output1().v_y();
 
-        // predict phi to execution end time
-        float cmd_phi = phi + (omega + cmd_omega) / 2 * cmd_interval;
-        float cmd_v_x = std::cos(cmd_phi)*cmd_v_s - std::sin(cmd_phi)*cmd_v_f;
-        float cmd_v_y = std::sin(cmd_phi)*cmd_v_s + std::cos(cmd_phi)*cmd_v_f;
+        // The tracking uses the similar goal orientation as the vision [1], so
+        // we need to apply the field transform (as the global coordinates from
+        // above would always assume positive y is the blue goal, which is not
+        // always the case for the tracking coordinates)
+        //
+        // [1] We rotate the vision coordinate by -90° though
+        const float cmd_v_x_tracking = transform.applyInverseSpeedX(cmd_v_x_global, cmd_v_y_global);
+        const float cmd_v_y_tracking = transform.applyInverseSpeedY(cmd_v_x_global, cmd_v_y_global);
 
-        float accel_x = (cmd_v_x - v_x)/cmd_interval;
-        float accel_y = (cmd_v_y - v_y)/cmd_interval;
+        float accel_x = (cmd_v_x_tracking - v_x)/cmd_interval;
+        float accel_y = (cmd_v_y_tracking - v_y)/cmd_interval;
         float accel_omega = (cmd_omega - omega)/cmd_interval;
 
         float bounded_a_x = qBound(-MAX_LINEAR_ACCELERATION, accel_x, MAX_LINEAR_ACCELERATION);
