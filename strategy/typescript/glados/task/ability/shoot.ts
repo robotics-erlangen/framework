@@ -542,7 +542,7 @@ export class Shoot {
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with no relaitve speed is questionable
 		this._targetRobotDir = targetDir;
 
-		let moveDest = futureBall.pos;
+		let moveDest = futureBall.pos - Vector.fromPolar(targetDir, this._robot.shootRadius - 0.01);
 		let endSpeed = futureBall.speed.withLength(futureBall.speed.length() + relativeEndSpeed);
 
 		endSpeed = this.catchBall.limitEndSpeedToField(moveDest, endSpeed);
