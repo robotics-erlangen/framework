@@ -565,13 +565,15 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 				y: { a0: robotPos.y, a1: endSpeed.y, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 			}];
-			return [{ spline: spline }, targetPos, 0];
+			return [{ spline: spline }, targetPos, targetPos, 0];
 		}
 
 
 		// no endspeed if the target can't be reached because it's in an obstacle
-		// must be calculated in all global coordinates
-		if (waypoints[waypoints.length - 1].distanceTo(Coordinates.toGlobal(targetPos)) > 0.02) {
+		// must be calculated in all local coordinates
+		const endPos = Coordinates.toLocal(waypoints[waypoints.length - 1]);
+		const reachesTarget = endPos.distanceTo(targetPos) < 0.02;
+		if (!reachesTarget) {
 			endSpeed = new Vector(0, 0);
 		}
 
@@ -648,7 +650,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		}];
 
 		let endTime = speedProfile[speedProfile.length - 1][1];
-		return [{ spline: spline }, targetPos, endTime];
+		return [{ spline: spline }, targetPos, reachesTarget ? targetPos : endPos, endTime];
 	}
 
 	public canHandle(...args: any[]): boolean {

@@ -46,8 +46,13 @@ export type RobotLike = Pick<FriendlyRobot,
 	| "acceleration" | "prevMoveTo" | "setControllerInput" | "path"
 >;
 
-/** Splines, target position, time to reach the target */
-export type TrajectoryResult = [TrajectoryCommand, Position, number];
+/** A tuple consisting of
+ *    - splines (controller tnput)
+ *    - the desired target position
+ *    - end position of the trajectory without violating any obstacles
+ *    - time to reach that end position
+ */
+export type TrajectoryResult = [TrajectoryCommand, Position, Position, number];
 
 /** Base class for trajectory planning */
 export abstract class TrajectoryHandler {
@@ -106,25 +111,32 @@ export class Trajectory {
 				throw new Error("Malformed trajectory handler constructor!");
 			}
 		}
-		let [splines, moveDest, moveTime] = this._handler.update(...args);
+
+		// target is the desired target position,
+		// dest the position reached by path planning without violating any obstacles
+		let [splines, target, dest, timeToDest] = this._handler.update(...args);
 
 		let splin;
 		if (splines.spline != undefined) {
 			splin = splines.spline[0];
 		}
 		if (splin != undefined) {
-			let xCalc = splin.x.a0 + splin.x.a1 * moveTime + splin.x.a2 * moveTime / 2;
-			let yCalc = splin.y.a0 + splin.y.a1 * moveTime + splin.y.a2 * moveTime / 2;
+			let xCalc = splin.x.a0 + splin.x.a1 * timeToDest + splin.x.a2 * timeToDest / 2;
+			let yCalc = splin.y.a0 + splin.y.a1 * timeToDest + splin.y.a2 * timeToDest / 2;
 			this._robot.prevMoveTo = Coordinates.toLocal(new Vector(xCalc, yCalc));
 		} else {
 			this._robot.prevMoveTo = undefined;
 		}
 		this._robot.setControllerInput(splines);
 		if (this._robot.pos) {
-			vis.addPath("MoveTo", [this._robot.pos, moveDest], vis.colors.whiteHalf);
-			vis.addCircle("MoveTo", moveDest, this._robot.radius, vis.colors.yellowHalf, true);
+			vis.addPath("MoveTo", [this._robot.pos, dest], vis.colors.whiteHalf);
+			vis.addCircle("MoveTo", dest, this._robot.radius, vis.colors.yellowHalf, true);
+			if (dest !== target) {
+				vis.addPath("MoveTo", [this._robot.pos, target], vis.colors.orangeHalf);
+				vis.addCircle("MoveTo", target, this._robot.radius, vis.colors.redHalf, true);
+			}
 		}
-		return [moveDest, moveTime];
+		return [dest, timeToDest];
 	}
 }
 

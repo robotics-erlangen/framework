@@ -134,8 +134,6 @@ export class TrajectoryPath extends TrajectoryHandler {
 		let robotSpeed = Coordinates.toGlobal(rSpeed);
 		let robotDir = Coordinates.toGlobal(this._robot.dir);
 
-		const TRAJECTORY_PATH_DEBUG = true;
-
 		// find position and speed on last path
 		let startPos = robotPos;
 		let startSpeed = robotSpeed;
@@ -178,17 +176,17 @@ export class TrajectoryPath extends TrajectoryHandler {
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: 0, a2: 0, a3: 0 }
 			}];
-			return [{ spline: spline }, Coordinates.toLocal(targetPos), TrajectoryPath._trajectoryTime(trajectory)];
+			return [{ spline: spline }, Coordinates.toLocal(targetPos), this._robot.pos, TrajectoryPath._trajectoryTime(trajectory)];
 		}
 
-		if (TRAJECTORY_PATH_DEBUG) {
-			let pathColor = trajectory.length < 50 ? vis.colors.green : vis.colors.yellow;
-			if (TrajectoryPath._endPos(robotPos, trajectory).distanceTo(targetPos) > 0.005) {
-				// orange path if target can't be reached
-				pathColor = vis.colors.orange;
-			}
-			TrajectoryPath._visualizeTrajectory(trajectory, pathColor);
+		const endPos = TrajectoryPath._endPos(robotPos, trajectory);
+		const reachesTarget = endPos.distanceTo(targetPos) < 0.005;
+		let pathColor = trajectory.length < 50 ? vis.colors.green : vis.colors.yellow;
+		if (!reachesTarget) {
+			// orange path if target can't be reached
+			pathColor = vis.colors.orange;
 		}
+		TrajectoryPath._visualizeTrajectory(trajectory, pathColor);
 		this._lastTrajectory = trajectory;
 
 		let timeToEnd =	TrajectoryPath._trajectoryTime(trajectory);
@@ -265,7 +263,7 @@ export class TrajectoryPath extends TrajectoryHandler {
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
 
-		return [{ spline: spline }, Coordinates.toLocal(targetPos), timeToEnd];
+		return [{ spline: spline }, Coordinates.toLocal(targetPos), Coordinates.toLocal(reachesTarget ? targetPos : endPos), timeToEnd];
 	}
 
 	private static _trajectoryTime(trajectory: Trajectory) {
