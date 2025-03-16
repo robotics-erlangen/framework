@@ -283,7 +283,13 @@ export class Path {
 			path.addCircle(circle.center.x, circle.center.y, circle.radius, circle.name, circle.prio ?? 0);
 		}
 		for (let line of this._lineObstacles) {
-			path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio ?? 0);
+			if (line.start.distanceToSq(line.end) < 1e-8) {
+				// approximate very short line by circle
+				const mid = (line.start + line.end) / 2;
+				path.addCircle(mid.x, mid.y, line.radius, line.name, line.prio ?? 0);
+			} else {
+				path.addLine(line.start.x, line.start.y, line.end.x, line.end.y, line.radius, line.name, line.prio ?? 0);
+			}
 		}
 		for (let rect of this._rectObstacles) {
 			path.addRect(rect.start.x, rect.start.y, rect.end.x, rect.end.y, rect.name, rect.prio ?? 0, rect.radius);
