@@ -21,7 +21,7 @@
 #include "visionframetime.h"
 
 #include "core/timeconversion.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 
 using namespace std::chrono;
 using namespace std::chrono_literals;

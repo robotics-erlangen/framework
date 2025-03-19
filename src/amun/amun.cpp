@@ -31,7 +31,7 @@
 #include "processor/networktransceiver.h"
 #include "processor/integrator.h"
 #include "protobuf/geometry.h"
-#include "protobuf/ssl_geometry.pb.h"
+#include "protobuf/ssl_vision/ssl_geometry.pb.h"
 #include "protobuf/world.pb.h"
 #include "simulator/simulator.h"
 #include "strategy/script/debughelper.h"

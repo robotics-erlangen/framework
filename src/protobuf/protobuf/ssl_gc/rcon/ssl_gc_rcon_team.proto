@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-import "protobuf/ssl_game_controller_common.proto";
+import "protobuf/ssl_gc/state/ssl_gc_common.proto";
 
 package gameController;
 

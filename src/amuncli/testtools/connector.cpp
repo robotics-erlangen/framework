@@ -21,7 +21,7 @@
 #include "connector.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/gamestate.pb.h"
-#include "protobuf/ssl_game_event_2019.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_game_event.pb.h"
 #include "testtools.h"
 #include "config/config.h"
 #include "seshat/combinedlogwriter.h"

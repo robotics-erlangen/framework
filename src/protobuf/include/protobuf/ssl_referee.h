@@ -21,7 +21,7 @@
 #ifndef SSL_REFEREE_H
 #define SSL_REFEREE_H
 
-#include "protobuf/ssl_referee.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include "protobuf/gamestate.pb.h"
 
 #include <QtGlobal> // for qint64

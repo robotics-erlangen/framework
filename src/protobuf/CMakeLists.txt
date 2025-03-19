@@ -33,46 +33,55 @@ add_library(protobuf STATIC
     ssl_referee.cpp
 )
 
+set(SSL_PROTO_FILES
+    protobuf/ssl_gc/api/ssl_gc_api.proto
+    protobuf/ssl_gc/ci/ssl_gc_ci.proto
+    protobuf/ssl_gc/engine/ssl_gc_engine.proto
+    protobuf/ssl_gc/engine/ssl_gc_engine_config.proto
+    protobuf/ssl_gc/geom/ssl_gc_geometry.proto
+    protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.proto
+    protobuf/ssl_gc/rcon/ssl_gc_rcon_team.proto
+    protobuf/ssl_gc/state/ssl_gc_common.proto
+    protobuf/ssl_gc/state/ssl_gc_game_event.proto
+    protobuf/ssl_gc/state/ssl_gc_referee_message.proto
+    protobuf/ssl_gc/state/ssl_gc_state.proto
+    protobuf/ssl_gc/statemachine/ssl_gc_change.proto
+    protobuf/ssl_sim/ssl_simulation_config.proto
+    protobuf/ssl_sim/ssl_simulation_control.proto
+    protobuf/ssl_sim/ssl_simulation_custom_erforce_realism.proto
+    protobuf/ssl_sim/ssl_simulation_custom_erforce_robot_spec.proto
+    protobuf/ssl_sim/ssl_simulation_error.proto
+    protobuf/ssl_sim/ssl_simulation_robot_control.proto
+    protobuf/ssl_sim/ssl_simulation_robot_feedback.proto
+    protobuf/ssl_vision/ssl_detection.proto
+    protobuf/ssl_vision/ssl_detection_tracked.proto
+    protobuf/ssl_vision/ssl_geometry.proto
+    protobuf/ssl_vision/ssl_wrapper.proto
+    protobuf/ssl_vision/ssl_wrapper_tracked.proto
+)
+
+# Deprecated, but still used by some parts of the code
+set(DEPRECATED_PROTO_FILES
+    protobuf/deprecated/grsim_commands.proto
+    protobuf/deprecated/grsim_packet.proto
+    protobuf/deprecated/grsim_replacement.proto
+    protobuf/deprecated/ssl_mixed_team.proto
+    protobuf/deprecated/ssl_referee_game_event.proto
+)
+
 set(PROTO_FILES
+    ${DEPRECATED_PROTO_FILES}
+    ${SSL_PROTO_FILES}
     protobuf/command.proto
     protobuf/debug.proto
     protobuf/gamestate.proto
     protobuf/logfile.proto
+    protobuf/pathfinding.proto
     protobuf/robot.proto
-    protobuf/ssl_detection.proto
-    protobuf/ssl_game_controller_auto_ref.proto
-    protobuf/ssl_game_controller_common.proto
-    protobuf/ssl_game_controller_geometry.proto
-    protobuf/ssl_game_controller_team.proto
-    protobuf/ssl_game_event_2019.proto
-    protobuf/ssl_geometry.proto
-    protobuf/ssl_gc_api.proto
-    protobuf/ssl_gc_ci.proto
-    protobuf/ssl_gc_change.proto
-    protobuf/ssl_gc_engine_config.proto
-    protobuf/ssl_gc_engine.proto
-    protobuf/ssl_gc_state.proto
-    protobuf/ssl_mixed_team.proto
-    protobuf/ssl_referee.proto
-    protobuf/ssl_referee_game_event.proto
-    protobuf/ssl_vision_detection_tracked.proto
-    protobuf/ssl_vision_wrapper_tracked.proto
-    protobuf/ssl_simulation_robot_control.proto
-    protobuf/ssl_simulation_error.proto
-    protobuf/ssl_simulation_robot_feedback.proto
-    protobuf/ssl_simulation_control.proto
-    protobuf/ssl_simulation_config.proto
-    protobuf/ssl_simulation_custom_erforce_realism.proto
-    protobuf/ssl_wrapper.proto
     protobuf/status.proto
+    protobuf/timeline.proto
     protobuf/userinput.proto
     protobuf/world.proto
-    protobuf/timeline.proto
-    protobuf/pathfinding.proto
-    protobuf/grsim_commands.proto
-    protobuf/grsim_packet.proto
-    protobuf/grsim_replacement.proto
-    protobuf/ssl_simulation_custom_erforce_robot_spec.proto
 )
 
 set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")

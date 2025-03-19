@@ -22,7 +22,7 @@
 #define REFEREE_H
 
 #include "protobuf/gamestate.pb.h"
-#include "protobuf/ssl_referee.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include "protobuf/world.pb.h"
 #include <optional>
 #include <QByteArray>

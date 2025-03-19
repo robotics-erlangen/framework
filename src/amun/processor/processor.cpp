@@ -22,7 +22,7 @@
 #include "commandevaluator.h"
 #include "coordinatehelper.h"
 #include "processor.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include "protobuf/world.pb.h"
 #include "referee.h"
 #include "core/timer.h"

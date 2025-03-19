@@ -21,7 +21,7 @@
 #pragma once
 
 #include <string>
-#include "protobuf/ssl_vision_wrapper_tracked.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper_tracked.pb.h"
 #include "protobuf/world.pb.h"
 #include "core/fieldtransform.h"
 

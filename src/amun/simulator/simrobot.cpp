@@ -21,7 +21,7 @@
 #include "core/rng.h"
 #include "core/coordinates.h"
 #include "mesh.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include "simball.h"
 #include "simrobot.h"
 #include "simulator.h"

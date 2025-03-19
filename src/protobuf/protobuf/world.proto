@@ -1,8 +1,8 @@
 syntax = "proto2";
 
 import "protobuf/robot.proto";
-import "protobuf/ssl_mixed_team.proto";
-import "protobuf/ssl_wrapper.proto";
+import "protobuf/deprecated/ssl_mixed_team.proto";
+import "protobuf/ssl_vision/ssl_wrapper.proto";
 
 package world;
 

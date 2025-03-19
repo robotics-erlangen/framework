@@ -24,7 +24,7 @@
 #include "core/fieldtransform.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/geometry.h"
-#include "protobuf/ssl_geometry.pb.h"
+#include "protobuf/ssl_vision/ssl_geometry.pb.h"
 #include <QObject>
 #include <QString>
 #include <utility>

@@ -23,8 +23,8 @@
 
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
-#include "protobuf/ssl_mixed_team.pb.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/deprecated/ssl_mixed_team.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include "protobuf/status.h"
 #include <QMap>
 #include <QPair>

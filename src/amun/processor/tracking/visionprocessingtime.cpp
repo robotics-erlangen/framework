@@ -21,7 +21,7 @@
 #include "visionprocessingtime.h"
 
 #include "core/timeconversion.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include <QtGlobal>
 #include <chrono>
 #include <utility>

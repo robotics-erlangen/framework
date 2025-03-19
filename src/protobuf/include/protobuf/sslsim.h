@@ -21,8 +21,8 @@
 #ifndef PB_SSLSIM_H
 #define PB_SSLSIM_H
 
-#include "protobuf/ssl_simulation_robot_control.pb.h"
-#include "protobuf/ssl_simulation_error.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_error.pb.h"
 #include <QSharedPointer>
 
 typedef QSharedPointer<sslsim::RobotControl> SSLSimRobotControl;

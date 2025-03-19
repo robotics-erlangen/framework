@@ -21,7 +21,7 @@
 #ifndef PERCAMERA_H
 #define PERCAMERA_H
 
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include <QtGlobal>
 #include <array>
 #include <cstdint>

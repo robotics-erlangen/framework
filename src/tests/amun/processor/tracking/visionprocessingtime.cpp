@@ -22,7 +22,7 @@
 
 #include "core/timeconversion.h"
 #include "gtest/gtest.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include <chrono>
 
 using namespace std::chrono;

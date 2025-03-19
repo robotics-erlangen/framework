@@ -24,7 +24,7 @@
 #include <QtDebug>
 #include <QtEndian>
 #include <fstream>
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include <iomanip>
 #include <utility>
 

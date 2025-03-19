@@ -1,9 +1,9 @@
 syntax = "proto2";
 
-import "protobuf/ssl_vision_wrapper_tracked.proto";
-import "protobuf/ssl_gc_api.proto";
-import "protobuf/ssl_referee.proto";
-import "protobuf/ssl_geometry.proto";
+import "protobuf/ssl_vision/ssl_wrapper_tracked.proto";
+import "protobuf/ssl_gc/api/ssl_gc_api.proto";
+import "protobuf/ssl_gc/state/ssl_gc_referee_message.proto";
+import "protobuf/ssl_vision/ssl_geometry.proto";
 
 package gameController;
 

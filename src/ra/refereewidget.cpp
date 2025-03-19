@@ -24,7 +24,7 @@
 #include "config/config.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/gamestate.pb.h"
-#include "protobuf/ssl_referee.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include <google/protobuf/descriptor.h>
 #include <QSettings>
 #include <QSignalMapper>

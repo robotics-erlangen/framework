@@ -21,7 +21,7 @@
 #include "core/percamera.h"
 
 #include "gtest/gtest.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include <QtGlobal>
 #include <cstdint>
 

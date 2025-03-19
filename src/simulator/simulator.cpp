@@ -29,9 +29,9 @@
 #include <cstdarg>
 
 #include "core/protobufhelper.h"
-#include "protobuf/ssl_simulation_robot_control.pb.h"
-#include "protobuf/ssl_simulation_robot_feedback.pb.h"
-#include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_robot_control.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_robot_feedback.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_custom_erforce_robot_spec.pb.h"
 #include "protobuf/sslsim.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"

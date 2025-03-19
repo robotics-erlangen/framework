@@ -22,7 +22,7 @@
 #define INPUTDEVICE_H
 
 #include "protobuf/robot.pb.h"
-#include "protobuf/ssl_referee.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include <QObject>
 
 class InputDevice : public QObject

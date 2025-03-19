@@ -23,8 +23,8 @@
 
 #include "gamecontrollersocket.h"
 #include "internalgamecontroller.h"
-#include "protobuf/ssl_game_controller_common.pb.h"
-#include "protobuf/ssl_game_controller_auto_ref.pb.h"
+#include "protobuf/ssl_gc/state/ssl_gc_common.pb.h"
+#include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include <google/protobuf/message.h>
 #include <QObject>
 #include <QList>

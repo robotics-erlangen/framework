@@ -27,7 +27,7 @@
 #include "protobuf/geometry.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include "visionlog/visionlogwriter.h"
 
 #include <QObject>

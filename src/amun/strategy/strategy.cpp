@@ -26,7 +26,7 @@
 #include "core/timer.h"
 #include "config/config.h"
 #include "protobuf/geometry.h"
-#include "protobuf/ssl_game_controller_team.pb.h"
+#include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
 #include "protobuf/robot.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include <QCoreApplication>

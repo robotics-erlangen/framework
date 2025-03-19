@@ -24,7 +24,7 @@
 #include "core/areaofinterest.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/debug.pb.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include "visionframetime.h"
 #include "visionprocessingtime.h"

@@ -27,8 +27,8 @@
 #include "gamecontrollersocket.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
-#include "protobuf/ssl_gc_ci.pb.h"
-#include "protobuf/ssl_game_controller_auto_ref.pb.h"
+#include "protobuf/ssl_gc/ci/ssl_gc_ci.pb.h"
+#include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include "core/vector.h"
 
 class Timer;

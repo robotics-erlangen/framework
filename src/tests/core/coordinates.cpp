@@ -21,7 +21,7 @@
 #include "gtest/gtest.h"
 #include "core/coordinates.h"
 #include "core/vector.h"
-#include "protobuf/ssl_simulation_control.pb.h"
+#include "protobuf/ssl_sim/ssl_simulation_control.pb.h"
 #include "protobuf/status.h"
 
 TEST(Coordinates, Pairs) {

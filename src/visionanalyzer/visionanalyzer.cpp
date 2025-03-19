@@ -22,7 +22,7 @@
 #include <QCoreApplication>
 #include <QCommandLineParser>
 #include "protobuf/status.h"
-#include "protobuf/ssl_wrapper.pb.h"
+#include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 
 #include "tracking/tracker.h"
 #include "tracking/worldparameters.h"

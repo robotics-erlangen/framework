@@ -22,7 +22,7 @@
 #define BALLFLYFILTER_H
 
 #include "abstractballfilter.h"
-#include "protobuf/ssl_detection.pb.h"
+#include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 
 #include <optional>

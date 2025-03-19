@@ -26,7 +26,7 @@
 #include "seshat/backlogwriter.h"
 #include "protobuf/command.h"
 #include "protobuf/status.h"
-#include "protobuf/ssl_referee_game_event.pb.h"
+#include "protobuf/deprecated/ssl_referee_game_event.pb.h"
 #include <QObject>
 #include <QString>
 #include <QDir>

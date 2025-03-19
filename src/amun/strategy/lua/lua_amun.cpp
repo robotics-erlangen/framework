@@ -22,8 +22,8 @@
 #include "lua_amun.h"
 #include "lua_protobuf.h"
 #include "core/protobufhelper.h"
-#include "protobuf/ssl_game_controller_team.pb.h"
-#include "protobuf/ssl_game_controller_auto_ref.pb.h"
+#include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
+#include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include <QtEndian>
 #include "strategy/script/scriptstate.h"
 
