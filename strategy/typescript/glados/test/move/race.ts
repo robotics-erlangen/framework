@@ -29,6 +29,12 @@ export class Race extends Move {
 	 * If you just want N robots driving up and down in a predefined       *
 	 * rectangle, you can use the _nRobots function, see its               *
 	 * documentation.                                                      *
+	 *                                                                     *
+	 * This move also calculates the distance each robot overshoots its    *
+	 * target position. Note that this is only meaningful when the robot   *
+	 * is driving in a straight line from the previous to the next         *
+	 * position. When using multiple robots, this is usually the case if   *
+	 * the direct paths are parallel.                                      *
 	 ***********************************************************************/
 
 	/***********************************************************************
@@ -113,6 +119,9 @@ export class Race extends Move {
 
 	private _posIndices: number[] = Race._POSITIONS.map((_) => 0);
 
+	/** The distance each robot overshot its target position */
+	private _maxOvershootDistance: number[] = Race._POSITIONS.map((_) => 0);
+
 	public constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		robots.sort((a, b) => a.id - b.id);
 		super(robots, messaging);
@@ -171,17 +180,35 @@ export class Race extends Move {
 		for (let i = 0; i < Math.min(this._robots.length, this._positions.length); i++) {
 			const r = this._robots[i];
 			const positions = this._positions[i];
-			const pos = positions[this._posIndices[i]];
 
-			vis.addPath("te/m/race: positions", [r.pos, pos], Race._COLORS[i]);
+			const startIndex = this._posIndices[i] - 1 < 0
+				? positions.length - 1 : this._posIndices[i] - 1;
+
+			const startPos = positions[startIndex];
+			const targetPos = positions[this._posIndices[i]];
+
+			this._maxOvershootDistance[i] = Math.max(
+				this._maxOvershootDistance[i],
+				// When the robot takes a straight route from start to target, we
+				// can calculate the overshoot distance by extending the line from
+				// start to target past its end and projecting the robot's position
+				// onto it.
+				(targetPos - startPos).normalized().dot(r.pos - targetPos),
+			);
+
+			vis.addPath("te/m/race: positions", [r.pos, targetPos], Race._COLORS[i]);
 			for (const p of positions) {
-				const radius = r.radius + (p === pos ? 0.05 : 0);
+				const radius = r.radius + (p === targetPos ? 0.05 : 0);
 				vis.addCircle("te/m/race: positions", p, radius, Race._COLORS[i]);
 			}
 
 			if (posReached[i] && synchronized) {
+				amun.log(`Robot ${r.id} overshoot ${(100 * this._maxOvershootDistance[i]).toFixed(1)}cm`);
+
 				this._posIndices[i] += 1;
 				this._posIndices[i] %= positions.length;
+
+				this._maxOvershootDistance[i] = 0;
 			}
 
 			taskAssignments[r] = Assignment.create({
