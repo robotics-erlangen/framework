@@ -1,3 +1,7 @@
+//
+// THIS IS DEPRECATED. Do not use in new code.
+//
+
 syntax = "proto2";
 
 // a game event that caused a referee command
