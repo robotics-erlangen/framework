@@ -1,6 +1,6 @@
 syntax = "proto2";
-import "ssl_detection.proto";
-import "ssl_geometry.proto";
+import "protobuf/ssl_detection.proto";
+import "protobuf/ssl_geometry.proto";
 
 message SSL_WrapperPacket {
   optional SSL_DetectionFrame detection = 1;

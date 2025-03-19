@@ -34,48 +34,54 @@ add_library(protobuf STATIC
 )
 
 set(PROTO_FILES
-    command.proto
-    debug.proto
-    gamestate.proto
-    logfile.proto
-    robot.proto
-    ssl_detection.proto
-    ssl_game_controller_auto_ref.proto
-    ssl_game_controller_common.proto
-    ssl_game_controller_geometry.proto
-    ssl_game_controller_team.proto
-    ssl_game_event_2019.proto
-    ssl_geometry.proto
-    ssl_gc_api.proto
-    ssl_gc_ci.proto
-    ssl_gc_change.proto
-    ssl_gc_engine_config.proto
-    ssl_gc_engine.proto
-    ssl_gc_state.proto
-    ssl_mixed_team.proto
-    ssl_referee.proto
-    ssl_referee_game_event.proto
-    ssl_vision_detection_tracked.proto
-    ssl_vision_wrapper_tracked.proto
-    ssl_simulation_robot_control.proto
-    ssl_simulation_error.proto
-    ssl_simulation_robot_feedback.proto
-    ssl_simulation_control.proto
-    ssl_simulation_config.proto
-	ssl_simulation_custom_erforce_realism.proto
-    ssl_wrapper.proto
-    status.proto
-    userinput.proto
-    world.proto
-    timeline.proto
-    pathfinding.proto
-    grsim_commands.proto
-    grsim_packet.proto
-    grsim_replacement.proto
-    ssl_simulation_custom_erforce_robot_spec.proto
+    protobuf/command.proto
+    protobuf/debug.proto
+    protobuf/gamestate.proto
+    protobuf/logfile.proto
+    protobuf/robot.proto
+    protobuf/ssl_detection.proto
+    protobuf/ssl_game_controller_auto_ref.proto
+    protobuf/ssl_game_controller_common.proto
+    protobuf/ssl_game_controller_geometry.proto
+    protobuf/ssl_game_controller_team.proto
+    protobuf/ssl_game_event_2019.proto
+    protobuf/ssl_geometry.proto
+    protobuf/ssl_gc_api.proto
+    protobuf/ssl_gc_ci.proto
+    protobuf/ssl_gc_change.proto
+    protobuf/ssl_gc_engine_config.proto
+    protobuf/ssl_gc_engine.proto
+    protobuf/ssl_gc_state.proto
+    protobuf/ssl_mixed_team.proto
+    protobuf/ssl_referee.proto
+    protobuf/ssl_referee_game_event.proto
+    protobuf/ssl_vision_detection_tracked.proto
+    protobuf/ssl_vision_wrapper_tracked.proto
+    protobuf/ssl_simulation_robot_control.proto
+    protobuf/ssl_simulation_error.proto
+    protobuf/ssl_simulation_robot_feedback.proto
+    protobuf/ssl_simulation_control.proto
+    protobuf/ssl_simulation_config.proto
+    protobuf/ssl_simulation_custom_erforce_realism.proto
+    protobuf/ssl_wrapper.proto
+    protobuf/status.proto
+    protobuf/userinput.proto
+    protobuf/world.proto
+    protobuf/timeline.proto
+    protobuf/pathfinding.proto
+    protobuf/grsim_commands.proto
+    protobuf/grsim_packet.proto
+    protobuf/grsim_replacement.proto
+    protobuf/ssl_simulation_custom_erforce_robot_spec.proto
 )
-protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
-target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
+
+set(PROTO_BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+
+protobuf_generate(
+    PROTOS ${PROTO_FILES}
+    TARGET protobuf
+    PROTOC_OUT_DIR ${PROTO_BINARY_DIR}
+)
 
 # disable warnings for generated files
 target_compile_options(protobuf PUBLIC -w)
@@ -87,8 +93,11 @@ target_link_libraries(protobuf
 )
 target_include_directories(protobuf
     PUBLIC include
-    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..
     PRIVATE include/protobuf
+
+    # We want users of this library to include the generated headers using
+    # #include "protobuf/..."
+    PUBLIC ${PROTO_BINARY_DIR}
 )
 target_include_directories(protobuf SYSTEM
     PUBLIC ${PROTOBUF_INCLUDE_DIR}

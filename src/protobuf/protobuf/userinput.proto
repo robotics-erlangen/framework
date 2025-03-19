@@ -1,7 +1,7 @@
 syntax = "proto2";
 
-import "robot.proto";
-import "command.proto";
+import "protobuf/robot.proto";
+import "protobuf/command.proto";
 package amun;
 
 // for strategy

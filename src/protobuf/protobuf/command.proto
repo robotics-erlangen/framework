@@ -1,12 +1,12 @@
 syntax = "proto2";
 
-import "world.proto";
-import "robot.proto";
-import "logfile.proto";
-import "ssl_geometry.proto";
-import "ssl_simulation_control.proto";
-import "ssl_simulation_custom_erforce_realism.proto";
-import "ssl_referee.proto";
+import "protobuf/world.proto";
+import "protobuf/robot.proto";
+import "protobuf/logfile.proto";
+import "protobuf/ssl_geometry.proto";
+import "protobuf/ssl_simulation_control.proto";
+import "protobuf/ssl_simulation_custom_erforce_realism.proto";
+import "protobuf/ssl_referee.proto";
 
 package amun;
 

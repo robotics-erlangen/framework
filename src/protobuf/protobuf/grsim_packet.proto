@@ -1,7 +1,7 @@
 syntax = "proto2";
 
-import "grsim_commands.proto";
-import "grsim_replacement.proto";
+import "protobuf/grsim_commands.proto";
+import "protobuf/grsim_replacement.proto";
 
 message grSim_Packet {
     optional grSim_Commands commands = 1;

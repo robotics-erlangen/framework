@@ -1,9 +1,9 @@
 syntax = "proto2";
 
-import "ssl_gc_state.proto";
-import "ssl_gc_change.proto";
-import "ssl_gc_engine.proto";
-import "ssl_gc_engine_config.proto";
+import "protobuf/ssl_gc_state.proto";
+import "protobuf/ssl_gc_change.proto";
+import "protobuf/ssl_gc_engine.proto";
+import "protobuf/ssl_gc_engine_config.proto";
 
 import "google/protobuf/duration.proto";
 

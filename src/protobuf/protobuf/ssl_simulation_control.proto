@@ -1,9 +1,9 @@
 syntax = "proto2";
 option go_package = "github.com/RoboCup-SSL/ssl-simulation-protocol/pkg/sim";
 
-import "ssl_game_controller_common.proto";
-import "ssl_simulation_config.proto";
-import "ssl_simulation_error.proto";
+import "protobuf/ssl_game_controller_common.proto";
+import "protobuf/ssl_simulation_config.proto";
+import "protobuf/ssl_simulation_error.proto";
 
 package sslsim;
 

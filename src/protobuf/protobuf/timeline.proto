@@ -1,6 +1,6 @@
 syntax="proto2";
 
-import "logfile.proto";
+import "protobuf/logfile.proto";
 
 package timeline;
 

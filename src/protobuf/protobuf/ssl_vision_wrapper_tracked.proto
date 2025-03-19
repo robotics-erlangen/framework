@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-import "ssl_vision_detection_tracked.proto";
+import "protobuf/ssl_vision_detection_tracked.proto";
 
 package gameController;
 

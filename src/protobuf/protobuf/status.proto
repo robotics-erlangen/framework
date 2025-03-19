@@ -1,12 +1,12 @@
 syntax = "proto2";
 
-import "debug.proto";
-import "gamestate.proto";
-//import "deprecated/gamestate.proto";
-import "robot.proto";
-import "world.proto";
-import "userinput.proto";
-import "logfile.proto";
+import "protobuf/debug.proto";
+import "protobuf/gamestate.proto";
+//import "protobuf/deprecated/gamestate.proto";
+import "protobuf/robot.proto";
+import "protobuf/world.proto";
+import "protobuf/userinput.proto";
+import "protobuf/logfile.proto";
 
 package amun;
 

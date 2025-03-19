@@ -1,6 +1,6 @@
 syntax = "proto2";
 
-import "ssl_simulation_error.proto";
+import "protobuf/ssl_simulation_error.proto";
 import "google/protobuf/any.proto";
 
 package sslsim;
