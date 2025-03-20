@@ -634,7 +634,6 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     const qint64 syncTime = processingStart - completionTime;
     bool hasRobot2014Commands = generations.contains(Radio::Generation::Gen2014);
     if (hasRobot2014Commands) {
-        const qint64 completionTime = m_timer->currentTime();
         addRobot2014Sync(syncTime, m_packetCounter);
     }
 
