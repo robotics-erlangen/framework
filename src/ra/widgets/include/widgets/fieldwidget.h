@@ -115,8 +115,6 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void visualizationsChanged(const QStringList &items);
-    void clearData();
-    void clearTraces();
     void hideVisualizationToggles();
     void saveConfig();
     void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }

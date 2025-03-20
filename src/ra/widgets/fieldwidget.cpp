@@ -532,27 +532,6 @@ void FieldWidget::clearTeamData(RobotMap &team)
     team.clear();
 }
 
-void FieldWidget::clearData()
-{
-    m_teamBlue.clear();
-    clearTeamData(m_robotsBlue);
-    m_teamYellow.clear();
-    clearTeamData(m_robotsYellow);
-
-    clearTraces();
-
-    m_worldState.clear();
-    m_drawScenes[m_currentScene].lastWorldState.clear();
-
-    m_drawScenes[m_currentScene].visualizations.clear();
-    m_visualizationsUpdated = true;
-
-    geometrySetDefault(&m_drawScenes[m_currentScene].geometry);
-    geometrySetDefault(&m_virtualFieldGeometry);
-    m_geometryUpdated = true;
-    m_guiTimer->requestTriggering();
-}
-
 void FieldWidget::hideVisualizationToggles()
 {
     m_actionShowBlueVis->setVisible(false);
@@ -855,12 +834,6 @@ void FieldWidget::clearRobotTraces()
     clearTrace(m_robotYellowRawTrace);
     clearTrace(m_robotBlueTrace);
     clearTrace(m_robotBlueRawTrace);
-}
-
-void FieldWidget::clearTraces()
-{
-    clearBallTraces();
-    clearRobotTraces();
 }
 
 void FieldWidget::clearTrace(Trace &trace)
