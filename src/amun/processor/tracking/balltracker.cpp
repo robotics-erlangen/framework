@@ -23,10 +23,10 @@
 #include "ballgroundcollisionfilter.h"
 
 BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
-    Filter(frame.time),
-    m_lastUpdateTime(frame.time),
+    Filter(frame.sourceTime),
+    m_lastUpdateTime(frame.sourceTime),
     m_cameraInfo(cameraInfo),
-    m_initTime(frame.time),
+    m_initTime(frame.sourceTime),
     m_lastFrameTime(0),
     m_confidence(0),
     m_updateFrameCounter(0),
@@ -106,7 +106,7 @@ void BallTracker::update(qint64 time)
     // apply new vision frames
     while (!m_visionFrames.isEmpty()) {
         const VisionFrame &frame = m_visionFrames.first();
-        if (frame.time > time) {
+        if (frame.sourceTime > time) {
             break; // try again later
         }
 
@@ -114,7 +114,7 @@ void BallTracker::update(qint64 time)
         m_groundFilter->processVisionFrame(frame);
         m_rawMeasurements.append(frame);
 
-        m_lastFrameTime = frame.time;
+        m_lastFrameTime = frame.sourceTime;
         m_lastTime = time;
         m_lastBallPos = Eigen::Vector2f(frame.x, frame.y);
 
@@ -161,7 +161,7 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
 
     for (auto& frame: m_rawMeasurements) {
         world::BallPosition* raw = ball->add_raw();
-        raw->set_time(frame.time);
+        raw->set_time(frame.sourceTime);
         raw->set_p_x(transform.applyPosX(frame.x, frame.y));
         raw->set_p_y(transform.applyPosY(frame.x, frame.y));
 
@@ -176,7 +176,7 @@ void BallTracker::get(world::Ball *ball, const FieldTransform &transform, bool r
 
 void BallTracker::addVisionFrame(const VisionFrame &frame)
 {
-    m_lastTime = frame.time;
+    m_lastTime = frame.sourceTime;
     m_visionFrames.append(frame);
     m_frameCounter++;
     m_updateFrameCounter++;

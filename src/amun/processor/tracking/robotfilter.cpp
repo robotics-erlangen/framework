@@ -75,22 +75,22 @@ void RobotFilter::update(qint64 time, const FieldTransform &transform)
     bool isVisionUpdated = false;
     while (!m_visionFrames.isEmpty()) {
         VisionFrame &frame = m_visionFrames.first();
-        if (frame.time > time) {
+        if (frame.sourceTime > time) {
             break;
         }
 
         // only apply radio commands that have reached the robot before the vision frame we want to apply
         foreach (const RadioCommand &command, m_radioCommands) {
             const qint64 commandTime = command.second;
-            if (commandTime > frame.time) {
+            if (commandTime > frame.sourceTime) {
                 break;
             }
             predict(commandTime, false, true, false, m_lastRadioCommand, transform);
             m_lastRadioCommand = command;
         }
-        invalidateRobotCommand(frame.time);
+        invalidateRobotCommand(frame.sourceTime);
 
-        predict(frame.time, false, true, frame.switchCamera, m_lastRadioCommand, transform);
+        predict(frame.sourceTime, false, true, frame.switchCamera, m_lastRadioCommand, transform);
         applyVisionFrame(frame);
 
         isVisionUpdated = true;
@@ -273,7 +273,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
         m_primaryCamera = frame.cameraId;
     }
     if (frame.cameraId == m_primaryCamera) {
-        m_lastPrimaryTime = frame.time;
+        m_lastPrimaryTime = frame.sourceTime;
     }
 
     const float pRot = m_kalman->state()(2);
@@ -288,7 +288,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
 
     // keep for debugging
     world::TransformedRobotMeasurement p;
-    p.set_time(frame.time);
+    p.set_time(frame.sourceTime);
     p.set_p_x(-frame.detection.y() / 1000.0);
     p.set_p_y(frame.detection.x() / 1000.0);
     p.set_phi(pRotLimited + diff);
@@ -391,9 +391,9 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     return (b - p).norm();
 }
 
-void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, nanoseconds visionProcessingTime, bool switchCamera)
+void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 sourceTime, nanoseconds visionProcessingTime, bool switchCamera)
 {
-    m_visionFrames.append(VisionFrame(cameraId, robot, time, visionProcessingTime, switchCamera));
+    m_visionFrames.append(VisionFrame(cameraId, robot, sourceTime, visionProcessingTime, switchCamera));
     // only count frames for the primary camera
     if (m_primaryCamera == -1 || m_primaryCamera == cameraId) {
         m_frameCounter++;

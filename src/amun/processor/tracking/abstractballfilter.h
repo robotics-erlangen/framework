@@ -36,15 +36,15 @@
 struct VisionFrame
 {
     // rotate position and convert to meter
-    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r, std::chrono::nanoseconds vPT, qint64 captureTime)
-        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), captureTime(captureTime),
+    VisionFrame(const SSL_DetectionBall& b, qint64 sourceTime, qint32 c, RobotInfo r, std::chrono::nanoseconds vPT, qint64 captureTime)
+        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), sourceTime(sourceTime), captureTime(captureTime),
           robot(r), visionProcessingTime(vPT) {}
     // b.area is optional in the protobuf but defaults to 0, so nothing bad can happen
     qint32 cameraId;
     quint32 ballArea;
     float x;
     float y;
-    qint64 time;
+    qint64 sourceTime;
     qint64 captureTime;
     RobotInfo robot;
     std::chrono::nanoseconds visionProcessingTime;

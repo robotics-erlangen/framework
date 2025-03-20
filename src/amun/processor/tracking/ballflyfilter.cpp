@@ -33,7 +33,7 @@ static const float GRAVITY = 9.81;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
     AbstractBallFilter(frame, cameraInfo, transform, ballModel),
-    m_initTime(frame.time)
+    m_initTime(frame.sourceTime)
 {
     resetFlightReconstruction();
 }
@@ -514,7 +514,7 @@ float FlyFilter::toLocalTime(qint64 time) const
 auto FlyFilter::createChipDetection(const VisionFrame& frame) const -> ChipDetection
 {
     const Eigen::Vector2f reportedBallPos(frame.x, frame.y);
-    const float timeSinceInit = toLocalTime(frame.time);
+    const float timeSinceInit = toLocalTime(frame.sourceTime);
 
     float dribblerSpeed = 0;
     float absSpeed = 0;
@@ -592,7 +592,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         }
 
         if (m_flightReconstructions.size() > 0) {
-            updateBouncing(frame.time);
+            updateBouncing(frame.sourceTime);
             if (m_kickFrames.isEmpty()) { // could have been reset by updateBouncing
                 return;
             }
@@ -810,7 +810,7 @@ int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
         return -1;
     }
     // all frames will have the same time and camera id
-    const auto pred = predictTrajectory(toLocalTime(frames.at(0).time));
+    const auto pred = predictTrajectory(toLocalTime(frames.at(0).sourceTime));
     const Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(frames.at(0).cameraId);
     const float lambda = -cam(2) / (cam(2)-pred.pos(2));
     const Eigen::Vector3f predGround = cam + (cam-pred.pos)*lambda;

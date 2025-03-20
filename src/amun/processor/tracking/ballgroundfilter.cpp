@@ -47,7 +47,7 @@ void GroundFilter::reset(const VisionFrame& frame)
     // if the ball isn't moving then 0.001 0.001 should be enough
     setObservationStdDev(0.003f);
 
-    m_lastUpdate = frame.time;
+    m_lastUpdate = frame.sourceTime;
 }
 
 void GroundFilter::setSpeed(Eigen::Vector2f speed)
@@ -161,14 +161,14 @@ void GroundFilter::setObservationStdDev(float deviation)
 
 void GroundFilter::processVisionFrame(const VisionFrame& frame)
 {
-    predict(frame.time);
+    predict(frame.sourceTime);
 
     // linearGroundFilter
     m_kalman->z(0) = frame.x;
     m_kalman->z(1) = frame.y;
 
     m_kalman->update();
-    m_lastUpdate = frame.time;
+    m_lastUpdate = frame.sourceTime;
 }
 
 float GroundFilter::distanceTo(Eigen::Vector2f objPos) const

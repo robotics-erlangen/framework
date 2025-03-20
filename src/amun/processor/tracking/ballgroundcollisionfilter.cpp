@@ -351,7 +351,7 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
     m_dribbleOffset.reset();
 
     m_feasiblyInvisible = false;
-    m_lastUpdateTime = frame.time;
+    m_lastUpdateTime = frame.sourceTime;
     m_lastVisionFrame = frame;
     m_invisibleFrames = 0;
 
@@ -363,7 +363,7 @@ void BallGroundCollisionFilter::processVisionFrame(const VisionFrame &frame)
 
     m_groundFilter.processVisionFrame(frame);
     // TODO: fix the 0 time and is the +1 still necessary?
-    m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
+    m_groundFilter.writeBallState(&m_pastBallState, frame.sourceTime + 1, {}, 0);
 
     checkVolleyShot(frame);
     updateDribbleAndRotate(frame);
@@ -439,7 +439,7 @@ void BallGroundCollisionFilter::checkVolleyShot(const VisionFrame &frame)
     if (!hasIntersection && m_hadRobotIntersection && noDribbling) {
         resetFilter(frame);
         m_groundFilter.processVisionFrame(frame);
-        m_groundFilter.writeBallState(&m_pastBallState, frame.time + 1, {}, 0);
+        m_groundFilter.writeBallState(&m_pastBallState, frame.sourceTime + 1, {}, 0);
     }
     if (!hasIntersection) {
         m_lastValidSpeed = currentSpeed.norm();
@@ -559,7 +559,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
         resetFrame.x = m_pastBallState.p_x();
         resetFrame.y = m_pastBallState.p_y();
         resetFilter(resetFrame);
-        m_groundFilter.writeBallState(&m_pastBallState, m_lastVisionFrame.time + 1, robots, 0);
+        m_groundFilter.writeBallState(&m_pastBallState, m_lastVisionFrame.sourceTime + 1, robots, 0);
         pastPos = Eigen::Vector2f{m_pastBallState.p_x(), m_pastBallState.p_y()};
         pastSpeed = Eigen::Vector2f{m_pastBallState.v_x(), m_pastBallState.v_y()};
     }
@@ -644,7 +644,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     // the robot but the vision data is not there yet.
     // Therefore, keep the ball speed as it is in this case.
     const qint64 RESET_SPEED_TIME = 150; // ms
-    const int invisibleTimeMs = (time - m_lastVisionFrame.time) / 1000000;
+    const int invisibleTimeMs = (time - m_lastVisionFrame.sourceTime) / 1000000;
     const bool rotateAndDribble = m_dribbleOffset.has_value() && m_dribbleOffset->forceDribbleMode;
     const bool dribbling = m_lastValidSpeed < 2.0f;
     const bool overwriteBallSpeed = invisibleTimeMs > RESET_SPEED_TIME || rotateAndDribble || dribbling;
