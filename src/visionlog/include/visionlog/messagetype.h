@@ -21,6 +21,8 @@
 #ifndef VISIONLOG_MESSAGETYPE_H
 #define VISIONLOG_MESSAGETYPE_H
 
+#include <cstdint>
+
 namespace VisionLog {
     enum class MessageType: int32_t
     {
@@ -29,7 +31,9 @@ namespace VisionLog {
         MESSAGE_UNKNOWN = 1,
         MESSAGE_SSL_VISION_2010 = 2,
         MESSAGE_SSL_REFBOX_2013 = 3,
-        MESSAGE_SSL_VISION_2014 = 4
+        MESSAGE_SSL_VISION_2014 = 4,
+        MESSAGE_SSL_VISION_TRACKER_2020 = 5,
+        MESSAGE_SSL_INDEX_2021 = 6,
     };
 }
 

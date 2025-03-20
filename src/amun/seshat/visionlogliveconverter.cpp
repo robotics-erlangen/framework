@@ -43,7 +43,20 @@ VisionLogLiveConverter::VisionLogLiveConverter(VisionLogReader *file) :
         m_indexError = "Invalid or corrupt vision log!";
         return;
     }
-    qint64 lastTime = packetIndex.last().first;
+
+    // Timestamp of the last packet in the logfile
+    qint64 lastTime = 0;
+
+    // The last packet in the logfile may be an index packet, which has no
+    // valid timestamp.
+    for (auto it = packetIndex.crbegin(); it != packetIndex.crend(); it++) {
+        if (it->second != VisionLog::MessageType::MESSAGE_SSL_INDEX_2021
+                && it->second != VisionLog::MessageType::MESSAGE_BLANK) {
+            lastTime = it->first;
+            break;
+        }
+    }
+
     // every 10 ms
     int counter = 0;
     int index = 0;
