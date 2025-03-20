@@ -443,11 +443,12 @@ void FieldWidget::toggleStrategyVisualizations()
 
 void FieldWidget::handleStatus(const Status &status)
 {
-    const bool hasRa = status->has_world_state() && (m_trackingFrom == TrackingFrom::RA || m_trackingFrom == TrackingFrom::NONE);
+    const bool hasNeutral = status->has_world_state()
+        && (m_trackingFrom == TrackingFrom::RA || m_trackingFrom == TrackingFrom::NONE || m_showVision || m_showTruth);
     const bool hasBlue = status->has_execution_state() && (m_trackingFrom == TrackingFrom::BLUE && status->has_blue_running());
     const bool hasYellow = status->has_execution_state() && (m_trackingFrom == TrackingFrom::YELLOW && status->has_yellow_running());
     const bool hasAutoref = status->has_execution_state() && (m_trackingFrom == TrackingFrom::AUTOREF && status->has_autoref_running());
-    if (hasRa || hasBlue || hasYellow || hasAutoref) {
+    if (hasNeutral || hasBlue || hasYellow || hasAutoref) {
         m_worldState.append(status);
         m_guiTimer->requestTriggering();
     }
@@ -920,13 +921,31 @@ void FieldWidget::updateDetection()
     }
 
     QSet<uint> cameraIDs{};
-    for (int k = 0; k < m_worldState.size(); ++k) {
-        if (m_worldState[k].isNull()) {
+    QVector<Status> normalStatus, executionStatus;
+
+    for (const Status &status : m_worldState) {
+        if (status.isNull()) {
             continue;
         }
-        const bool useExecutionState = m_trackingFrom == TrackingFrom::BLUE || m_trackingFrom == TrackingFrom::YELLOW || m_trackingFrom == TrackingFrom::AUTOREF;
-        const world::State &worldState = useExecutionState ? m_worldState[k]->execution_state() : m_worldState[k]->world_state();
-        const bool isLast = (k == (m_worldState.size() - 1));
+
+        if (status->has_execution_state()) {
+            executionStatus.append(status);
+        } else if (status->has_world_state()) {
+            normalStatus.append(status);
+        }
+    }
+
+    const bool useExecutionState = m_trackingFrom == TrackingFrom::BLUE
+        || m_trackingFrom == TrackingFrom::YELLOW
+        || m_trackingFrom == TrackingFrom::AUTOREF;
+
+    const auto& statusForTrackingDisplay = useExecutionState ? executionStatus : normalStatus;
+
+    for (int k = 0; k < statusForTrackingDisplay.size(); ++k) {
+        const world::State &worldState = useExecutionState
+            ? statusForTrackingDisplay[k]->execution_state()
+            : statusForTrackingDisplay[k]->world_state();
+        const bool isLast = (k == (statusForTrackingDisplay.size() - 1));
 
         // pre-clean all traces, independent of existence of ball / robot
         invalidateTraces(m_ballTrace, worldState.time());
@@ -969,6 +988,10 @@ void FieldWidget::updateDetection()
             m_rollingBall->hide();
             m_flyingBall->hide();
         }
+    }
+
+    for (const auto& status : normalStatus) {
+        const auto& worldState = status->world_state();
 
         if (m_showVision) {
             m_visionCurrentlyDisplayed = true;
