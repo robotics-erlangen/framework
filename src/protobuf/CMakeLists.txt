@@ -39,6 +39,7 @@ set(SSL_PROTO_FILES
     protobuf/ssl_gc/engine/ssl_gc_engine.proto
     protobuf/ssl_gc/engine/ssl_gc_engine_config.proto
     protobuf/ssl_gc/geom/ssl_gc_geometry.proto
+    protobuf/ssl_gc/rcon/ssl_gc_rcon.proto
     protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.proto
     protobuf/ssl_gc/rcon/ssl_gc_rcon_team.proto
     protobuf/ssl_gc/state/ssl_gc_common.proto
