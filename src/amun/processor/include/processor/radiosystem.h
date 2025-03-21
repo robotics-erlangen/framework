@@ -89,7 +89,7 @@ private:
 
     void addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay);
 
-    void addRobot2025Command(int id, const bool isBlue, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay);
+    void addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay);
 
     void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);
 

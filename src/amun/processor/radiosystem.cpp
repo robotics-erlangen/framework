@@ -637,7 +637,7 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
     }
 }
 
-bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand, const bool isBlue) {
+bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand) {
     if (controller.trajectory_size() == 0) {
         return false;
     }
@@ -656,25 +656,22 @@ bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioC
         return false;
     }
 
-    const float toGlobalCoords = isBlue ? -1.0f : 1.0f;
-    const float toGlobalPhi = isBlue ? std::numbers::pi : 0.0f;
-
     RadioCommand2025TrajectoryPath trajectoryPath = {
         .start_state = {
             .coords = {
-                .x = toGlobalCoords * traj0.start_pos().x(),
-                .y = toGlobalCoords * traj0.start_pos().y(),
+                .x = traj0.start_pos().x(),
+                .y = traj0.start_pos().y(),
             },
-            .angle = normalizeAngle(traj0.start_angle() + toGlobalPhi),
+            .angle = normalizeAngle(traj0.start_angle()),
         },
         .start_vel = {
-            .x = toGlobalCoords * traj0.start_vel().x(),
-            .y = toGlobalCoords * traj0.start_vel().y(),
+            .x = traj0.start_vel().x(),
+            .y = traj0.start_vel().y(),
         },
-        .end_angle = normalizeAngle(traj0.end_angle() + toGlobalPhi),
+        .end_angle = normalizeAngle(traj0.end_angle()),
         .end_vel = {
-            .x = toGlobalCoords * traj0.end_vel().x(),
-            .y = toGlobalCoords * traj0.end_vel().y(),
+            .x = traj0.end_vel().x(),
+            .y = traj0.end_vel().y(),
         },
 
         .alpha = normalizeAngle(traj0.alpha()),
@@ -689,13 +686,10 @@ bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioC
     return true;
 }
 
-bool static writeSpline(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand, const bool isBlue) {
+bool static writeSpline(robot::ControllerInput const &controller, RadioCommand2025 &radioCommand) {
     if (controller.global_spline_size() == 0 && controller.local_spline_size() == 0) {
         return false;
     }
-
-    const float toGlobalCoords = isBlue ? -1.0f : 1.0f;
-    const float toGlobalPhi = isBlue ? std::numbers::pi : 0.0f;
 
     bool isLocal = controller.local_spline_size() > 0;
     robot::Spline spline0 = isLocal ? controller.local_spline(0) : controller.global_spline(0);
@@ -709,29 +703,29 @@ bool static writeSpline(robot::ControllerInput const &controller, RadioCommand20
     RadioCommand2025Spline spline = {
         .pos = {
             .coords = {
-                .x = toGlobalCoords * spline0.x().a0(),
-                .y = toGlobalCoords * spline0.y().a0(),
+                .x = spline0.x().a0(),
+                .y = spline0.y().a0(),
             },
-            .angle = normalizeAngle(spline0.phi().a0() + toGlobalPhi),
+            .angle = normalizeAngle(spline0.phi().a0()),
         },
         .vel = {
             .coords = {
-                .x = toGlobalCoords * spline0.x().a1(),
-                .y = toGlobalCoords * spline0.y().a1(),
+                .x = spline0.x().a1(),
+                .y = spline0.y().a1(),
             },
             .angle = spline0.phi().a1(),
         },
         .acc {
             .coords = {
-                .x = 2 * toGlobalCoords * spline0.x().a2(),
-                .y = 2 * toGlobalCoords * spline0.y().a2(),
+                .x = 2 * spline0.x().a2(),
+                .y = 2 * spline0.y().a2(),
             },
             .angle = 2 * spline0.phi().a2(),
         },
         .jerk {
             .coords = {
-                .x = 6 * toGlobalCoords * spline0.x().a3(),
-                .y = 6 * toGlobalCoords * spline0.y().a3(),
+                .x = 6 * spline0.x().a3(),
+                .y = 6 * spline0.y().a3(),
             },
             .angle = 6 * spline0.phi().a3(),
         },
@@ -741,7 +735,7 @@ bool static writeSpline(robot::ControllerInput const &controller, RadioCommand20
 }
 
 
-void RadioSystem::addRobot2025Command(int id, const bool isBlue, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
+void RadioSystem::addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
 {
     // copy command
     RadioCommand2025 data;
@@ -776,8 +770,8 @@ void RadioSystem::addRobot2025Command(int id, const bool isBlue, const robot::Co
     set_halt(&data.payload.regular);
 
     const robot::ControllerInput &controller = command.controller();
-    writeTrajectoryPath(controller, data, isBlue);
-    writeSpline(controller, data, isBlue);
+    writeTrajectoryPath(controller, data);
+    writeSpline(controller, data);
     // TODO
 
     for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
@@ -830,7 +824,7 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
             } else if (it.key() == Radio::Generation::GenPasta) {
                 // TODO
                 //addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
-                addRobot2025Command(radio_command.id(), radio_command.is_blue(), radio_command.command(), charge, m_packetCounter, syncTime);
+                addRobot2025Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
             }
         }
     }
