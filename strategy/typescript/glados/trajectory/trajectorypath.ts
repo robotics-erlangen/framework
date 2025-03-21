@@ -151,14 +151,6 @@ export class TrajectoryPath extends TrajectoryHandler {
 			}
 		}
 
-		// correct start and end speed
-		if (startSpeed.length() > maxSpeed - 0.1) {
-			startSpeed = startSpeed.withLength(maxSpeed - 0.1);
-		}
-		if (endSpeed.length() > maxSpeed - 0.1) {
-			endSpeed = endSpeed.withLength(maxSpeed - 0.1);
-		}
-
 		// calculate acceleration (also used for braking)
 		let baseAcceleration = Math.min(Math.abs(this._robot.acceleration.aSpeedupFMax), Math.abs(this._robot.acceleration.aBrakeFMax));
 		let accelerate = baseAcceleration * accelScale;
