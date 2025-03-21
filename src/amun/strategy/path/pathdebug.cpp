@@ -87,7 +87,7 @@ void PathDebug::debugCircle(const QString &name, Vector center, float radius, Pa
     circle->set_p_x(center.x);
     circle->set_p_y(center.y);
     circle->set_radius(radius);
-    vis.mutable_brush();
+    vis.mutable_brush()->set_alpha(0);
     setColor(vis.mutable_pen(), color);
     emit gotVisualization(vis);
 }
