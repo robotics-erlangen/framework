@@ -108,7 +108,7 @@ AlphaTimeTrajectory::TrajectoryPosInfo2D AlphaTimeTrajectory::calculatePosition(
     }
 
     if (time < 0.0005f) {
-        return {(start.speed + v1) * 0.5f * minTime, v1};
+        return {start.pos + (start.speed + v1) * 0.5f * minTime, v1};
     }
 
     time += minTime;
@@ -206,7 +206,7 @@ Vector AlphaTimeTrajectory::minTimePos(const RobotState &start, Vector v1, float
 {
     const float minTime = minimumTime(start.speed, v1, acc, EndSpeed::EXACT);
     if (slowDownTime == 0.0f) {
-        return (start.speed + v1) * (minTime * 0.5f);
+        return start.pos + (start.speed + v1) * (minTime * 0.5f);
     } else {
         // assumes that slowDownTime can only be given with v1 = (0, 0)
         // construct speed profile for slowing down to zero
