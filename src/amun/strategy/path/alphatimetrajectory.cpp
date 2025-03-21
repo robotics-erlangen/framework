@@ -325,18 +325,18 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
 
     const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
     for (int i = 0;i<ITERATIONS;i++) {
-        currentTime = std::max(currentTime, 0.0f);
+        const float currentPositiveTime = std::max(currentTime, 0.0f);
 
         Vector endPos;
         float assumedSpeed;
         Trajectory result;
         if (slowDownTime > 0) {
-            result = calculateTrajectory(start, target.speed, currentTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
+            result = calculateTrajectory(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
             endPos = result.endPosition();
             const Vector continuationSpeed = result.continuationSpeed();
             assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
         } else {
-            const auto trajectoryInfo = calculatePosition(start, target.speed, currentTime, currentAngle, acc, vMax, endSpeedType, minTime);
+            const auto trajectoryInfo = calculatePosition(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, endSpeedType, minTime);
             endPos = trajectoryInfo.endPos;
             assumedSpeed = std::max(std::abs(trajectoryInfo.increaseAtSpeed.x), std::abs(trajectoryInfo.increaseAtSpeed.y));
         }
@@ -344,7 +344,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         const float targetDistance = target.pos.distance(endPos);
         if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
             if (slowDownTime <= 0) {
-                result = calculateTrajectory(start, target.speed, currentTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
+                result = calculateTrajectory(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
             }
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
             searchIterationCounter += i;
@@ -354,7 +354,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         }
 
         // update time
-        const Vector centerPos = centerTimePos(start, target.speed, currentTime + minTime, endSpeedType);
+        const Vector centerPos = centerTimePos(start, target.speed, currentPositiveTime + minTime, endSpeedType);
         const Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerPos;
         const float newDistance = endPos.distance(currentCenterTimePos);
         const float targetCenterDistance = currentCenterTimePos.distance(target.pos);
