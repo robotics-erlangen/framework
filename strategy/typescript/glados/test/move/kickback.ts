@@ -32,7 +32,7 @@ class Waiting extends State {
 	/**
 	 * the speed the ball has to reach for the robot to start catching it
 	 */
-	public static readonly MIN_CATCH_SPEED: number = 2;
+	public static readonly MIN_CATCH_SPEED: number = 1;
 
 	public nextState(): State {
 		if (World.Ball.isPositionValid()
@@ -79,7 +79,7 @@ export class KickBackTest extends Task {
 	private _state: State = new Waiting(this);
 
 	public run() {
-		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignorePass: true });
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, { ignoreDefenseArea: true, ignoreOpponentDefenseArea: true, ignorePass: true });
 
 		debug.set("state", this._state);
 		this._state.run();
