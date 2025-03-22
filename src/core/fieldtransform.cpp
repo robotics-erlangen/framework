@@ -86,7 +86,7 @@ float FieldTransform::applyAngle(float angle) const
     }
 }
 
-float FieldTransform::applyInverseX(float x, float y) const
+float FieldTransform::applyInversePosX(float x, float y) const
 {
     x *= m_flipFactor;
     y *= m_flipFactor;
@@ -96,7 +96,7 @@ float FieldTransform::applyInverseX(float x, float y) const
     return invDet * (m_transform[3] * x - m_transform[1] * y);
 }
 
-float FieldTransform::applyInverseY(float x, float y) const
+float FieldTransform::applyInversePosY(float x, float y) const
 {
     x *= m_flipFactor;
     y *= m_flipFactor;
@@ -108,5 +108,5 @@ float FieldTransform::applyInverseY(float x, float y) const
 
 QPointF FieldTransform::applyInversePosition(const QPointF &pos) const
 {
-    return QPointF(applyInverseX(pos.x(), pos.y()), applyInverseY(pos.x(), pos.y()));
+    return QPointF(applyInversePosX(pos.x(), pos.y()), applyInversePosY(pos.x(), pos.y()));
 }

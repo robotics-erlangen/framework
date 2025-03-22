@@ -31,7 +31,7 @@ TEST(FieldTransform, ConstructorUniform) {
     ASSERT_EQ(t.applySpeedX(1.0f, 2.0f), 1.0f);
     ASSERT_EQ(t.applySpeedY(1.0f, 2.0f), 2.0f);
     ASSERT_EQ(t.applyAngle(1.0f), 1.0f);
-    ASSERT_EQ(t.applyInverseX(1.0f, 2.0f), 1.0f);
-    ASSERT_EQ(t.applyInverseY(1.0f, 2.0f), 2.0f);
+    ASSERT_EQ(t.applyInversePosX(1.0f, 2.0f), 1.0f);
+    ASSERT_EQ(t.applyInversePosY(1.0f, 2.0f), 2.0f);
     ASSERT_EQ(t.applyInversePosition(QPointF(1.0f, 2.0f)), QPointF(1.0f, 2.0f));
 }

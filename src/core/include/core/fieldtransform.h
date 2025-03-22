@@ -47,8 +47,8 @@ public:
     float applySpeedX(float x, float y) const;
     float applySpeedY(float x, float y) const;
     float applyAngle(float angle) const;
-    float applyInverseX(float x, float y) const;
-    float applyInverseY(float x, float y) const;
+    float applyInversePosX(float x, float y) const;
+    float applyInversePosY(float x, float y) const;
     QPointF applyInversePosition(const QPointF &pos) const;
 
 private:
