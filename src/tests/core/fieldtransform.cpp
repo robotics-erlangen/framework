@@ -35,3 +35,26 @@ TEST(FieldTransform, ConstructorUniform) {
     ASSERT_EQ(t.applyInversePosY(1.0f, 2.0f), 2.0f);
     ASSERT_EQ(t.applyInversePosition(QPointF(1.0f, 2.0f)), QPointF(1.0f, 2.0f));
 }
+
+TEST(FieldTransform, InversePositionInvariant) {
+    FieldTransform t;
+
+    t.setFlip(true);
+    t.setTransform({ 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f });
+
+    const QPointF a = t.applyInversePosition(t.applyPosition({ 1.0f, 2.0f }));
+    EXPECT_FLOAT_EQ(a.x(), 1.0f);
+    EXPECT_FLOAT_EQ(a.y(), 2.0f);
+
+    const float base_p_x = 1.0f;
+    const float base_p_y = 2.0f;
+
+    const float transformed_x = t.applyPosX(base_p_x, base_p_y);
+    const float transformed_y = t.applyPosY(base_p_x, base_p_y);
+
+    const float inverse_x = t.applyInversePosX(transformed_x, transformed_y);
+    const float invserse_y = t.applyInversePosY(transformed_x, transformed_y);
+
+    EXPECT_FLOAT_EQ(inverse_x, base_p_x);
+    EXPECT_FLOAT_EQ(invserse_y, base_p_y);
+}

@@ -92,7 +92,7 @@ float FieldTransform::applyInversePosX(float x, float y) const
     y *= m_flipFactor;
     x -= m_transform[4];
     y -= m_transform[5];
-    float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];
+    float invDet = 1.0f / (m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
     return invDet * (m_transform[3] * x - m_transform[1] * y);
 }
 
@@ -102,7 +102,7 @@ float FieldTransform::applyInversePosY(float x, float y) const
     y *= m_flipFactor;
     x -= m_transform[4];
     y -= m_transform[5];
-    float invDet = m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2];
+    float invDet = 1.0f / (m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
     return invDet * (-m_transform[2] * x + m_transform[0] * y);
 }
 
