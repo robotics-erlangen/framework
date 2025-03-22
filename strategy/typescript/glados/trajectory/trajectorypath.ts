@@ -16,7 +16,6 @@ import * as World from "base/world";
 
 import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import * as Rating from "glados/util/rating";
 
 // enables a more expensive, but also a little more
 // useful visualization for trajectories
@@ -216,9 +215,7 @@ export class TrajectoryPathResult extends ToTargetResult {
 }
 
 export class TrajectoryPath extends TrajectoryHandler<[Position, number, number, Speed, number, boolean], TrajectoryPathResult> {
-	private _rotationCalculation: DirectRotation = new DirectRotation();
 	private _dribbleWarning = true;
-	private _slowSpeedHysteresis: boolean = false;
 
 	private _lastResult: TrajectoryPathResult | undefined = undefined;
 
@@ -259,18 +256,12 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		let robotSpeed = Coordinates.toGlobal(rSpeed);
 		let robotDir = Coordinates.toGlobal(this._robot.dir);
 
-		// find position and speed on last path
-		let startPos = robotPos;
-		let startSpeed = robotSpeed;
-		let futureStartPos = robotPos;
-		let futureStartSpeed = robotSpeed;
-
 		// calculate acceleration (also used for braking)
 		let baseAcceleration = Math.min(Math.abs(this._robot.acceleration.aSpeedupFMax), Math.abs(this._robot.acceleration.aBrakeFMax));
 		let accelerate = baseAcceleration * accelScale;
 
 		// call C++ path finding
-		let [trajectoryPoints, trajectoryDatas] = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
+		let [trajectoryPoints, trajectoryDatas] = this._robot.path.getTrajectory(robotPos, robotSpeed, targetPos, endSpeed,
 			maxSpeed, accelerate);
 		const result = new TrajectoryPathResult(
 			this._robot,
@@ -301,59 +292,6 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		}
 
 		this._lastResult = result;
-
-		// calculate rotation
-		let rotationExponentialTime = 0.1;
-		let rotationAccelerationFactor = 1;
-
-		const rotationFactor = 0.2 + 0.8 * Rating.valueToRating(result.timeToDest, 1.5, 0.5);
-
-		let rotAccelerate = Math.abs(this._robot.acceleration
-			? this._robot.acceleration.aSpeedupPhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
-		let rotBrake = -Math.abs(this._robot.acceleration
-			? this._robot.acceleration.aBrakePhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
-		let rotMaxSpeed = this._robot.maxAngularSpeed * rotationFactor;
-		let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir,
-			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
-
-		// finish and return trajectory
-		let queryTime;
-		let startDriving = false;
-		if (World.WorldStateSource() !== pb.world.WorldSource.REAL_LIFE) {
-			if (result.timeToDest < 0.4) {
-				queryTime = Math.min(0.1, (0.4 - result.timeToDest) / 4);
-			} else {
-				queryTime = 0;
-			}
-		} else {
-			queryTime = 0.08;
-			let testSpeed = Coordinates.toGlobal(result.speedAtTime(queryTime));
-			if (robotSpeed.length() > testSpeed.length()) {
-				queryTime = 0.03;
-			}
-			if (robotPos.distanceTo(targetPos) < 0.1) {
-				queryTime = 0.1;
-			} else {
-				const QUERY_OFFSET = 0.3;
-				let nextSpeed = Coordinates.toGlobal(result.speedAtTime(QUERY_OFFSET));
-
-				let slowSpeedLimit = this._slowSpeedHysteresis ? 0.4 : 0.2;
-				this._slowSpeedHysteresis = false;
-				if (nextSpeed.length() > startSpeed.length() + 0.02 && robotSpeed.length() < slowSpeedLimit) {
-					queryTime = QUERY_OFFSET;
-					this._slowSpeedHysteresis = true;
-					startDriving = true;
-				}
-			}
-		}
-		let speed = Coordinates.toGlobal(result.speedAtTime(queryTime));
-		let acc = Coordinates.toGlobal(result.accAtTime(queryTime));
-
-		if (startDriving) {
-			speed = speed * 1.5;
-			acc = acc * 1.5;
-			vis.addCircle("Position Control", this._robot.pos, 0.2, vis.colors.red);
-		}
 
 		const trajectory: pb.robot.AlphaTimeTrajectory[] = [];
 		const END_SPEED_TYPE_MAP = new Map<"EXACT" | "FAST", pb.robot.AlphaTimeTrajectory.EndSpeedType>([
