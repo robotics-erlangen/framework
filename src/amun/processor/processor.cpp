@@ -543,9 +543,9 @@ void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, con
     robot::Command& command = *radioCommand->mutable_command();
     const world::Robot* currentRadioRobot = getWorldRobot(radioRobots, radioCommand->id());
     if (currentRadioRobot && currentRobot) {
-        float robot_phi = currentRobot->phi() - M_PI_2;
+        float robotTheta = currentRobot->phi() - M_PI_2;
         GlobalSpeed currentPos(currentRadioRobot->v_x(), currentRadioRobot->v_y(), currentRadioRobot->omega());
-        LocalSpeed localPos = currentPos.toLocal(robot_phi);
+        LocalSpeed localPos = currentPos.toLocal(robotTheta);
 
         command.set_cur_v_s(localPos.v_s);
         command.set_cur_v_f(localPos.v_f);
