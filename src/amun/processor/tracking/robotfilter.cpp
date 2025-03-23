@@ -372,12 +372,12 @@ void RobotFilter::get(world::Robot *robot, const FieldTransform &transform, bool
         m_lastRaw[np->camera_id()] = *np;
     }
 
-    auto addPrimaryDetection = [&robot](const world::TransformedRobotMeasurement &p) {
+    auto addPrimaryDetection = [&robot, &transform](const world::TransformedRobotMeasurement &p) {
         auto* primaryDetection = robot->mutable_primary_detection();
 
-        primaryDetection->set_x(p.p_x());
-        primaryDetection->set_y(p.p_y());
-        primaryDetection->set_angle(p.phi());
+        primaryDetection->set_x(transform.applyInversePosX(p.p_x(), p.p_y()));
+        primaryDetection->set_y(transform.applyInversePosY(p.p_x(), p.p_y()));
+        primaryDetection->set_angle(transform.applyInverseAngle(p.phi()));
     };
 
     if (m_measurements.length() == 1) {
