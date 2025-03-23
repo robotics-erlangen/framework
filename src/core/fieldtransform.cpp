@@ -128,3 +128,19 @@ float FieldTransform::applyInverseSpeedY(float x, float y) const
     float invDet = 1.0f / (m_transform[0] * m_transform[3] - m_transform[1] * m_transform[2]);
     return invDet * (-m_transform[2] * x + m_transform[0] * y);
 }
+
+float FieldTransform::applyInverseAngle(float angle) const
+{
+    if (m_lastFlipped && !m_hasTransform) {
+        return angle - M_PI;
+    } else if (!m_hasTransform) {
+        return angle;
+    } else {
+        // only do this rather expensive calculation if a non regular transform is set
+        float x = std::cos(angle);
+        float y = std::sin(angle);
+        float xTransformed = applyInverseSpeedX(x, y);
+        float yTransformed = applyInverseSpeedY(x, y);
+        return std::atan2(yTransformed, xTransformed);
+    }
+}

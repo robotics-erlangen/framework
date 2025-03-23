@@ -53,6 +53,7 @@ public:
 
     float applyInverseSpeedX(float x, float y) const;
     float applyInverseSpeedY(float x, float y) const;
+    float applyInverseAngle(float angle) const;
 
 private:
     bool m_lastFlipped;
