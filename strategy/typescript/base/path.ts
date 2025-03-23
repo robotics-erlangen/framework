@@ -199,14 +199,14 @@ type TrajectoryPointCPP = {
 	time: number;
 };
 
-type TrajectoryPoint = {
+export type TrajectoryPoint = {
 	pos: Vector;
 	speed: Vector;
 	time: number;
 };
 
 
-type EndSpeedType = "EXACT" | "FAST";
+export type EndSpeedType = "EXACT" | "FAST";
 
 
 type AlphaTimeTrajectoryDataCPP = {
@@ -229,7 +229,7 @@ type AlphaTimeTrajectoryDataCPP = {
 	slowDownTime: number;
 };
 
-type AlphaTimeTrajectoryData = {
+export type AlphaTimeTrajectoryData = {
 	startPos: Vector;
 	startSpeed: Vector;
 	endSpeed: Vector;
