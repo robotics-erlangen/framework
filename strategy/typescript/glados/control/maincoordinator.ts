@@ -3,7 +3,6 @@ import * as Entrypoints from "base/entrypoints";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
-// import {Ally} from "glados/agent/ally";
 import { Attacker } from "glados/agent/attacker";
 import { Defender } from "glados/agent/defender";
 import { Dummy } from "glados/agent/dummy";
@@ -15,7 +14,6 @@ import { MainTrainer } from "glados/trainer/maintrainer";
 // import {Manual} from "glados/agent/manual";
 
 const AGENTS = {
-	// Ally: Ally,
 	Attacker: Attacker,
 	Defender: Defender,
 	Hidden: Hidden,
@@ -40,7 +38,6 @@ export class MainCoordinator extends Coordinator {
 	public constructor(trainer: MainTrainer) {
 		let pools: { [name: string]: AgentPool } = {
 			// manual: new AgentPool(Agents.Manual),
-			// ally: new AgentPool(Agents.Ally),
 			keeper: new AgentPool(AGENTS.Keeper),
 			defense: new AgentPool(AGENTS.Defender),
 			attack: new AttackerPool(AGENTS.Attacker),

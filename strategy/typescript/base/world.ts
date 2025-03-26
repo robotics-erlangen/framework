@@ -68,12 +68,6 @@ export let TeamIsBlue: boolean = false;
 export let IsLargeField: boolean = false;
 /** True if the current strategy run is a replay run */
 export let IsReplay: boolean = false;
-/**
- * Mixed team data sent by partner team, indexed by robot id, only set if data was received;
- * Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
- * targetDir* number, shootPos* vector, * = optional
- */
-export let MixedTeam: pb.ssl.TeamPlan | undefined = undefined;
 export let SelectedOptions = undefined;
 
 /** True if the world is simulated */
@@ -452,10 +446,6 @@ export function _updateWorld(state: pb.world.State) {
 
 	Robots = FriendlyRobots.slice();
 	Robots = Robots.concat(OpponentRobots);
-
-	// mixed team has never been fully ported or at least used since we moved to TypeScript,
-	// so it is always set to undefined
-	MixedTeam = undefined;
 
 	// update aoi data
 	AoI = state.tracking_aoi;

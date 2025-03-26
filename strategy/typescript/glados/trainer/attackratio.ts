@@ -5,7 +5,6 @@ import * as BaseRef from "base/referee";
 import { FriendlyRobot } from "base/robot";
 import * as World from "base/world";
 
-// import {Ally} from "glados/agent/ally";
 import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Referee from "glados/observer/referee";
@@ -16,7 +15,7 @@ export type ChangePoolTo = "attacker" | "defender";
 
 export interface ForcePoolChange {
 	robot: FriendlyRobot;
-	destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden";
+	destPool: "manual" | "keeper" | "defender" | "attacker" | "hidden";
 }
 
 export enum AttackRatioKind {
@@ -337,7 +336,6 @@ export class AttackRatio {
 		// meaning this should not cause any noticable logical problems, but it would cause
 		// a crash without clamping the defenders to 0.
 		defenders = Math.max(0, defenders);
-		// [attackers, defenders] = Ally.updateRoleNumbers(attackers, defenders);
 		return [attackers, defenders];
 	}
 
