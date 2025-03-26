@@ -104,7 +104,6 @@ public:
     void setCommands(const QList<RobotCommandInfo> &commands);
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
-    void sendMixedTeam(const QByteArray &info);
     const world::Geometry& geometry() const { return m_geometry; }
     const robot::Team& team() const { return m_team; }
     const world::State& worldState() const { return m_worldState; }
@@ -119,7 +118,6 @@ signals:
     void requestReload();
     void gotCommand(const Command &command);
     void sendStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
-    void sendMixedTeamInfo(const QByteArray &data);
     void changeLoadState(amun::StatusStrategy::STATE state);
 
 	void recordGitDiff(const QString& path, bool changed);

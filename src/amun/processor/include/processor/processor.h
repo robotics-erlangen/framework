@@ -23,7 +23,6 @@
 
 #include "protobuf/command.h"
 #include "protobuf/robotcommand.h"
-#include "protobuf/deprecated/ssl_mixed_team.pb.h"
 #include "protobuf/ssl_vision/ssl_wrapper.pb.h"
 #include "protobuf/status.h"
 #include <QMap>
@@ -72,7 +71,6 @@ public slots:
     void handleRefereePacket(const QByteArray &data, qint64 time, QString sender);
     void handleVisionPacket(const QByteArray &data, qint64 time, QString sender);
     void handleSimulatorExtraVision(const QByteArray &data);
-    void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
     void handleCommand(const Command &command);
     void handleStrategyCommands(bool blue, const QList<RobotCommandInfo> &commands, qint64 time);
@@ -126,8 +124,6 @@ private:
     /*! \brief Pair of SSL_WrapperPacket and the time it was received. */
     std::vector<std::pair<SSL_WrapperPacket, qint64>> m_visionWrapperPackets;
     bool m_receivedVisionSinceLastReset = false;
-    ssl::TeamPlan m_mixedTeamInfo;
-    bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;
     bool m_lastFlipped;
     InternalGameController *m_gameController;

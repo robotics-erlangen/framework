@@ -21,7 +21,6 @@
 #include "lua.h"
 #include "lua_amun.h"
 #include "lua_protobuf.h"
-#include "core/protobufhelper.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include <QtEndian>
@@ -348,18 +347,7 @@ static int amunIsInternalAutoref(lua_State *state)
 
 static int amunSendMixedTeamInfo(lua_State *state)
 {
-    Lua *thread = getStrategyThread(state);
-
-    ssl::TeamPlan mixedTeamInfo;
-    protobufToMessage(state, 1, mixedTeamInfo, NULL);
-
-    QByteArray data = protobufhelper::bufferWithSpaceFor(mixedTeamInfo);
-    if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
-        luaL_error(state, "Invalid mixed team information packet!");
-    }
-
-    thread->sendMixedTeam(data);
-    return 0;
+    return luaL_error(state, "amun.sendMixedTeamInfo is not supported anymore");
 }
 
 static int amunIsFlipped(lua_State *state)

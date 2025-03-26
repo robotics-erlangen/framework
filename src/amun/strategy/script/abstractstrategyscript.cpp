@@ -133,11 +133,6 @@ bool AbstractStrategyScript::sendCommand(const Command &command)
     return true;
 }
 
-void AbstractStrategyScript::sendMixedTeam(const QByteArray &info)
-{
-    emit sendMixedTeamInfo(info);
-}
-
 void AbstractStrategyScript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team, bool loadUnderlying)
 {
     Q_ASSERT(m_filename.isNull() || canReloadInPlace());

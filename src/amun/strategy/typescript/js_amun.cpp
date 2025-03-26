@@ -30,7 +30,6 @@
 #include "js_protobuf.h"
 #include "typescript.h"
 #include "internaldebugger.h"
-#include "core/protobufhelper.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include "v8utility.h"
@@ -510,25 +509,6 @@ static void amunSendRefereeCommand(const FunctionCallbackInfo<Value>& args)
     }
 }
 
-static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
-{
-    Isolate* isolate = args.GetIsolate();
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-
-    ssl::TeamPlan mixedTeamInfo;
-    if (!jsToProtobuf(isolate, args[0], isolate->GetCurrentContext(), mixedTeamInfo)) {
-        return;
-    }
-
-    QByteArray data = protobufhelper::bufferWithSpaceFor(mixedTeamInfo);
-    if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
-        throwError(isolate, "Invalid mixed team information packet!");
-        return;
-    }
-
-    t->sendMixedTeam(data);
-}
-
 static void amunSetRobotExchangeSymbol(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
@@ -789,7 +769,6 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "getCurrentTime",     amunGetCurrentTime},
         { "sendCommand",        amunSendCommand},
         { "sendRefereeCommand", amunSendRefereeCommand},
-        { "sendMixedTeamInfo",  amunSendMixedTeamInfo},
         { "setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
         { "luaRandom",          amunLuaRandom},
         { "luaRandomSetSeed",   amunLuaRandomSeed},

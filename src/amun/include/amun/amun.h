@@ -110,7 +110,6 @@ private:
     camun::simulator::Simulator *m_simulator;
     Receiver *m_referee;
     Receiver *m_vision;
-    Receiver *m_mixedTeam;
     Strategy *m_strategy[3];
     DebugHelper *m_debugHelper[3];
     std::shared_ptr<StrategyGameControllerMediator> m_gameControllerConnection[3];

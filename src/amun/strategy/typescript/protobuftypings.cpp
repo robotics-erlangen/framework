@@ -39,7 +39,6 @@
 #include "protobuf/robot.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
-#include "protobuf/deprecated/ssl_mixed_team.pb.h"
 #include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include "protobuf/userinput.pb.h"
 #include "protobuf/world.pb.h"
@@ -80,7 +79,6 @@ const Descriptor* EXPOSED_MESSAGES[] {
     robot::Command::descriptor(),
     robot::Spline::descriptor(),
     robot::Team::descriptor(),
-    ssl::TeamPlan::descriptor(),
     world::Geometry::descriptor(),
     world::State::descriptor(),
 };

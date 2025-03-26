@@ -75,7 +75,6 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_simulator(nullptr),
     m_referee(nullptr),
     m_vision(nullptr),
-    m_mixedTeam(nullptr),
     m_simulatorEnabled(false),
     m_scaling(1.0f),
     m_useNetworkTransceiver(false),
@@ -308,11 +307,6 @@ void Amun::start()
         connect(this, &Amun::updateVisionPort, m_vision, &Receiver::updatePort);
         // vision is connected in setSimulatorEnabled
         connect(m_vision, &Receiver::sendStatus, this, &Amun::handleStatus);
-
-        // create mixed team information receiver
-        setupReceiver(m_mixedTeam, QHostAddress(), SSL_MIXED_TEAM_PORT);
-        // pass packets to processor
-        connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
     }
 
     // create simulator
@@ -400,7 +394,6 @@ void Amun::stop()
     m_simulator = nullptr;
     m_vision = nullptr;
     m_referee = nullptr;
-    m_mixedTeam = nullptr;
     m_optionsManager = nullptr;
     for (int i = 0; i < 3; i++) {
         m_strategy[i] = nullptr;

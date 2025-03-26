@@ -37,7 +37,6 @@
 
 class AbstractStrategyScript;
 class DebugHelper;
-class StrategyPrivate;
 class Timer;
 class QTimer;
 class QTcpSocket;
@@ -77,7 +76,6 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void handleCommand(const Command &command);
-    void sendMixedTeamInfo(const QByteArray &data);
     void setFlipped(bool flipped);
 
 private slots:
@@ -101,7 +99,6 @@ private:
     world::State assembleWorldState();
 
 private:
-    StrategyPrivate * const m_p;
     const Timer *m_timer;
     AbstractStrategyScript *m_strategy;
     std::string m_geometryString;

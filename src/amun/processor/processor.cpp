@@ -133,7 +133,6 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     m_tracker(new Tracker(false, false, m_worldParameters.get())),
     m_speedTracker(new Tracker(true, true, m_worldParameters.get())),
     m_simpleTracker(new Tracker(false, false, m_worldParameters.get())),
-    m_mixedTeamInfoSet(false),
     m_refereeInternalActive(isReplay),
     m_lastFlipped(false),
     m_gameController(new InternalGameController(timer)),
@@ -369,7 +368,7 @@ void Processor::process(qint64 overwriteTime)
         geometry->set_division(*division);
     }
 
-    // add radio responses from robots and mixed team data
+    // add radio responses from robots
     injectExtraData(status);
     injectRawWorldState(status);
 
@@ -461,17 +460,10 @@ void Processor::injectExtraData(Status &status)
         robot::RadioResponse *rr = status->mutable_world_state()->add_radio_response();
         rr->CopyFrom(response);
     }
-
-    if (m_mixedTeamInfoSet) {
-        *(status->mutable_world_state()->mutable_mixed_team_info()) = m_mixedTeamInfo;
-    }
 }
 
 void Processor::clearExtraData() {
     m_responses.clear();
-
-    m_mixedTeamInfo.Clear();
-    m_mixedTeamInfoSet = false;
 }
 
 void Processor::injectRawWorldState(Status &status)
@@ -600,13 +592,6 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
 void Processor::handleSimulatorExtraVision(const QByteArray &data)
 {
     m_extraVision.append(data);
-}
-
-void Processor::handleMixedTeamInfo(const QByteArray &data, qint64)
-{
-    m_mixedTeamInfo.Clear();
-    m_mixedTeamInfoSet = true;
-    m_mixedTeamInfo.ParseFromArray(data.constData(), data.size());
 }
 
 void Processor::handleRadioResponses(const QList<robot::RadioResponse> &responses)

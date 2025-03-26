@@ -51,13 +51,6 @@
  * \brief %Strategy script handling
  */
 
-class StrategyPrivate {
-public:
-    QHostAddress mixedTeamHost;
-    quint16 mixedTeamPort;
-    QByteArray mixedTeamData;
-};
-
 #ifdef V8_FOUND
 // default initialization
 std::unique_ptr<v8::Platform> Strategy::static_platform;
@@ -92,7 +85,6 @@ void Strategy::initV8() { }
 Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, CompilerRegistry* registry,
                    std::shared_ptr<StrategyGameControllerMediator> &gameControllerConnection, bool internalAutoref,
                    bool isLogplayer, ProtobufFileSaver *pathInputSaver) :
-    m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
     m_debugStatus(Status::createArena()),
@@ -133,7 +125,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, C
 Strategy::~Strategy()
 {
     delete m_strategy;
-    delete m_p;
 }
 
 void Strategy::handleStatus(const Status &status)
@@ -382,11 +373,6 @@ void Strategy::handleCommand(const Command &command)
         }
     }
 
-    if (command->has_mixed_team_destination()) {
-        m_p->mixedTeamHost = QHostAddress(QString::fromStdString(command->mixed_team_destination().host()));
-        m_p->mixedTeamPort = command->mixed_team_destination().port();
-    }
-
     if (reloadStrategy && m_strategy) {
         reload();
     }
@@ -416,11 +402,6 @@ void Strategy::createDummyTeam()
         robot->CopyFrom(m_anyRobotSpec);
         robot->set_id(i);
     }
-}
-
-void Strategy::sendMixedTeamInfo(const QByteArray &data)
-{
-    m_p->mixedTeamData = data;
 }
 
 world::State Strategy::assembleWorldState()
@@ -518,17 +499,6 @@ void Strategy::process()
     }
 
     if (m_strategy->process(pathPlanning, worldState, usedGameState, userInput)) {
-        if (!m_p->mixedTeamData.isNull()) {
-            int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
-            int origSize = m_p->mixedTeamData.size();
-            m_p->mixedTeamData = QByteArray();
-
-            if (bytesSent != origSize) {
-                fail("Failed to send mixed team info");
-                return;
-            }
-        }
-
         double totalTime = (Timer::systemTime() - startTime) * 1E-9;
 
         // publish timings and debug output
@@ -664,7 +634,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint, bo
         connect(m_strategy, SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)),
                 SIGNAL(sendStrategyCommands(bool,QList<RobotCommandInfo>,qint64)));
         connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
-        connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
         connect(m_strategy, &AbstractStrategyScript::changeLoadState, this, &Strategy::loadStateChanged);
     }
 
