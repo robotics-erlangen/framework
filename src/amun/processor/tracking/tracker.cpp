@@ -101,7 +101,7 @@ void Tracker::process(qint64 currentTime)
 
         const nanoseconds sourceToReceiveLatency = m_isInternallySimulated
             // The internal simulator currently does not simulate latency
-            ? visionProcessingTime + m_customVisionDelay
+            ? visionProcessingTime
             : (
                 // Account for shutter latency
                   latency::HALF_EXPOSURE_TIME
@@ -110,8 +110,6 @@ void Tracker::process(qint64 currentTime)
                 + m_visionFrameTime.get(detection.camera_id())
                 + visionProcessingTime
                 + latency::VISION_TO_RA_INPUT
-                // Add user-configurable latency
-                + m_customVisionDelay
             );
 
         // time on the field for which the frame was captured as seen by this computers clock
@@ -233,7 +231,6 @@ void Tracker::worldState(world::State *worldState, qint64 currentTime, bool rese
 
     // create world state for the given time
     worldState->set_time(currentTime);
-    worldState->set_vision_transmission_delay(m_customVisionDelay.count());
 
     if (!m_robotsOnly) {
         BallTracker *ball = bestBallFilter();
@@ -654,10 +651,6 @@ void Tracker::handleCommand(const amun::CommandTracking &command, qint64 time)
             command.aoi().x2(),
             command.aoi().y2()
         };
-    }
-
-    if (command.has_vision_transmission_delay()) {
-        m_customVisionDelay = nanoseconds { command.vision_transmission_delay() };
     }
 
     // allows resetting by the strategy

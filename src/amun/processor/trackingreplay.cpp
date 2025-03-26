@@ -134,18 +134,11 @@ void TrackingReplay::handleStatus(const Status &status)
     }
 
     if (status->has_world_state()) {
-        if (status->world_state().has_vision_transmission_delay()
-                || status->world_state().has_radio_command_delay()) {
+        if (status->world_state().has_radio_command_delay()) {
             Command command(new amun::Command);
             auto* tracking = command->mutable_tracking();
 
-            if (status->world_state().has_vision_transmission_delay()) {
-                tracking->set_vision_transmission_delay(status->world_state().vision_transmission_delay());
-            }
-
-            if (status->world_state().has_radio_command_delay()) {
-                tracking->set_radio_command_delay(status->world_state().radio_command_delay());
-            }
+            tracking->set_radio_command_delay(status->world_state().radio_command_delay());
 
             m_replayProcessor.handleCommand(command);
         }

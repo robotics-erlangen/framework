@@ -28,7 +28,6 @@
 #include <QToolBar>
 #include <QDebug>
 
-const uint DEFAULT_CUSTOM_VISION_DELAY = 0; // in ms
 const uint DEFAULT_CUSTOM_RADIO_DELAY = 34; // in ms
 const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
 const uint DEFAULT_VISION_PORT = SSL_VISION_PORT;
@@ -142,7 +141,6 @@ void ConfigDialog::sendConfiguration()
     c->set_channel(ui->comboChannel->currentIndex());
 
     // from ms to ns
-    command->mutable_tracking()->set_vision_transmission_delay(ui->customVisionDelayBox->value() * 1000 * 1000);
     command->mutable_tracking()->set_radio_command_delay(ui->customRadioDelayBox->value() * 1000 * 1000);
 
     command->mutable_amun()->set_vision_port(ui->visionPort->value());
@@ -224,7 +222,6 @@ void ConfigDialog::load()
 {
     QSettings s;
     ui->comboChannel->setCurrentIndex(s.value("Transceiver/Channel", DEFAULT_TRANSCEIVER_CHANNEL).toUInt());
-    ui->customVisionDelayBox->setValue(s.value("Tracking/CustomVisionDelay", DEFAULT_CUSTOM_VISION_DELAY).toUInt()); // in ms
     ui->customRadioDelayBox->setValue(s.value("Tracking/CustomRadioDelay", DEFAULT_CUSTOM_RADIO_DELAY).toUInt()); // in ms
 
     ui->visionPort->setValue(s.value("Amun/VisionPort2018", DEFAULT_VISION_PORT).toUInt());
@@ -282,7 +279,6 @@ void ConfigDialog::load()
 void ConfigDialog::reset()
 {
     ui->comboChannel->setCurrentIndex(DEFAULT_TRANSCEIVER_CHANNEL);
-    ui->customVisionDelayBox->setValue(DEFAULT_CUSTOM_VISION_DELAY);
     ui->customRadioDelayBox->setValue(DEFAULT_CUSTOM_RADIO_DELAY);
     ui->visionPort->setValue(DEFAULT_VISION_PORT);
     ui->refPort->setValue(DEFAULT_REFEREE_PORT);
@@ -310,7 +306,6 @@ void ConfigDialog::apply()
 {
     QSettings s;
     s.setValue("Transceiver/Channel", ui->comboChannel->currentIndex());
-    s.setValue("Tracking/CustomVisionDelay", ui->customVisionDelayBox->value());
     s.setValue("Tracking/CustomRadioDelay", ui->customRadioDelayBox->value());
 
     s.setValue("Amun/VisionPort2018", ui->visionPort->value());

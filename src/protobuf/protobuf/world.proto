@@ -149,13 +149,16 @@ message State {
     // data for tracking replay and vision extraction
     repeated SSL_WrapperPacket vision_frames = 10;
     repeated int64 vision_frame_times = 14;
-    // User-defined latency [ns], added to the determined vision latency.
+    // Currently unused. Remains here since saved Typescript situtations have
+    // this field saved, and they don't compile without it.
     //
     // This field has seen multiple other uses in the past:
     // - It used to be the whole vision latency.
     // - It used to be the vision latency without the vision processing time
     //   (which was calculated during runtime)
-    optional int64 vision_transmission_delay = 15;
+    // - It used to be a user-defined latency [ns], added to the determined
+    //   vision latency.
+    optional int64 vision_transmission_delay = 15 [deprecated = true];
     optional int64 radio_command_delay = 18;
     optional WorldSource world_source = 16;
 }
