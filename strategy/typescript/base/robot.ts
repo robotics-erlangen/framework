@@ -107,7 +107,6 @@ export interface RobotState {
  */
 export class Robot implements RobotState {
 
-	public readonly ALLY_GENERATION_ID: number = 9999;
 	public readonly GENERATION_2014_ID: number = 3;
 
 	/** robot specific constants * (empty for opponents) */

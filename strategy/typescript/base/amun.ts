@@ -126,8 +126,6 @@ interface Amun extends AmunPublic {
 	addPlot(name: string, value: number): void;
 	/** Send internal referee command. Only works in debug mode. Must be fully populated */
 	sendRefereeCommand(command: pb.SSL_Referee): void;
-	/** Send mixed team info packet */
-	sendMixedTeamInfo(data: pb.ssl.TeamPlan): void;
 	/** Check if performance mode is active */
 	getPerformanceMode(): boolean;
 	/**
@@ -226,7 +224,6 @@ export function _hideFunctions() {
 		addDebug: makeDisabledFunction("addDebug"),
 		addPlot: makeDisabledFunction("addPlot"),
 		sendRefereeCommand: makeDisabledFunction("sendRefereeCommand"),
-		sendMixedTeamInfo: makeDisabledFunction("sendMixedTeamInfo"),
 		getPerformanceMode: makeDisabledFunction("getPerformanceMode"),
 		connectDebugger: makeDisabledFunction("connectDebugger"),
 		debuggerSend: makeDisabledFunction("debuggerSend"),
