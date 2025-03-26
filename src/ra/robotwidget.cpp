@@ -193,11 +193,7 @@ void RobotWidget::setSpecs(const robot::Specs &specs)
 {
     m_specs = specs;
     if (m_isGeneration) {
-        if (specs.has_type() && specs.type() == robot::Specs::Ally) {
-            m_nameLabel->setText("Ally");
-        } else {
-            m_nameLabel->setText(QString("Generation %1").arg(specs.year()));
-        }
+        m_nameLabel->setText(QString("Generation %1").arg(specs.year()));
     } else {
         m_nameLabel->setText(QString("%1").arg(specs.id()));
     }

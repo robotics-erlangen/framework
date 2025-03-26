@@ -1,7 +1,6 @@
 syntax = "proto2";
 
 import "protobuf/robot.proto";
-import "protobuf/deprecated/ssl_mixed_team.proto";
 import "protobuf/ssl_vision/ssl_wrapper.proto";
 
 package world;
@@ -138,7 +137,8 @@ message State {
     // This actually contains information, whether any vision data was received
     // since the last tracking reset.
     optional bool has_vision_data = 7;
-    optional ssl.TeamPlan mixed_team_info = 8;
+    // optional ssl.TeamPlan mixed_team_info = 8;
+    reserved 8;
     optional TrackingAOI tracking_aoi = 9;
     // robot states predicted without trajectories, only from vision data
     repeated Robot simple_tracking_yellow = 11;

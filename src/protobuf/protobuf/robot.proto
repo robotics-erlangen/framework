@@ -24,7 +24,9 @@ message Specs
     enum GenerationType
     {
         Regular = 1;
-        Ally = 2;
+        // Ally = 2;
+        reserved "Ally";
+        reserved 2;
     }
     required uint32 generation = 1;
     required uint32 year = 2;
