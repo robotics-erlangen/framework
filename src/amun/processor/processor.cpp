@@ -421,6 +421,7 @@ void Processor::process(qint64 overwriteTime)
     }
 
     injectExtraData(strategyStatus);
+    injectRawWorldState(strategyStatus);
 
     // remove responses after injecting to avoid sending them a second time
     clearExtraData();
