@@ -4,27 +4,29 @@ package robot;
 
 message LimitParameters
 {
-    optional float a_speedup_f_max = 1;
-    optional float a_speedup_s_max = 2;
-    optional float a_speedup_phi_max = 3;
-    optional float a_brake_f_max = 4;
-    optional float a_brake_s_max = 5;
-    optional float a_brake_phi_max = 6;
+    // Used in Command Evaluator to limit velocities when used as 'acceleration'
+    // Used for pathfinding when used as 'strategy'
+    optional float a_speedup_f_max = 1;  // [m/s^2]
+    optional float a_speedup_s_max = 2;  // [m/s^2]
+    optional float a_speedup_phi_max = 3;  // [rad/s^2]
+    optional float a_brake_f_max = 4;  // [m/s^2]
+    optional float a_brake_s_max = 5;  // [m/s^2]
+    optional float a_brake_phi_max = 6;  // [rad/s^2]
 };
 
 message SimulationLimits
 {
-    // in rotations per second^2
-    optional float a_speedup_wheel_max = 1;
-    optional float a_brake_wheel_max = 2;
+    // Limits maximum acceleration per wheel in the simulator
+    optional float a_speedup_wheel_max = 1;  // [rot/s^2]
+    optional float a_brake_wheel_max = 2;  // [rot/s^2]
 };
 
 message Specs
 {
     enum GenerationType
     {
-        Regular = 1;
-        // Ally = 2;
+        Regular = 1;  // used for the mixed team technical challenge: own robots
+        // Ally = 2;  // used for the mixed team technical challenge: friendly robots from the other team
         reserved "Ally";
         reserved 2;
     }
@@ -32,21 +34,21 @@ message Specs
     required uint32 year = 2;
     required uint32 id = 3;
     optional GenerationType type = 19;
-    optional float radius = 4 [default = 0.09];
-    optional float height = 5 [default = 0.15];
-    optional float mass = 6;
-    optional float angle = 7;
-    optional float v_max = 8;
-    optional float omega_max = 9;
-    optional float shot_linear_max = 10 [default = 8.0];
-    optional float shot_chip_max = 11;
-    optional float dribbler_width = 12;
+    optional float radius = 4 [default = 0.09];  // [m]
+    optional float height = 5 [default = 0.15];  // [m]
+    optional float mass = 6;  // [kg]
+    optional float angle = 7;  // [rad]
+    optional float v_max = 8;  // [m/s], used in pathfinding as reliably achievable robot velocity
+    optional float omega_max = 9;  // [rad/s]
+    optional float shot_linear_max = 10 [default = 8.0];  // [m/s], mainly used by strategy, should match rules (6.5 m/s)
+    optional float shot_chip_max = 11;  // [m], mainly used by strategy, derived from 3D speed and launch angle
+    optional float dribbler_width = 12;  // [m], actual width of the dribbler, maximum value depends on the value of the angle parameter
     optional LimitParameters acceleration = 13;
     optional LimitParameters strategy = 16;
     // deprecated = 14;
-    optional float ir_param = 15;
-    optional float shoot_radius = 17;
-    optional float dribbler_height = 18;
+    optional float ir_param = 15;  // Sensitivity parameter for light barrier, only used in Gen2014 as GenPasta have fixed light barrier
+    optional float shoot_radius = 17;  // [m], distance between the robot center and the edge of the ball when the ball is in the dribbler
+    optional float dribbler_height = 18;  // [m]
     reserved 20;
     // if not present, the 'acceleration' field is used instread (with an additional acceleration factor)
     optional SimulationLimits simulation_limits = 21;
@@ -175,7 +177,7 @@ message Command
     optional SpeedVector output0 = 20;
     optional SpeedVector output1 = 21;  // this field is used by the command converter for the SSL sim protocol
     optional SpeedVector output2 = 22;
-    optional RobotState last_detection = 26; // in [m] and [rad], in the global coordinate system
+    optional RobotState last_detection = 26;  // in [m] and [rad], in the global coordinate system
 }
 
 message RadioCommand
