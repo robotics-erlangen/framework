@@ -162,7 +162,9 @@ private slots:
     void setTrackingFrom(int newViewPoint);
     void setShowVision(bool enable);
     void setShowTruth(bool enable);
+    void setShowCoordinateAxes(bool show);
     void restoreSituation();
+
 
 private:
     void addToggleVisAction();
@@ -191,6 +193,7 @@ private:
     void sendSimulatorTeleportBall(const QPointF &p);
     void drawLines(QPainter *painter, QRectF rect, bool cosmetic);
     void drawGoal(QPainter *painter, float side, bool cosmetic);
+    void drawCoordinateAxes(QPainter *painter, const QRectF &rect);
     QGraphicsItem* createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createFieldFunction(const amun::Visualization &vis);
     QGraphicsItem* createPolygon(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
@@ -228,6 +231,7 @@ private:
     QAction *m_actionShowVision;
     QAction *m_actionRestoreSimulatorState;
     QAction *m_actionFollowBall;
+    QAction *m_actionShowAxes;
 
     std::string m_geometryString;
     bool m_geometryUpdated;
@@ -271,6 +275,7 @@ private:
     QMap<uint, QList<VisionBall>> m_visionBalls;
     bool m_visionCurrentlyDisplayed = false;
     bool m_showVision;
+    bool m_showCoordinateAxes;
 
     Trace m_ballTrace;
     Trace m_ballRawTrace;

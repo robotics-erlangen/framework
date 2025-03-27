@@ -126,6 +126,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_isLogplayer(false),
     m_enableDragMeasure(false),
     m_flipped(false),
+    m_showCoordinateAxes(false),
     m_virtualFieldConfiguration(new VirtualFieldConfiguration)
 {
     m_touchStatusType = QGestureRecognizer::registerRecognizer(new TouchStatusRecognizer);
@@ -164,6 +165,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
         connect(action, SIGNAL(toggled(bool)), SLOT(updateVisualizationVisibility()));
         *(visualizationActions[i]) = action;
     }
+
     if (!m_isLogplayer) {
         m_actionShowBlueReplayVis->setVisible(false);
         m_actionShowYellowReplayVis->setVisible(false);
@@ -182,6 +184,12 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionShowRobotTraces->setCheckable(true);
     m_actionShowRobotTraces->setChecked(true);
     connect(m_actionShowRobotTraces, &QAction::triggered, this, &FieldWidget::updateTracesVisibility);
+
+    m_contextMenu->addSeparator();
+    m_actionShowAxes = m_contextMenu->addAction("Show yellows coordinate axes");
+    m_actionShowAxes->setCheckable(true);
+    m_actionShowAxes->setChecked(true);
+    connect(m_actionShowAxes, &QAction::toggled, this, &FieldWidget::setShowCoordinateAxes);
 
     // ball placement commands
     m_contextMenu->addSeparator();
@@ -205,6 +213,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionGL = m_contextMenu->addAction("OpenGL");
     m_actionGL->setCheckable(true);
     connect(m_actionGL, SIGNAL(toggled(bool)), SLOT(setOpenGL(bool)));
+
     m_contextMenu->addSeparator();
     QAction *actionScreenshot = m_contextMenu->addAction("Take screenshot");
     connect(actionScreenshot, SIGNAL(triggered()), SLOT(takeScreenshot()));
@@ -355,6 +364,10 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionAntialiasing->setChecked(s.value("AntiAliasing").toBool());
     m_actionShowBallTraces->setChecked(s.value("BallTraces", true).toBool());
     m_actionShowRobotTraces->setChecked(s.value("RobotTraces", true).toBool());
+    bool showAxes = s.value("ShowAxes", false).toBool();
+    m_actionShowAxes->setChecked(showAxes);
+    setShowCoordinateAxes(showAxes);  // Initialize the coordinate axes state
+    connect(m_actionShowAxes, &QAction::toggled, this, &FieldWidget::setShowCoordinateAxes);
     s.endGroup();
 
     // set up ssl referee packet
@@ -382,6 +395,7 @@ void FieldWidget::saveConfig()
     s.setValue("AntiAliasing", m_actionAntialiasing->isChecked());
     s.setValue("BallTraces", m_actionShowBallTraces->isChecked());
     s.setValue("RobotTraces", m_actionShowRobotTraces->isChecked());
+    s.setValue("ShowAxes", m_actionShowAxes->isChecked());
     s.endGroup();
 }
 
@@ -2058,6 +2072,105 @@ bool FieldWidget::viewportEvent(QEvent *event)
     return QGraphicsView::viewportEvent(event);
 }
 
+void FieldWidget::drawCoordinateAxes(QPainter *painter, const QRectF &rect) 
+{
+    // Colors for the X and Y axes
+    const QColor xColor = Qt::red;
+    const QColor yColor = Qt::cyan;
+
+    // Width of the axis lines and ticks (in meters)
+    const float tickWidth = 0.02f;
+    // Height of minor tick marks (every 0.25 units, in meters)
+    const float smallTickHeight = 0.025f;
+    // Height of major tick marks (every 0.5 units, in meters)
+    const float largeTickHeight = 0.05f;
+    // Scale factor for text (labels and numbers)
+    const float labelScale = 0.01f;
+    // Distance between consecutive tick marks (in meters)
+    const float tickSpacing = 0.25f;
+    // Threshold to skip drawing around the center (0,0) (in meters)
+    const float centerThreshold = 0.01f;
+    // Threshold for detecting whole numbers and 0.5 intervals (in meters)
+    const float numberThreshold = 0.01f;
+    // Text positioning offsets
+    const float textVerticalPos = 30.0f;
+    const float negativeRedHorizontalOffset = -24.0f;
+    const float positiveRedHorizontalOffset = -30.0f;
+    const float negativeCyanHorizontalOffset = -7.0f;
+    const float positiveCyanHorizontalOffset = -3.0f;
+    const float axisLabelOffsets = 20.0f;  // Horizontal and vertical offset for the "x" and "y" labels 
+    
+    painter->save();
+    const QTransform originalTransform = painter->transform();
+    
+    // Create label transform by copying original and applying scale and rotation
+    QTransform labelTransform = originalTransform;
+    labelTransform.scale(labelScale, -labelScale);
+    labelTransform.rotate(-90);
+    
+    // --- X AXIS ---
+    QPen axisPen(xColor, tickWidth);
+    painter->setPen(axisPen);
+    painter->drawLine(QPointF(rect.left(), 0), QPointF(rect.right(), 0));
+    
+    // Draw X axis dashes and labels
+    const float xStart = ceil(rect.left() / tickSpacing) * tickSpacing;
+    for (float x = xStart; x <= rect.right(); x += tickSpacing) {
+        if (abs(x) < centerThreshold) continue;  // Skip center
+        
+        // Draw dash
+        painter->setTransform(originalTransform);
+        const float height = (abs(remainder(x, 0.5f)) < numberThreshold) ? largeTickHeight : smallTickHeight;
+        painter->drawLine(QPointF(x, -height), QPointF(x, height));
+        
+        // Add label for whole numbers only
+        if (abs(remainder(x, 1.0f)) < numberThreshold) {
+            painter->setTransform(labelTransform);
+            const float horizontalOffset = x < 0 ? negativeRedHorizontalOffset : positiveRedHorizontalOffset;
+            painter->drawText(QPointF(horizontalOffset, -x*100+5), QString::number(-x, 'g', 2));
+        }
+    }
+    
+    // --- Y AXIS ---
+    painter->setTransform(originalTransform);
+    painter->setPen(QPen(yColor, tickWidth));
+    painter->drawLine(QPointF(0, rect.top()), QPointF(0, rect.bottom()));
+    
+    // Draw Y axis dashes and labels
+    const float yStart = ceil(rect.top() / tickSpacing) * tickSpacing;
+    for (float y = yStart; y <= rect.bottom(); y += tickSpacing) {
+        if (abs(y) < centerThreshold) continue;  // Skip center
+        
+        // Draw dash
+        painter->setTransform(originalTransform);
+        const float height = (abs(remainder(y, 0.5f)) < numberThreshold) ? largeTickHeight : smallTickHeight;
+        painter->drawLine(QPointF(-height, y), QPointF(height, y));
+        
+        // Add label for whole numbers only
+        if (abs(remainder(y, 1.0f)) < numberThreshold) {
+            painter->setTransform(labelTransform);
+            const float horizontalOffset = y < 0 ? negativeCyanHorizontalOffset : positiveCyanHorizontalOffset;
+            painter->drawText(QPointF(y*100 + horizontalOffset, textVerticalPos), QString::number(y, 'g', 2));
+        }
+    }
+    
+    // --- AXIS LABELS ---
+    // X axis label
+    painter->setPen(xColor);
+    painter->setTransform(labelTransform);
+    painter->drawText(QPointF(-axisLabelOffsets, -axisLabelOffsets), "x");
+    
+    // Y axis label - rotate text to be readable from left to right
+    painter->setPen(yColor);
+    QTransform yLabelTransform = originalTransform;
+    yLabelTransform.scale(labelScale, -labelScale);
+    yLabelTransform.rotate(-90);
+    painter->setTransform(yLabelTransform);
+    painter->drawText(QPointF(axisLabelOffsets, axisLabelOffsets), "y");  // Changed position to positive offsets
+    
+    painter->restore();
+}
+
 void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
 {
     const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
@@ -2133,6 +2246,11 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     painter->setBrush(Qt::white);
     painter->drawEllipse(QPointF(0, halfFieldHeight - geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
     painter->drawEllipse(QPointF(0, -halfFieldHeight + geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
+
+
+    if (m_showCoordinateAxes) {
+        drawCoordinateAxes(painter, rect2);
+    }
 
     painter->restore();
 }
@@ -2396,6 +2514,17 @@ void FieldWidget::setTrackingFrom(int newViewPoint)
     m_trackingFrom = static_cast<TrackingFrom>(newViewPoint);
     m_worldState.append(m_drawScenes[m_currentScene].lastWorldState[m_trackingFrom]);
     updateDetection();
+}
+
+void FieldWidget::setShowCoordinateAxes(bool show) {
+    if (m_showCoordinateAxes != show) {
+        m_showCoordinateAxes = show;
+        // Force a full redraw of the field
+        scene()->update();
+        // Also update the viewport to ensure the change is visible
+        viewport()->update();
+        resetCachedContent();  // Clear any cached content to ensure fresh redraw
+    }
 }
 
 void FieldWidget::setShowVision(bool enable)
