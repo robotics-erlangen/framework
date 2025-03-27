@@ -1,5 +1,4 @@
 syntax = "proto2";
-option cc_enable_arenas = true;
 
 import "robot.proto";
 import "ssl_mixed_team.proto";

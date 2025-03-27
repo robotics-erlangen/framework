@@ -25,10 +25,9 @@ set(PROTOBUF_SUBPATH "${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}prot
 set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 ExternalProject_Add(project_protobuf
-    URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.6.1.tar.gz
-    URL_HASH SHA256=b3732e471a9bb7950f090fd0457ebd2536a9ba0891b7f3785919c654fe2a2529
+    URL http://downloads.robotics-erlangen.de/protobuf-cpp-3.21.12.tar.gz
+    URL_HASH SHA256=4eab9b524aa5913c6fffb20b2a8abf5ef7f95a80bc0701f3a6dbb4c607f73460
     DOWNLOAD_NO_PROGRESS true
-    PATCH_COMMAND cp ${CMAKE_CURRENT_LIST_DIR}/protobuf.CMakeLists.txt CMakeLists.txt
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
@@ -38,8 +37,7 @@ ExternalProject_Add(project_protobuf
         -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
         -DCMAKE_BUILD_TYPE:STRING=Release
-        "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -std=gnu++11 -w"
-        # the tests fail to build :-(
+        "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -w"
         -Dprotobuf_BUILD_TESTS:BOOL=OFF
     STEP_TARGETS install
 )
@@ -58,7 +56,7 @@ set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
 file(MAKE_DIRECTORY "${install_dir}/include")
 
 set(PROTOBUF_FOUND true)
-set(PROTOBUF_VERSION "3.6.1")
+set(PROTOBUF_VERSION "3.21.12")
 set(PROTOBUF_INCLUDE_DIR "${install_dir}/include")
 set(PROTOBUF_INCLUDE_DIRS "${PROTOBUF_INCLUDE_DIR}")
 set(PROTOBUF_LIBRARY "${install_dir}/${PROTOBUF_SUBPATH}")

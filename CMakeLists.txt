@@ -123,7 +123,7 @@ find_package(OpenGL REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 sanitize_env()
-find_package(Protobuf 3.3.0)
+find_package(Protobuf 3.21.12)
 restore_env()
 # if protobouf is not found the version string is empty and apparently ifs in cmake do not follow short-circuit logic,
 # which means below it evaluates the if condition to "... OR VERSION_GREATER_EQUAL 4.25.0" and then cmake dies

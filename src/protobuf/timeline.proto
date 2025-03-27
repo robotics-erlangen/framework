@@ -1,5 +1,4 @@
 syntax="proto2";
-option cc_enable_arenas = true;
 
 import "logfile.proto";
 
