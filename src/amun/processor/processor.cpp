@@ -481,7 +481,7 @@ void Processor::injectRawWorldState(Status &status)
         worldState->add_reality()->ParseFromArray(data.data(), data.size());
     }
 
-    worldState->set_has_vision_data(!m_visionWrapperPackets.empty());
+    worldState->set_has_vision_data(m_receivedVisionSinceLastReset);
     for (const auto& [wrapper, time] : m_visionWrapperPackets) {
         worldState->add_vision_frames()->CopyFrom(wrapper);
         worldState->add_vision_frame_times(time);
@@ -581,6 +581,7 @@ void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString 
     }
 
     m_visionWrapperPackets.emplace_back(wrapper, time);
+    m_receivedVisionSinceLastReset = true;
 
     if (wrapper.has_geometry()) {
         m_worldParameters->handleVisionGeometry(wrapper.geometry(), sender);
@@ -705,6 +706,8 @@ void Processor::resetTracking()
     m_simpleTracker->reset();
 
     m_worldParameters->reset();
+
+    m_receivedVisionSinceLastReset = false;
 }
 
 void Processor::handleControl(Team &team, const amun::CommandControl &control)

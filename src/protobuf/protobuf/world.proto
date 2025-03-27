@@ -135,6 +135,8 @@ message State {
     repeated robot.RadioResponse radio_response = 5;
     // deprecated, use world_source instead
     optional bool is_simulated = 6;
+    // This actually contains information, whether any vision data was received
+    // since the last tracking reset.
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
     optional TrackingAOI tracking_aoi = 9;

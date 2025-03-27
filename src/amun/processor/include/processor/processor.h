@@ -125,6 +125,7 @@ private:
     QList<QByteArray> m_extraVision;
     /*! \brief Pair of SSL_WrapperPacket and the time it was received. */
     std::vector<std::pair<SSL_WrapperPacket, qint64>> m_visionWrapperPackets;
+    bool m_receivedVisionSinceLastReset = false;
     ssl::TeamPlan m_mixedTeamInfo;
     bool m_mixedTeamInfoSet;
     bool m_refereeInternalActive;
