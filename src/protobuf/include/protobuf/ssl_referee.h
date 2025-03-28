@@ -40,7 +40,7 @@ private:
     qint64 m_gameStateChangeTime;
     quint32 m_refereeCounter = 0;
     SSL_Referee::Command m_lastCommand = SSL_Referee::HALT;
-    qint32 m_remainingActionTime = 0;
+    qint64 m_remainingActionTime = 0;
 };
 
 #endif // SSL_REFEREE_H

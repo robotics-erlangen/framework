@@ -92,9 +92,7 @@ void Referee::handlePacket(const QByteArray &data, const QString &sender)
             m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
         }
     }
-    if (packet.has_gameevent()) {
-        m_gameState.mutable_game_event()->CopyFrom(packet.gameevent());
-    }
+
     if (packet.game_events_size() > 0) {
         m_gameState.clear_game_event_2019();
         for (const auto &event : packet.game_events()) {

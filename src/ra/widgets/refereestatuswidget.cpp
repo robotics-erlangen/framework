@@ -74,7 +74,12 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
     // extract fields using reflection
     for (int i = 0; i < desc->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = desc->field(i);
-        if (field->name() == "type" || field->name() == "origin") {
+
+        // This must be updated whenever a new field is added to the game event
+        if (field->name() == "type"
+                || field->name() == "origin"
+                || field->name() == "id"
+                || field->name() == "created_timestamp") {
             // ignore them as they are not events
             continue;
         }

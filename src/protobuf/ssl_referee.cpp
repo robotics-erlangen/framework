@@ -95,9 +95,6 @@ SSL_Referee SSLRefereeExtractor::convertGameState(const amun::GameState &gameSta
     if (gameState.has_goals_flipped()) {
         refereePacket.set_blueteamonpositivehalf(!gameState.goals_flipped());
     }
-    if (gameState.has_game_event()) {
-        refereePacket.mutable_gameevent()->CopyFrom(gameState.game_event());
-    }
 
     refereePacket.mutable_game_events()->CopyFrom(gameState.game_event_2019());
 

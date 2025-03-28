@@ -35,7 +35,7 @@ message GameState {
     }
 
     required .SSL_Referee.Stage stage = 1;
-    optional sint32 stage_time_left = 2;
+    optional sint64 stage_time_left = 2;
 
     // Current state on the field
     // Required as the refbox command doesn't tell whether we or
@@ -61,7 +61,7 @@ message GameState {
     //  * free kicks
     //  * kickoff, penalty kick, force start
     //  * ball placement
-    optional int32 current_action_time_remaining = 10;
+    optional int64 current_action_time_remaining = 10;
 
     // the state that is supposed to come after the current state
     // this is important for ball placement for which it is necessary to

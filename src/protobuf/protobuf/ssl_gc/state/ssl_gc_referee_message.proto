@@ -1,10 +1,16 @@
 syntax = "proto2";
 
-import "protobuf/deprecated/ssl_referee_game_event.proto";
 import "protobuf/ssl_gc/state/ssl_gc_game_event.proto";
 
 // Each UDP packet contains one of these messages.
 message SSL_Referee {
+    // A random UUID of the source that is kept constant at the source while running
+    // If multiple sources are broadcasting to the same network, this id can be used to identify individual sources
+    optional string source_identifier = 18;
+
+    // The match type is a meta information about the current match that helps to process the logs after a competition
+    optional MatchType match_type = 19 [default = UNKNOWN_MATCH];
+
     // The UNIX timestamp when the packet was sent, in microseconds.
     // Divide by 1,000,000 to get a time_t.
     required uint64 packet_timestamp = 1;
@@ -63,9 +69,12 @@ message SSL_Referee {
     //
     // If the stage runs over its specified time, this value
     // becomes negative.
-    optional sint32 stage_time_left = 3;
+    optional sint64 stage_time_left = 3;
 
     // These are the "fine" states of play on the field.
+    //
+    // Deprecated variants use the proper keyword upstream, but this causes an
+    // unfixable (in our Protobuf version) warning in the generated headers
     enum Command {
         // All robots should completely stop moving.
         HALT = 0;
@@ -88,19 +97,19 @@ message SSL_Referee {
         // The blue team may take a direct free kick.
         DIRECT_FREE_BLUE = 9;
         // The yellow team may take an indirect free kick.
-        INDIRECT_FREE_YELLOW = 10;
+        INDIRECT_FREE_YELLOW = 10; // [deprecated = true];
         // The blue team may take an indirect free kick.
-        INDIRECT_FREE_BLUE = 11;
+        INDIRECT_FREE_BLUE = 11; // [deprecated = true];
         // The yellow team is currently in a timeout.
         TIMEOUT_YELLOW = 12;
         // The blue team is currently in a timeout.
         TIMEOUT_BLUE = 13;
         // The yellow team just scored a goal.
         // For information only.
-        // For rules compliance, teams must treat as STOP.
-        GOAL_YELLOW = 14;
-        // The blue team just scored a goal.
-        GOAL_BLUE = 15;
+        // Deprecated: Use the score field from the team infos instead. That way, you can also detect revoked goals.
+        GOAL_YELLOW = 14; // [deprecated = true];
+        // The blue team just scored a goal. See also GOAL_YELLOW.
+        GOAL_BLUE = 15; // [deprecated = true];
         // Equivalent to STOP, but the yellow team must pick up the ball and
         // drop it in the Designated Position.
         BALL_PLACEMENT_YELLOW = 16;
@@ -128,7 +137,7 @@ message SSL_Referee {
         // The amount of time (in microseconds) left on each yellow card issued to the team.
         // If no yellow cards are issued, this array has no elements.
         // Otherwise, times are ordered from smallest to largest.
-        repeated uint32 yellow_card_times = 4 [packed=true];
+        repeated uint32 yellow_card_times = 4 [packed = true];
         // The total number of yellow cards ever issued to the team.
         required uint32 yellow_cards = 5;
         // The number of timeouts this team can still call.
@@ -150,6 +159,14 @@ message SSL_Referee {
         optional bool bot_substitution_intent = 14;
         // Indicate if the team reached the maximum allowed ball placement failures and is thus not allowed to place the ball anymore
         optional bool ball_placement_failures_reached = 15;
+        // The team is allowed to substitute one or more robots currently
+        optional bool bot_substitution_allowed = 16;
+        // The number of bot substitutions left by the team in this halftime
+        optional uint32 bot_substitutions_left = 17;
+        // The number of microseconds left for current bot substitution
+        optional uint32 bot_substitution_time_left = 18;
+        // The color of the hull of the robots of this team
+        optional HullColor hull_color = 19;
     }
 
     // Information about the two teams.
@@ -167,29 +184,26 @@ message SSL_Referee {
     optional Point designated_position = 9;
 
     // Information about the direction of play.
-    // True, if the blue team will have it's goal on the positive x-axis of the ssl-vision coordinate system
-    // Obviously, the yellow team will play on the opposide half
-    // For compatibility, this field is optional
+    // True, if the blue team will have it's goal on the positive x-axis of the ssl-vision coordinate system.
+    // Obviously, the yellow team will play on the opposite half.
     optional bool blueTeamOnPositiveHalf = 10;
 
-    // The game event that caused the referee command
-    optional SSL_Referee_Game_Event gameEvent = 11 [deprecated = true];
+    // The game event that caused the referee command.
+    // deprecated in favor of game_events.
+    //    optional SSL_Referee_Game_Event game_event = 11 [deprecated = true];
+    reserved 11;
 
     // The command that will be issued after the current stoppage and ball placement to continue the game.
     optional Command next_command = 12;
 
     // All game events that were detected since the last RUNNING state.
     // Will be cleared as soon as the game is continued.
-    repeated gameController.GameEvent game_events_old = 13 [deprecated = true];
+    reserved 13;
     repeated gameController.GameEvent game_events = 16;
 
-    // All non-finished proposed game events that may be processed next.
-    repeated ProposedGameEvent proposed_game_events = 14 [deprecated = true];
+    // All proposed game events that were detected since the last RUNNING state.
+    reserved 14;
     repeated GameEventProposalGroup game_event_proposals = 17;
-
-    // A random UUID of the source that is kept constant at the source while running
-    // If multiple sources are broadcasting to the same network, this id can be used to identify individual sources
-    optional string source_identifier = 18;
 
     // The time in microseconds that is remaining until the current action times out
     // The time will not be reset. It can get negative.
@@ -198,22 +212,40 @@ message SSL_Referee {
     //  * free kicks
     //  * kickoff, penalty kick, force start
     //  * ball placement
-    optional int32 current_action_time_remaining = 15;
-}
+    optional int64 current_action_time_remaining = 15;
 
-message ProposedGameEvent {
-    // The UNIX timestamp when the game event proposal will time out, in microseconds.
-    required uint64 valid_until = 1;
-    // The identifier of the proposer.
-    required string proposer_id = 2;
-    // The proposed game event.
-    required gameController.GameEvent game_event = 3;
+    // A message that can be displayed to the spectators, like a reason for a stoppage.
+    optional string status_message = 20;
 }
 
 // List of matching proposals
 message GameEventProposalGroup {
-    // The proposed game event.
-    repeated gameController.GameEvent game_event = 1;
+    // Unique ID of this group
+    optional string id = 3;
+    // The proposed game events
+    repeated gameController.GameEvent game_events = 1;
     // Whether the proposal group was accepted
     optional bool accepted = 2;
+}
+
+// MatchType is a meta information about the current match for easier log processing
+enum MatchType {
+    // not set
+    UNKNOWN_MATCH = 0;
+    // match is part of the group phase
+    GROUP_PHASE = 1;
+    // match is part of the elimination phase
+    ELIMINATION_PHASE = 2;
+    // a friendly match, not part of a tournament
+    FRIENDLY = 3;
+}
+
+// HullColor is the color of the hull of the robots of a team
+enum HullColor {
+    // not set
+    HULL_COLOR_UNKNOWN = 0;
+    // dark hull color
+    HULL_COLOR_DARK = 1;
+    // light hull color
+    HULL_COLOR_LIGHT = 2;
 }
