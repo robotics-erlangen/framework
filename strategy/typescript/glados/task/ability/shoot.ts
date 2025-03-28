@@ -209,8 +209,13 @@ export class Shoot {
 		// HACK: This is copied from a/a/shoot for now, we might want to adapt this
 		let dribblerPos = this._robot.pos + (World.Ball.pos - this._robot.pos).withLength(
 			World.Ball.radius + this._robot.shootRadius);
-		let ballTimeToDribbler = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+		let ballTimeToDribbler = Physics.checkedBallTravelTime(World.Ball, dribblerPos);
 		debug.set("Shoot/CatchBallNecessary/ballTimeToDribbler", ballTimeToDribbler);
+
+		let ballHeightAtTime = Physics.ballAtTimeExperimental(World.Ball, ballTimeToDribbler).posZ;
+		if (ballHeightAtTime != undefined && ballHeightAtTime > this._robot.height) {
+			return true;
+		}
 
 		if (ballTimeToDribbler < 0.1 && !(ballTimeToDribbler < 0 &&
 			World.Ball.pos.distanceToSq(dribblerPos) > 4 * World.Ball.radius * World.Ball.radius) &&
