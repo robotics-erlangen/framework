@@ -343,6 +343,20 @@ export class Shoot {
 		return Vector.fromPolar(this._robot.dir, resLength).perpendicular();
 	}
 
+	/**
+	 * Sends a shoot command to the robot if it's correctly oriented towards the target.
+	 *
+	 * This method checks if the robot's orientation is within an acceptable threshold
+	 * of the target direction. If properly aligned, it executes either a linear shot or
+	 * a chip shot based on the current shooting mode.
+	 *
+	 * The threshold for acceptable orientation is adjusted dynamically based on previous
+	 * orientation status, with a hysteresis effect (wider threshold if previously aligned).
+	 *
+	 * @param kickSpeed - The speed at which to kick the ball for a linear shot
+	 * @param targetPos - The target position to shoot towards
+	 * @param targetDir - The target direction angle (in radians)
+	 */
 	private _sendShootCommand(kickSpeed: number, targetPos: Position, targetDir: number) {
 		let angleDiff = Math.abs(geom.normalizeAngle(this._robot.dir - targetDir));
 		debug.set("Shoot/angleDiff (degrees)", geom.radianToDegree(angleDiff));
