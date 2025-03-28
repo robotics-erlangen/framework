@@ -66,8 +66,8 @@ set(DEPRECATED_PROTO_FILES
     protobuf/deprecated/grsim_commands.proto
     protobuf/deprecated/grsim_packet.proto
     protobuf/deprecated/grsim_replacement.proto
+    protobuf/deprecated/old_refbox_game_event.proto
     protobuf/deprecated/ssl_mixed_team.proto
-    protobuf/deprecated/ssl_referee_game_event.proto
 )
 
 set(PROTO_FILES

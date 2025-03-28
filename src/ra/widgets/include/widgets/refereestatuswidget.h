@@ -48,7 +48,7 @@ public:
 
 private:
     QString formatTime(int time);
-    QString gameEventMessage(const SSL_Referee_Game_Event &event);
+    QString gameEventMessage(const Old_Refbox_Game_Event &event);
 
 private:
     Ui::RefereeStatusWidget *ui;

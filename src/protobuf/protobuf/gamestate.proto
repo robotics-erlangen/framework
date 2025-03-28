@@ -1,7 +1,7 @@
 syntax = "proto2";
 
 import "protobuf/ssl_gc/state/ssl_gc_referee_message.proto";
-import "protobuf/deprecated/ssl_referee_game_event.proto";
+import "protobuf/deprecated/old_refbox_game_event.proto";
 import "protobuf/ssl_gc/state/ssl_gc_game_event.proto";
 package amun;
 
@@ -46,7 +46,7 @@ message GameState {
     required .SSL_Referee.TeamInfo blue = 5;
 
     optional .SSL_Referee.Point designated_position = 6;
-    optional SSL_Referee_Game_Event game_event = 7 [deprecated = true];
+    optional Old_Refbox_Game_Event old_refbox_game_event = 7 [deprecated = true];
 
     optional bool goals_flipped = 8;
 

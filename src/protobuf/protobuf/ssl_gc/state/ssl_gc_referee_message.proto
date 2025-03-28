@@ -190,7 +190,7 @@ message SSL_Referee {
 
     // The game event that caused the referee command.
     // deprecated in favor of game_events.
-    //    optional SSL_Referee_Game_Event game_event = 11 [deprecated = true];
+    //    optional Old_Refbox_Game_Event game_event = 11 [deprecated = true];
     reserved 11;
 
     // The command that will be issued after the current stoppage and ball placement to continue the game.

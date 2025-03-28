@@ -174,43 +174,43 @@ QString RefereeStatusWidget::gameEvent2019Message(const gameController::GameEven
     return result + " " + autorefsString;
 }
 
-QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &event)
+QString RefereeStatusWidget::gameEventMessage(const Old_Refbox_Game_Event &event)
 {
-    std::map<SSL_Referee_Game_Event_GameEventType, QString> eventTypeFormatString =
-        {{SSL_Referee_Game_Event::UNKNOWN, "%1%2"},
-         {SSL_Referee_Game_Event::CUSTOM, "%2 by %1"},
-         {SSL_Referee_Game_Event::NUMBER_OF_PLAYERS, "%1 team has too many players%2"},
-         {SSL_Referee_Game_Event::BALL_LEFT_FIELD, "ball left field, shot by %1%2"},
-         {SSL_Referee_Game_Event::GOAL, "goal by %1%2"},
-         {SSL_Referee_Game_Event::KICK_TIMEOUT, "kick timeout by %1%2"},
-         {SSL_Referee_Game_Event::NO_PROGRESS_IN_GAME, "no progress in game%1%2"},
-         {SSL_Referee_Game_Event::BOT_COLLISION, "bot collision/pushing by %1%2"},
-         {SSL_Referee_Game_Event::ATTACKER_IN_DEFENSE_AREA, "%1 touched the ball in the opponent defense area%2"},
-         {SSL_Referee_Game_Event::ICING, "icing, shot by %1%2"},
-         {SSL_Referee_Game_Event::BALL_SPEED, "ball too fast, shot by %1%2"},
-         {SSL_Referee_Game_Event::ROBOT_STOP_SPEED, "%1 was too fast during stop%2"},
-         {SSL_Referee_Game_Event::BALL_DRIBBLING, "%1 dribbled the ball too far%2"},
-         {SSL_Referee_Game_Event::ATTACKER_TOUCH_KEEPER, "%1 touched the opponent keeper%2"},
-         {SSL_Referee_Game_Event::DOUBLE_TOUCH, "double touch by %1%2"},
-         {SSL_Referee_Game_Event::ATTACKER_TO_DEFENCE_AREA, "%1 did not hold distance to opponent defense area%2"},
-         {SSL_Referee_Game_Event::DEFENDER_TO_KICK_POINT_DISTANCE, "%1 was too close too kick point%2"},
-         {SSL_Referee_Game_Event::BALL_HOLDING, "ball holding by %1%2"},
-         {SSL_Referee_Game_Event::INDIRECT_GOAL, "indirect goal, shot by %1%2"},
-         {SSL_Referee_Game_Event::BALL_PLACEMENT_FAILED, "%1 ball placement failed%2"},
-         {SSL_Referee_Game_Event::CHIP_ON_GOAL, "%1 shot a chip goal%2"}};
+    std::map<Old_Refbox_Game_Event_GameEventType, QString> eventTypeFormatString =
+        {{Old_Refbox_Game_Event::UNKNOWN, "%1%2"},
+         {Old_Refbox_Game_Event::CUSTOM, "%2 by %1"},
+         {Old_Refbox_Game_Event::NUMBER_OF_PLAYERS, "%1 team has too many players%2"},
+         {Old_Refbox_Game_Event::BALL_LEFT_FIELD, "ball left field, shot by %1%2"},
+         {Old_Refbox_Game_Event::GOAL, "goal by %1%2"},
+         {Old_Refbox_Game_Event::KICK_TIMEOUT, "kick timeout by %1%2"},
+         {Old_Refbox_Game_Event::NO_PROGRESS_IN_GAME, "no progress in game%1%2"},
+         {Old_Refbox_Game_Event::BOT_COLLISION, "bot collision/pushing by %1%2"},
+         {Old_Refbox_Game_Event::ATTACKER_IN_DEFENSE_AREA, "%1 touched the ball in the opponent defense area%2"},
+         {Old_Refbox_Game_Event::ICING, "icing, shot by %1%2"},
+         {Old_Refbox_Game_Event::BALL_SPEED, "ball too fast, shot by %1%2"},
+         {Old_Refbox_Game_Event::ROBOT_STOP_SPEED, "%1 was too fast during stop%2"},
+         {Old_Refbox_Game_Event::BALL_DRIBBLING, "%1 dribbled the ball too far%2"},
+         {Old_Refbox_Game_Event::ATTACKER_TOUCH_KEEPER, "%1 touched the opponent keeper%2"},
+         {Old_Refbox_Game_Event::DOUBLE_TOUCH, "double touch by %1%2"},
+         {Old_Refbox_Game_Event::ATTACKER_TO_DEFENCE_AREA, "%1 did not hold distance to opponent defense area%2"},
+         {Old_Refbox_Game_Event::DEFENDER_TO_KICK_POINT_DISTANCE, "%1 was too close too kick point%2"},
+         {Old_Refbox_Game_Event::BALL_HOLDING, "ball holding by %1%2"},
+         {Old_Refbox_Game_Event::INDIRECT_GOAL, "indirect goal, shot by %1%2"},
+         {Old_Refbox_Game_Event::BALL_PLACEMENT_FAILED, "%1 ball placement failed%2"},
+         {Old_Refbox_Game_Event::CHIP_ON_GOAL, "%1 shot a chip goal%2"}};
 
     QString originatorString;
     if (event.has_originator()) {
         auto originator = event.originator();
         QString teamColor;
         switch (originator.team()) {
-        case SSL_Referee_Game_Event_Team_TEAM_UNKNOWN:
+        case Old_Refbox_Game_Event_Team_TEAM_UNKNOWN:
             teamColor = "unknown";
             break;
-        case SSL_Referee_Game_Event_Team_TEAM_BLUE:
+        case Old_Refbox_Game_Event_Team_TEAM_BLUE:
             teamColor = "blue";
             break;
-        case SSL_Referee_Game_Event_Team_TEAM_YELLOW:
+        case Old_Refbox_Game_Event_Team_TEAM_YELLOW:
             teamColor = "yellow";
             break;
         }
@@ -273,8 +273,8 @@ void RefereeStatusWidget::handleStatus(const Status &status)
         } else {
             ALLOW_DEPRECATED_BECAUSE("We want to display game events from old log files");
 
-            if (game_state.has_game_event()) {
-                QString text = gameEventMessage(game_state.game_event());
+            if (game_state.has_old_refbox_game_event()) {
+                QString text = gameEventMessage(game_state.old_refbox_game_event());
                 ui->gameEvent->setText(text);
             }
 
