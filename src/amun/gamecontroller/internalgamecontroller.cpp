@@ -29,18 +29,15 @@
 #include "config/config.h"
 
 #include <QDebug>
-#include <QRegularExpression>
-#include <QFile>
-#include <QTcpServer>
 
 static const QString SENDER_NAME_FOR_REFEREE = "Internal/SSL Game Controller";
 
 InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
-    m_gcCIProtocolConnection(GC_CI_PORT_START, this)
+    m_gcCIProcess(timer, this)
 {
-    m_gcCIProtocolConnection.setRefereeHost("127.0.0.1");
+    connect(&m_gcCIProcess, &GameControllerCI::sendStatus, this, &InternalGameController::sendStatus);
 }
 
 InternalGameController::~InternalGameController()
@@ -50,32 +47,7 @@ InternalGameController::~InternalGameController()
 
 void InternalGameController::stop()
 {
-    if (m_gcProcess) {
-        m_deliberatlyStopped = true;
-        m_gcCIProtocolConnection.closeConnection();
-        m_gcProcess->close();
-        m_gcProcess = nullptr;
-    }
-}
-
-void InternalGameController::handleGCStdout()
-{
-    const bool LOG_MESSAGES = false;
-
-    if (LOG_MESSAGES) {
-        Status status(new amun::Status);
-        auto debug = status->add_debug();
-        debug->set_source(amun::DebugSource::GameController);
-        while (m_gcProcess->canReadLine()) {
-            QByteArray line = m_gcProcess->readLine();
-            // Remove log dates of the form 2021/01/10 10:00:10
-            QString simplified = QString(line).replace(QRegularExpression("[0-9]+/[0-9]+/[0-9]+ [0-9]+:[0-9]+:[0-9]+ "), "");
-            auto log = debug->add_log();
-            log->set_timestamp(m_timer->currentTime());
-            log->set_text(simplified.toStdString());
-        }
-        emit sendStatus(status);
-    }
+    m_gcCIProcess.stop();
 }
 
 void InternalGameController::handleStatus(const Status &status)
@@ -277,50 +249,25 @@ void InternalGameController::handleNumberOfRobots(const world::State &worldState
 
 bool InternalGameController::sendCiInput(const gameController::CiInput &input)
 {
-    if (m_queuedInputs.size() > 0 && m_gcCIProtocolConnection.connectGameController()) {
-        QVector<gameController::CiInput> inputs = m_queuedInputs;
-        m_queuedInputs.clear();
-        for (const auto &i : inputs) {
-            sendCiInput(i);
+    const bool wentThrough = m_gcCIProcess.send(input);
+
+    const auto ciOutputs = m_gcCIProcess.clearQueuedOutputs();
+
+    for (const auto& ciOutput : ciOutputs) {
+        if (!ciOutput.has_referee_msg()) {
+            continue;
+        }
+
+        const SSL_Referee &referee = ciOutput.referee_msg();
+
+        QByteArray packetData = protobufhelper::bufferWithSpaceFor(referee);
+        if (referee.SerializeToArray(packetData.data(), packetData.size())) {
+            emit gotPacketForReferee(packetData, SENDER_NAME_FOR_REFEREE);
+            handleBallTeleportation(referee);
         }
     }
-    if (m_gcCIProtocolConnection.sendGameControllerMessage(&input)) {
-        // the game controller may send multiple messages
-        while(true) {
-            gameController::CiOutput ciOutput;
-            if (!m_gcCIProtocolConnection.receiveGameControllerMessage(&ciOutput)) {
-                m_nonResponseCounter++;
-                if (m_nonResponseCounter > 50) {
-                    updateCurrentStatus(amun::StatusGameController::NOT_RESPONDING);
-                }
-                return true;
-            }
 
-            if (!ciOutput.has_referee_msg()) {
-                continue;
-            }
-
-            m_nonResponseCounter = 0;
-            if (m_currentState != amun::StatusGameController::RUNNING) {
-                updateCurrentStatus(amun::StatusGameController::RUNNING);
-            }
-
-            const SSL_Referee &referee = ciOutput.referee_msg();
-
-            QByteArray packetData = protobufhelper::bufferWithSpaceFor(referee);
-            if (referee.SerializeToArray(packetData.data(), packetData.size())) {
-                emit gotPacketForReferee(packetData, SENDER_NAME_FOR_REFEREE);
-                handleBallTeleportation(referee);
-            }
-        }
-        return true;
-    } else {
-        m_nonResponseCounter++;
-        if (m_nonResponseCounter > 50) {
-            updateCurrentStatus(amun::StatusGameController::NOT_RESPONDING);
-        }
-    }
-    return false;
+    return wentThrough;
 }
 
 void InternalGameController::handleBallTeleportation(const SSL_Referee &referee)
@@ -480,10 +427,10 @@ void InternalGameController::handleRefereeUpdate(const SSL_Referee &newState, bo
 
     if (ciInput.api_inputs_size() > 0) {
         if (delayedSending) {
-            m_queuedInputs.append(ciInput);
+            m_gcCIProcess.enqueueInput(ciInput);
         } else {
-            if (!sendCiInput(ciInput) && m_queuedInputs.size() > 0) {
-                m_queuedInputs.append(ciInput);
+            if (!sendCiInput(ciInput) && m_gcCIProcess.hasQueuedInputs()) {
+                m_gcCIProcess.enqueueInput(ciInput);
             }
         }
     }
@@ -515,15 +462,6 @@ void InternalGameController::handleCommand(const amun::CommandReferee &refereeCo
     }
 }
 
-void InternalGameController::gcFinished(int, QProcess::ExitStatus)
-{
-    if (m_deliberatlyStopped) {
-        updateCurrentStatus(amun::StatusGameController::STOPPED);
-    } else {
-        updateCurrentStatus(amun::StatusGameController::CRASHED);
-    }
-}
-
 void InternalGameController::setFlip(bool flip)
 {
     if (m_trackedVisionGenerator) {
@@ -545,36 +483,8 @@ void InternalGameController::setEnabled(bool enabled)
     }
 }
 
-int InternalGameController::findFreePort(int startingFrom)
-{
-    for (int i = 0;i<10;i++) {
-        int port = startingFrom + i;
-        QTcpServer server;
-        bool success = server.listen(QHostAddress::LocalHost, port);
-        server.close();
-        if (success) {
-            return port;
-        }
-    }
-    // just give up
-    return startingFrom;
-}
-
-void InternalGameController::updateCurrentStatus(amun::StatusGameController::GameControllerState state)
-{
-    m_currentState = state;
-
-    Status status(new amun::Status);
-    status->mutable_amun_state()->mutable_game_controller()->set_current_state(m_currentState);
-    emit sendStatus(status);
-}
-
 void InternalGameController::start()
 {
-    m_nonResponseCounter = 0;
-    m_deliberatlyStopped = false;
-    updateCurrentStatus(amun::StatusGameController::STARTING);
-
     if (!m_trackedVisionGenerator) {
         m_trackedVisionGenerator.reset(new SSLVisionTracked());
     }
@@ -590,7 +500,7 @@ void InternalGameController::start()
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_division(gameController::Division::DIV_A);
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_auto_continue(true);
-            m_queuedInputs.append(ciInput);
+            m_gcCIProcess.enqueueInput(ciInput);
         }
 
         auto prevReferee = m_lastReferee;
@@ -601,27 +511,5 @@ void InternalGameController::start()
         m_geometryString.clear();
     }
 
-    // find a free port for the ci connection
-    int port = findFreePort(GC_CI_PORT_START);
-    m_gcCIProtocolConnection.setPort(port);
-
-    QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
-
-    // the downloaded game controller file is not executable at first (relevant for linux and mac only)
-    QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser);
-
-    QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly" << "True";
-
-    m_gcProcess = new QProcess(this);
-    m_gcProcess->setReadChannel(QProcess::StandardOutput);
-    m_gcProcess->setProcessChannelMode(QProcess::MergedChannels);
-
-    // set the GC working directory so that all produced files (config/state store) end up there and not scattered
-    m_gcProcess->setWorkingDirectory(QString("%1/gamecontroller").arg(ERFORCE_CONFDIR));
-
-    connect(m_gcProcess, &QProcess::readyReadStandardOutput, this, &InternalGameController::handleGCStdout);
-    connect(m_gcProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, &InternalGameController::gcFinished);
-
-    m_gcProcess->start(gameControllerExecutable, arguments, QIODevice::ReadOnly);
+    m_gcCIProcess.start();
 }

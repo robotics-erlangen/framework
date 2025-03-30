@@ -19,10 +19,12 @@
 # ***************************************************************************
 
 add_library(gamecontroller STATIC
+    include/gamecontroller/gamecontrollerci.h
     include/gamecontroller/gamecontrollersocket.h
     include/gamecontroller/internalgamecontroller.h
     include/gamecontroller/strategygamecontrollermediator.h
 
+    gamecontrollerci.cpp
     gamecontrollersocket.cpp
     internalgamecontroller.cpp
     sslvisiontracked.cpp
