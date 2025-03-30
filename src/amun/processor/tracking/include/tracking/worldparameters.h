@@ -56,6 +56,7 @@ public:
     /*! \brief Call this after all calls to getGeometryUpdate for one frame */
     void finishProcessing() {
         m_geometryUpdated = false;
+        m_ballModelUpdated = false;
     }
 signals:
     void cameraUpdated(const SSL_GeometryCameraCalibration &c, const QString &sender);
@@ -76,7 +77,7 @@ private:
     world::Geometry m_geometry;
     world::Geometry m_virtualFieldGeometry;
     world::BallModel m_ballModel;
-    bool m_geometryUpdated = false;
+    bool m_geometryUpdated = true;
     bool m_ballModelUpdated = true;
     const bool m_saveBallModel = false;
     bool m_virtualFieldEnabled = false;
