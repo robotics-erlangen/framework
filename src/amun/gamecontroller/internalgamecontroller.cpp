@@ -71,16 +71,6 @@ void InternalGameController::handleStatus(const Status &status)
                 m_geometryString = str;
             }
         }
-
-        if (status->geometry().has_division() && status->geometry().division() != m_currentDivision) {
-            gameController::CiInput ciInput;
-            ciInput.set_timestamp(m_timer->currentTime());
-            auto div = status->geometry().division() == world::Geometry::A ? gameController::Division::DIV_A : gameController::Division::DIV_B;
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(div);
-            if (sendCiInput(ciInput)) {
-                m_currentDivision = status->geometry().division();
-            }
-        }
     }
 
     m_humanInterventionSimulator.handleStatus(status);
@@ -182,6 +172,11 @@ gameController::Command InternalGameController::mapCommand(SSL_Referee::Command 
     return it->second;
 }
 
+static gameController::Division mapDivision(world::Geometry_Division division)
+{
+    return division == world::Geometry::A ? gameController::Division::DIV_A : gameController::Division::DIV_B;
+}
+
 void InternalGameController::handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending)
 {
     gameController::CiInput ciInput;
@@ -278,6 +273,9 @@ void InternalGameController::handleCommand(const amun::CommandReferee &refereeCo
     if (refereeCommand.has_use_auto_continue()) {
         handleUseAutoContinue(refereeCommand.use_auto_continue());
     }
+    if (refereeCommand.has_use_division()) {
+        handleUseDivision(refereeCommand.use_division());
+    }
     if (refereeCommand.has_restart_game_controller() && refereeCommand.restart_game_controller()) {
         handleRestartGameController();
     }
@@ -309,6 +307,25 @@ void InternalGameController::handleUseAutoContinue(bool useAutoContinue)
     gameController::CiInput ciInput;
     ciInput.set_timestamp(m_timer->currentTime());
     ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(useAutoContinue);
+
+    sendCiInput(ciInput);
+}
+
+void InternalGameController::handleUseDivision(world::Geometry_Division division)
+{
+    if (m_currentDivision == division) {
+        return;
+    }
+
+    m_currentDivision = division;
+
+    if (!m_isEnabled) {
+        return;
+    }
+
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+    ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(mapDivision(division));
 
     sendCiInput(ciInput);
 }
@@ -348,7 +365,7 @@ void InternalGameController::start()
             ciInput.set_timestamp(m_timer->currentTime());
             ciInput.add_api_inputs()->set_reset_match(true);
 
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(gameController::Division::DIV_A);
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(mapDivision(m_currentDivision));
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(m_enableAutoContinue);
 

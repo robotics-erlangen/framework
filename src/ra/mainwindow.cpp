@@ -112,7 +112,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     connect(ui->referee, &RefereeWidget::enableAutoContinue, m_internalReferee, &InternalReferee::enableAutoContinue);
     connect(ui->referee, SIGNAL(changeSidesFlipped(bool)), m_internalReferee, SLOT(setSidesFlipped(bool)));
     connect(ui->referee, SIGNAL(sendYellowCard(int)), m_internalReferee, SLOT(setYellowCard(int)));
-    connect(ui->referee, SIGNAL(sendDivisionChange(world::Geometry::Division)), this, SLOT(changeDivision(world::Geometry::Division)));
+    connect(ui->referee, &RefereeWidget::sendDivisionChange, this, &MainWindow::changeFieldSetup);
 
     connect(ui->field, &FieldWidget::sendPlaceBall, m_internalReferee, &InternalReferee::handlePlaceBall);
 
@@ -1175,7 +1175,7 @@ void MainWindow::openFile(QString fileName)
     m_logOpener->openFile(fileName);
 }
 
-void MainWindow::changeDivision(world::Geometry::Division division) {
+void MainWindow::changeFieldSetup(world::Geometry::Division division) {
     auto currentSetup = m_simulatorSetupGroup->checkedAction()->text().replace("&", "");
     QString newSetup;
     QString defaultSetup;

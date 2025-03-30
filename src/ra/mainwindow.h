@@ -114,7 +114,7 @@ private slots:
     void requestLogUid();
     void searchUid(QString uid);
     void requestUidInsertWindow();
-    void changeDivision(world::Geometry::Division division);
+    void changeFieldSetup(world::Geometry::Division division);
     void updatePalette(QPalette palette);
     void pauseAll();
     void broadcastCommandsChanged(const bool);

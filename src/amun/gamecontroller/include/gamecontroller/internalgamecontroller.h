@@ -25,6 +25,7 @@
 #include <memory>
 #include "protobuf/status.h"
 #include "protobuf/command.h"
+#include "protobuf/world.pb.h"
 #include "protobuf/ssl_gc/ci/ssl_gc_ci.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include "core/vector.h"
@@ -50,6 +51,7 @@ private:
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
     void handleRestartGameController();
     void handleUseAutoContinue(bool useAutoContinue);
+    void handleUseDivision(world::Geometry_Division division);
 
 signals:
     void sendStatus(const Status &status);

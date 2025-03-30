@@ -349,6 +349,10 @@ void RefereeWidget::divisionChanged(QString division)
         return;
     }
     emit sendDivisionChange(m_currentDivision);
+
+    Command command(new amun::Command);
+    command->mutable_referee()->set_use_division(m_currentDivision);
+    emit sendCommand(command);
 }
 
 void RefereeWidget::handleAutomaticRobotExchangeChanged(bool enable)
