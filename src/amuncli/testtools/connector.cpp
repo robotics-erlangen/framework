@@ -229,7 +229,7 @@ void Connector::start()
         m_referee.changeBlueKeeper(m_numRobots);
         m_referee.changeYellowKeeper(0);
         m_referee.enableAutoContinue(true);
-        m_referee.enableInternalAutoref(true);
+
         if (m_runBlue) {
             m_referee.changeCommand(SSL_Referee::PREPARE_KICKOFF_BLUE);
         } else if (m_runYellow) {

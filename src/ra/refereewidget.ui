@@ -360,16 +360,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="useInternalAutoref">
-       <property name="text">
-        <string>Enable Autoref and GC</string>
-       </property>
-       <property name="checked">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="gcStatusLabel">
        <property name="text">
         <string>GC is currently disabled</string>

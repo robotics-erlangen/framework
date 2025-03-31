@@ -40,7 +40,6 @@ public slots:
     void changeStage(SSL_Referee::Stage stage);
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
-    void enableInternalAutoref(bool enable);
     void enableAutoContinue(bool enable);
     void setSidesFlipped(bool flipped);
     void setYellowCard(int forTeamYellow);

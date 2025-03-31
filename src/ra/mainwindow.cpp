@@ -110,7 +110,6 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     connect(ui->referee, SIGNAL(changeYellowKeeper(uint)), m_internalReferee, SLOT(changeYellowKeeper(uint)));
     connect(ui->referee, SIGNAL(changeBlueKeeper(uint)), m_internalReferee, SLOT(changeBlueKeeper(uint)));
     connect(ui->referee, &RefereeWidget::enableAutoContinue, m_internalReferee, &InternalReferee::enableAutoContinue);
-    connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), m_internalReferee, SLOT(enableInternalAutoref(bool)));
     connect(ui->referee, SIGNAL(changeSidesFlipped(bool)), m_internalReferee, SLOT(setSidesFlipped(bool)));
     connect(ui->referee, SIGNAL(sendYellowCard(int)), m_internalReferee, SLOT(setYellowCard(int)));
     connect(ui->referee, SIGNAL(sendDivisionChange(world::Geometry::Division)), this, SLOT(changeDivision(world::Geometry::Division)));

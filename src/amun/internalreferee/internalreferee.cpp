@@ -52,13 +52,6 @@ void InternalReferee::sendRefereePacket() {
     }
 }
 
-void InternalReferee::enableInternalAutoref(bool enable)
-{
-    Command command(new amun::Command);
-    command->mutable_referee()->set_use_internal_autoref(enable);
-    emit sendCommand(command);
-}
-
 void InternalReferee::enableAutoContinue(bool enable)
 {
     Command command(new amun::Command);

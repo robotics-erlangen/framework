@@ -81,7 +81,6 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_useNetworkTransceiver(false),
     m_simulatorOnly(simulatorOnly),
     m_useInternalReferee(true),
-    m_useAutoref(true),
     m_networkInterfaceWatcher(nullptr),
     m_seshat(new Seshat(20, this)),
     m_commandConverter(nullptr),
@@ -512,19 +511,15 @@ void Amun::handleCommandLocally(const Command &command)
 
     if (command->has_referee()) {
         const amun::CommandReferee &referee = command->referee();
-        bool internalAutorefBefore = m_useInternalReferee && m_useAutoref;
-        if (referee.has_active()) {
+
+        if (referee.has_active()
+                && referee.active() != m_useInternalReferee) {
             m_useInternalReferee = referee.active();
+            enableAutoref(m_useInternalReferee);
         }
-        if (referee.has_use_internal_autoref()) {
-            m_useAutoref = referee.use_internal_autoref();
-        }
-        bool internalAutoref = m_useInternalReferee && m_useAutoref;
-        if (internalAutoref != internalAutorefBefore) {
-            enableAutoref(internalAutoref);
-        }
+
         // send out even if it does not change, since the default value may vary between objects (GC)
-        emit useInternalGameController(internalAutoref);
+        emit useInternalGameController(m_useInternalReferee);
 
         emit gotCommandForGC(referee);
     }

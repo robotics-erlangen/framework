@@ -258,9 +258,7 @@ void InternalGameController::handleGuiCommand(const QByteArray &data)
     SSL_Referee newState;
     newState.ParseFromArray(data.data(), data.size());
 
-    // if the GC is not currently activated, directly rout the commands from the UI to the internal referee
     if (!m_isEnabled) {
-        emit gotPacketForReferee(data, SENDER_NAME_FOR_REFEREE);
         m_lastReferee = newState;
         return;
     }

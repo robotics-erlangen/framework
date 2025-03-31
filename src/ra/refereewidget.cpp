@@ -65,14 +65,9 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     }
     ui->gameStage->setCurrentIndex(activeStage); // select default value
     connect(ui->gameStage, SIGNAL(currentIndexChanged(int)), SLOT(handleStage(int)));
-    connect(ui->useInternalAutoref, SIGNAL(toggled(bool)), this, SIGNAL(enableInternalAutoref(bool)));
-    connect(this, &RefereeWidget::enableInternalAutoref, ui->autoref, &TeamWidget::setEnabled);
     connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
-    connect(this, &RefereeWidget::enableInternalAutoref, ui->enableRobotExchange, &QCheckBox::setEnabled);
     connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
-
     connect(ui->enableAutoContinue, &QCheckBox::toggled, this, &RefereeWidget::enableAutoContinue);
-    connect(this, &RefereeWidget::enableInternalAutoref, ui->enableAutoContinue, &QCheckBox::setEnabled);
 
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
@@ -102,7 +97,6 @@ void RefereeWidget::saveConfig()
     s.beginGroup("Referee");
     s.setValue("YellowKeeper", ui->keeperIdYellow->value());
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
-    s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
     s.setValue("useAutoContinue", ui->enableAutoContinue->isChecked());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.setValue("Division", ui->boxDivision->currentText());
@@ -121,29 +115,17 @@ void RefereeWidget::load()
     QSettings s;
     s.beginGroup("Referee");
 
-    // this section MUST be first, in order for the internal ssl game controller not to swallow
-    // the referee updates in its brief activation
-    {
-        const bool useInternalAutoref = s.value("useInternalAutoref", false).toBool();
-
-        if (useInternalAutoref != ui->useInternalAutoref->isChecked()) {
-            // This emits since the GUI value changes
-            ui->useInternalAutoref->setChecked(useInternalAutoref);
-        } else {
-            // Emit regardless of change, so Amun is guaranteed to see the same loaded
-            // value as the GUI, regardless of whether the default value differs from
-            // the loaded one
-            emit enableInternalAutoref(useInternalAutoref);
-        }
-    }
-
     {
         const bool useAutoContinue = s.value("useAutoContinue", false).toBool();
 
         // Same as above
         if (useAutoContinue != ui->enableAutoContinue->isChecked()) {
+            // This emits since the GUI value changes
             ui->enableAutoContinue->setChecked(useAutoContinue);
         } else {
+            // Emit regardless of change, so Amun is guaranteed to see the same loaded
+            // value as the GUI, regardless of whether the default value differs from
+            // the loaded one
             emit enableAutoContinue(useAutoContinue);
         }
     }
