@@ -195,6 +195,10 @@ void Amun::start()
     // relay tracking, geometry, referee, controller and accelerator information
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
+    // Connect Internal Game Controller
+    connect(this, &Amun::useInternalGameController, m_processor->getInternalGameController(), &InternalGameController::setEnabled);
+    connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &InternalGameController::handleCommand);
+
     m_optionsManager = new OptionsManager;
     m_optionsManager->moveToThread(thread());
     connect(this, SIGNAL(gotCommand(Command)), m_optionsManager, SLOT(handleCommand(Command)));
@@ -234,8 +238,6 @@ void Amun::start()
         m_gameControllerConnection[i]->moveToThread(m_strategyThread[i]);
         connect(m_processor, &Processor::refereeHostChanged, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::handleRefereeHost);
         connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::switchInternalGameController);
-        connect(this, &Amun::useInternalGameController, m_processor->getInternalGameController(), &InternalGameController::setEnabled);
-        connect(this, &Amun::gotCommandForGC, m_processor->getInternalGameController(), &InternalGameController::handleCommand);
 
         Q_ASSERT(m_strategy[i] == nullptr);
         ProtobufFileSaver *pathInput = m_pathInputSaver[std::min(1, i)].get();
