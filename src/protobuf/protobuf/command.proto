@@ -44,6 +44,7 @@ message CommandReferee {
 
     // Configuration
     optional bool use_automatic_robot_exchange = 10;
+    optional bool use_auto_continue = 11;
 
     // Referee Commands
     optional bytes command = 20;

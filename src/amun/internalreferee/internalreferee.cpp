@@ -59,6 +59,13 @@ void InternalReferee::enableInternalAutoref(bool enable)
     emit sendCommand(command);
 }
 
+void InternalReferee::enableAutoContinue(bool enable)
+{
+    Command command(new amun::Command);
+    command->mutable_referee()->set_use_auto_continue(enable);
+    emit sendCommand(command);
+}
+
 void InternalReferee::changeCommand(SSL_Referee::Command command) {
     m_referee.set_command(command);
     m_referee.set_command_timestamp(0);

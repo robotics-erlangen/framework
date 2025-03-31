@@ -277,6 +277,29 @@ void InternalGameController::handleCommand(const amun::CommandReferee &refereeCo
     if (refereeCommand.has_use_automatic_robot_exchange()) {
         m_enableRobotExchange = refereeCommand.use_automatic_robot_exchange();
     }
+    if (refereeCommand.has_use_auto_continue()) {
+        handleUseAutoContinue(refereeCommand.use_auto_continue());
+    }
+}
+
+void InternalGameController::handleUseAutoContinue(bool useAutoContinue)
+{
+    if (m_enableAutoContinue == useAutoContinue) {
+        return;
+    }
+
+    m_enableAutoContinue = useAutoContinue;
+
+    if (!m_isEnabled) {
+        return;
+    }
+
+
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+    ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(useAutoContinue);
+
+    sendCiInput(ciInput);
 }
 
 void InternalGameController::setFlip(bool flip)
@@ -316,7 +339,7 @@ void InternalGameController::start()
 
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(gameController::Division::DIV_A);
             // automatically continue events without needing human input
-            ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(true);
+            ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(m_enableAutoContinue);
 
             // Set team names to own
             {

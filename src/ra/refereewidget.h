@@ -52,6 +52,7 @@ signals:
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
     void enableInternalAutoref(bool enable);
+    void enableAutoContinue(bool enable);
     void changeSidesFlipped(bool flipped);
     void sendCommand(const Command& command);
     void sendYellowCard(int forTeamYellow);

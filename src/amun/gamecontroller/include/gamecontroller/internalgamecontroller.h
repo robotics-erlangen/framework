@@ -48,6 +48,7 @@ private:
     bool sendCiInput(const gameController::CiInput &input);
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
+    void handleUseAutoContinue(bool useAutoContinue);
 
 signals:
     void sendStatus(const Status &status);
@@ -65,6 +66,7 @@ public slots:
 private:
     const Timer *m_timer;
     bool m_isEnabled = false;
+    bool m_enableAutoContinue = false;
     GameControllerCI m_gcCIProcess;
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
     SSL_Referee m_lastReferee;

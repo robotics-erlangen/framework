@@ -71,6 +71,9 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(this, &RefereeWidget::enableInternalAutoref, ui->enableRobotExchange, &QCheckBox::setEnabled);
     connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
 
+    connect(ui->enableAutoContinue, &QCheckBox::toggled, this, &RefereeWidget::enableAutoContinue);
+    connect(this, &RefereeWidget::enableInternalAutoref, ui->enableAutoContinue, &QCheckBox::setEnabled);
+
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
     ui->autoref->init(amun::StatusStrategyWrapper::AUTOREF, false);
@@ -100,6 +103,7 @@ void RefereeWidget::saveConfig()
     s.setValue("YellowKeeper", ui->keeperIdYellow->value());
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
+    s.setValue("useAutoContinue", ui->enableAutoContinue->isChecked());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.setValue("Division", ui->boxDivision->currentText());
     s.setValue("RobotExchange", ui->enableRobotExchange->isChecked());
@@ -130,6 +134,17 @@ void RefereeWidget::load()
             // value as the GUI, regardless of whether the default value differs from
             // the loaded one
             emit enableInternalAutoref(useInternalAutoref);
+        }
+    }
+
+    {
+        const bool useAutoContinue = s.value("useAutoContinue", false).toBool();
+
+        // Same as above
+        if (useAutoContinue != ui->enableAutoContinue->isChecked()) {
+            ui->enableAutoContinue->setChecked(useAutoContinue);
+        } else {
+            emit enableAutoContinue(useAutoContinue);
         }
     }
 

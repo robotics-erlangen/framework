@@ -377,6 +377,13 @@
       </widget>
      </item>
      <item>
+      <widget class="QCheckBox" name="enableAutoContinue">
+       <property name="text">
+        <string>Enable Auto-Continue</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QCheckBox" name="enableRobotExchange">
        <property name="text">
         <string>Enable Automatic Robot Exchange</string>
