@@ -215,6 +215,27 @@ void RefereeWidget::setStyleSheets(bool useDark)
 
 void RefereeWidget::handleStatus(const Status &status)
 {
+    // Display even if Status comes from a log file
+    //
+    // While this *could* be confusing, its also confusing to continue
+    // displaying "Running" even though the referee widget was just disabled.
+    if (status->has_amun_state()
+            && status->amun_state().has_game_controller()
+            && status->amun_state().game_controller().has_current_state()) {
+
+        const std::map<amun::StatusGameController::GameControllerState, QString> stateMap = {
+            {amun::StatusGameController::STOPPED, "stopped"},
+            {amun::StatusGameController::STARTING, "starting"},
+            {amun::StatusGameController::RUNNING, "<font color=\"lightgreen\">running</font>"},
+            {amun::StatusGameController::CRASHED, "<font color=\"red\">crashed :(</font>"},
+            {amun::StatusGameController::NOT_RESPONDING, "<font color=\"red\">not responding :/</font>"},
+        };
+        auto state = status->amun_state().game_controller().current_state();
+
+        QString fullGCState = QString("GC %1 is currently %2").arg(GAMECONTROLLER_RELEASE_VERSION).arg(stateMap.at(state));
+        ui->gcStatusLabel->setText(fullGCState);
+    }
+
     // prevent updating values from log status packages
     // otherwise, the keeper will change for the simulator after viewing a log
     // (if ra has been closed in horus mode)
@@ -268,21 +289,6 @@ void RefereeWidget::handleStatus(const Status &status)
                     break;
             }
         }
-    }
-
-    if (status->has_amun_state() && status->amun_state().has_game_controller() && status->amun_state().game_controller().has_current_state()) {
-
-        const std::map<amun::StatusGameController::GameControllerState, QString> stateMap = {
-            {amun::StatusGameController::STOPPED, "stopped"},
-            {amun::StatusGameController::STARTING, "starting"},
-            {amun::StatusGameController::RUNNING, "<font color=\"lightgreen\">running</font>"},
-            {amun::StatusGameController::CRASHED, "<font color=\"red\">crashed :(</font>"},
-            {amun::StatusGameController::NOT_RESPONDING, "<font color=\"red\">not responding :/</font>"},
-        };
-        auto state = status->amun_state().game_controller().current_state();
-
-        QString fullGCState = QString("GC %1 is currently %2").arg(GAMECONTROLLER_RELEASE_VERSION).arg(stateMap.at(state));
-        ui->gcStatusLabel->setText(fullGCState);
     }
 }
 
