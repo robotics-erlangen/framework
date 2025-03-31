@@ -35,9 +35,13 @@ static const QString SENDER_NAME_FOR_REFEREE = "Internal/SSL Game Controller";
 InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
-    m_gcCIProcess(timer, this)
+    m_gcCIProcess(timer, this),
+    m_humanInterventionSimulator(timer, this)
 {
     connect(&m_gcCIProcess, &GameControllerCI::sendStatus, this, &InternalGameController::sendStatus);
+
+    connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendStatus, this, &InternalGameController::sendStatus);
+    connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendCommand, this, &InternalGameController::sendCommand);
 }
 
 InternalGameController::~InternalGameController()
@@ -76,31 +80,9 @@ void InternalGameController::handleStatus(const Status &status)
                 m_currentDivision = status->geometry().division();
             }
         }
-
-        m_fieldWidth = status->geometry().field_width();
     }
 
-    if (status->has_game_state()) {
-        if (status->game_state().has_blue() && status->game_state().blue().has_max_allowed_bots()) {
-            m_allowedRobotsBlue = status->game_state().blue().max_allowed_bots();
-        }
-        if (status->game_state().has_yellow() && status->game_state().yellow().has_max_allowed_bots()) {
-            m_allowedRobotsYellow = status->game_state().yellow().max_allowed_bots();
-        }
-    }
-
-    if (status->has_team_blue()) {
-        m_blueTeamIds.clear();
-        for (const auto &spec : status->team_blue().robot()) {
-            m_blueTeamIds.append(spec.id());
-        }
-    }
-    if (status->has_team_yellow()) {
-        m_yellowTeamIds.clear();
-        for (const auto &spec : status->team_yellow().robot()) {
-            m_yellowTeamIds.append(spec.id());
-        }
-    }
+    m_humanInterventionSimulator.handleStatus(status);
 
     if (status->has_world_state()) {
         gameController::CiInput ciInput;
@@ -109,7 +91,7 @@ void InternalGameController::handleStatus(const Status &status)
 
         sendCiInput(ciInput);
 
-        // the delayed sending of the freekick command from handlePlacementFailure()
+        // the delayed sending of the freekick command from handleBallTeleportation()
         if (m_continueFrameCounter > 0) {
             m_continueFrameCounter--;
 
@@ -123,126 +105,7 @@ void InternalGameController::handleStatus(const Status &status)
         }
 
         if (m_enableRobotExchange) {
-            handleNumberOfRobots(status->world_state());
-        }
-    }
-}
-
-bool InternalGameController::isPositionFreeToEnterRobot(Vector pos, const world::State &worldState)
-{
-    const Vector ballPos(worldState.ball().p_x(), worldState.ball().p_y());
-    if (pos.distance(ballPos) < 3) {
-        return false;
-    }
-    for (const auto &robot : worldState.blue()) {
-        const Vector robotPos(robot.p_x(), robot.p_y());
-        if (robotPos.distance(pos) < 1) {
-            return false;
-        }
-    }
-    for (const auto &robot : worldState.yellow()) {
-        const Vector robotPos(robot.p_x(), robot.p_y());
-        if (robotPos.distance(pos) < 1) {
-            return false;
-        }
-    }
-    return true;
-}
-
-void InternalGameController::handleNumberOfRobots(const world::State &worldState)
-{
-    const Vector substitutionPos1(m_fieldWidth / 2, 0);
-    const Vector substitutionPos2(-m_fieldWidth / 2, 0);
-
-    if (!worldState.has_ball()) {
-        return;
-    }
-    const Vector ballPos(worldState.ball().p_x(), worldState.ball().p_y());
-
-    if (worldState.time() - m_lastExchangeTime < 1e9) { // 1 second
-        return;
-    }
-
-    for (bool teamIsBlue : {false, true}) {
-
-        const auto &teamRobots = teamIsBlue ? worldState.blue() : worldState.yellow();
-        const int allowedRobots = teamIsBlue ? m_allowedRobotsBlue : m_allowedRobotsYellow;
-        const auto team = teamIsBlue ? gameController::Team::BLUE : gameController::Team::YELLOW;
-        const auto &teamIds = teamIsBlue ? m_blueTeamIds : m_yellowTeamIds;
-        const auto teamString = teamIsBlue ? "blue" : "yellow";
-
-        const int numRobots = teamRobots.size();
-        if (numRobots > allowedRobots) {
-            for (const auto &robot : teamRobots) {
-                const Vector pos(robot.p_x(), robot.p_y());
-                const Vector speed(robot.v_x(), robot.v_y());
-
-                if (speed.length() < 0.1 && ((pos.distance(substitutionPos1) < 1 && ballPos.distance(substitutionPos1) > 3)
-                        || (pos.distance(substitutionPos2) < 1 && ballPos.distance(substitutionPos2) > 3))) {
-
-                    m_lastExchangeTime = worldState.time();
-
-                    Command command(new amun::Command);
-                    auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
-                    teleport->mutable_id()->set_id(robot.id());
-                    teleport->mutable_id()->set_team(team);
-                    teleport->set_present(false);
-                    emit sendCommand(command);
-
-                    Status status(new amun::Status);
-                    auto debug = status->add_debug();
-                    debug->set_source(amun::DebugSource::GameController);
-                    auto log = debug->add_log();
-                    log->set_timestamp(m_timer->currentTime());
-                    log->set_text(QString("Removed %1 %2 to fix the robot count").arg(teamString).arg(robot.id()).toStdString());
-                    emit sendStatus(status);
-                    break;
-                }
-            }
-        } else if (numRobots < allowedRobots) {
-
-            // check for a free position to add the robot
-            Vector addPos;
-            if (isPositionFreeToEnterRobot(substitutionPos1, worldState)) {
-                addPos = substitutionPos1;
-            } else if (isPositionFreeToEnterRobot(substitutionPos2, worldState)) {
-                addPos = substitutionPos2;
-            } else {
-                return;
-            }
-
-            // find a robot that is enabled in the ui but currently removed in the simulator
-            for (const auto possibleId : teamIds) {
-                bool isPresent = std::any_of(teamRobots.begin(), teamRobots.end(), [possibleId](const auto &robot) {
-                    return robot.id() == possibleId;
-                });
-                if (isPresent) {
-                    continue;
-                }
-
-                m_lastExchangeTime = worldState.time();
-
-                Command command(new amun::Command);
-                auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
-                teleport->mutable_id()->set_id(possibleId);
-                teleport->mutable_id()->set_team(team);
-                coordinates::toVision(addPos, *teleport);
-                teleport->set_orientation(0);
-                teleport->set_v_x(0);
-                teleport->set_v_y(0);
-                teleport->set_v_angular(0);
-                teleport->set_present(true);
-                emit sendCommand(command);
-
-                Status status(new amun::Status);
-                auto debug = status->add_debug();
-                debug->set_source(amun::DebugSource::GameController);
-                auto log = debug->add_log();
-                log->set_timestamp(m_timer->currentTime());
-                log->set_text(QString("Added %1 %2 since yellow card is over").arg(teamString).arg(possibleId).toStdString());
-                emit sendStatus(status);
-                break;
-            }
+            m_humanInterventionSimulator.handleNumberOfRobots(status->world_state());
         }
     }
 }
@@ -263,57 +126,19 @@ bool InternalGameController::sendCiInput(const gameController::CiInput &input)
         QByteArray packetData = protobufhelper::bufferWithSpaceFor(referee);
         if (referee.SerializeToArray(packetData.data(), packetData.size())) {
             emit gotPacketForReferee(packetData, SENDER_NAME_FOR_REFEREE);
-            handleBallTeleportation(referee);
+
+            if (m_humanInterventionSimulator.handleBallTeleportation(referee)) {
+                // delay sending out the direct freekick command since the changed ball position will not yet have
+                // arrived at the (internal) referee, so the position change from the teleportation would cause
+                // the referee to consider the freekick done and switch to game
+                // It is sent out in handleStatus m_continueFrameCounter frames later
+                m_continueFrameCounter = 50;
+                m_nextCommand = referee.next_command();
+            }
         }
     }
 
     return wentThrough;
-}
-
-void InternalGameController::handleBallTeleportation(const SSL_Referee &referee)
-{
-    // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
-    bool hasFailedBlue = false, hasFailedYellow = false;
-    bool hasGoal = false;
-    for (const auto &event : referee.game_events()) {
-        if (event.type() == gameController::GameEvent::PLACEMENT_FAILED) {
-            if (event.placement_failed().by_team() == gameController::Team::BLUE) {
-                hasFailedBlue = true;
-            } else {
-                hasFailedYellow = true;
-            }
-        } else if (event.type() == gameController::GameEvent::GOAL) {
-            hasGoal = true;
-        }
-    }
-    if (referee.command() != SSL_Referee::HALT) {
-        m_ballIsTeleported = false;
-    }
-    if (referee.command() == SSL_Referee::HALT &&
-            ((hasFailedBlue && hasFailedYellow) || hasGoal) &&
-            referee.has_designated_position() &&
-            referee.has_next_command() &&
-            !m_ballIsTeleported) {
-
-        m_ballIsTeleported = true;
-
-        Command ballCommand(new amun::Command);
-        auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
-        teleport->set_teleport_safely(true);
-        teleport->set_x(referee.designated_position().x());
-        teleport->set_y(referee.designated_position().y());
-        teleport->set_vx(0);
-        teleport->set_vy(0);
-        teleport->set_vz(0);
-        emit sendCommand(ballCommand);
-
-        // delay sending out the direct freekick command since the changed ball position will not yet have
-        // arrived at the (internal) referee, so the position change from the teleportation would cause
-        // the referee to consider the freekick done and switch to game
-        // It is sent out in handleStatus m_continueFrameCounter frames later
-        m_continueFrameCounter = 50;
-        m_nextCommand = referee.next_command();
-    }
 }
 
 void InternalGameController::handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message)

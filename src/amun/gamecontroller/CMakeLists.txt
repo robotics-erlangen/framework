@@ -21,11 +21,13 @@
 add_library(gamecontroller STATIC
     include/gamecontroller/gamecontrollerci.h
     include/gamecontroller/gamecontrollersocket.h
+    include/gamecontroller/humaninterventionsimulator.h
     include/gamecontroller/internalgamecontroller.h
     include/gamecontroller/strategygamecontrollermediator.h
 
     gamecontrollerci.cpp
     gamecontrollersocket.cpp
+    humaninterventionsimulator.cpp
     internalgamecontroller.cpp
     sslvisiontracked.cpp
     sslvisiontracked.h

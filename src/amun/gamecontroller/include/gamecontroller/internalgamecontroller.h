@@ -29,6 +29,7 @@
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include "core/vector.h"
 #include "gamecontrollerci.h"
+#include "humaninterventionsimulator.h"
 
 class Timer;
 class SSLVisionTracked;
@@ -47,11 +48,8 @@ private:
     void stop();
     void handleGuiCommand(const QByteArray &data);
     bool sendCiInput(const gameController::CiInput &input);
-    void handleBallTeleportation(const SSL_Referee &referee);
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
-    void handleNumberOfRobots(const world::State &worldState);
-    bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
 
 signals:
     void sendStatus(const Status &status);
@@ -74,15 +72,10 @@ private:
     world::Geometry::Division m_currentDivision = world::Geometry::A;
 
     // for ball teleportation after placement failure
-    bool m_ballIsTeleported = false;
     int m_continueFrameCounter = 0;
     SSL_Referee::Command m_nextCommand = SSL_Referee::HALT;
 
     // for adding and removing robots
     bool m_enableRobotExchange = true;
-    int m_allowedRobotsBlue = 11;
-    int m_allowedRobotsYellow = 11;
-    float m_fieldWidth = 1; // short side of the field
-    qint64 m_lastExchangeTime = 0;
-    QVector<uint32_t> m_blueTeamIds, m_yellowTeamIds;
+    HumanInterventionSimulator m_humanInterventionSimulator;
 };
