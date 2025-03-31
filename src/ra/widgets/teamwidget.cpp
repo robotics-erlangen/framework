@@ -33,6 +33,16 @@
 #include <QMenu>
 #include <iterator>
 
+static const char* disabledTextFromType(amun::StatusStrategyWrapper::StrategyType type)
+{
+    switch (type) {
+    case amun::StatusStrategyWrapper::AUTOREF:
+        return "Autoref Disabled";
+    default:
+        return "Disabled";
+    }
+}
+
 TeamWidget::TeamWidget(QWidget *parent) :
     QFrame(parent),
     m_type(amun::StatusStrategyWrapper::BLUE),
@@ -96,7 +106,7 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type, bool tourn
     connect(m_scriptMenu, SIGNAL(aboutToShow()), SLOT(prepareScriptMenu()));
 
     m_btnOpen = new QToolButton;
-    m_btnOpen->setText("Disabled");
+    m_btnOpen->setText(disabledTextFromType(m_type));
     m_btnOpen->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     m_btnOpen->setMenu(m_scriptMenu);
     m_btnOpen->setPopupMode(QToolButton::InstantPopup);
@@ -286,7 +296,7 @@ void TeamWidget::handleStatus(const Status &status)
         m_compiling = false;
         switch (strategy->state()) {
         case amun::StatusStrategy::CLOSED:
-            m_btnOpen->setText("Disabled");
+            m_btnOpen->setText(disabledTextFromType(m_type));
             m_notification = false;
             // clear strategy information
             m_filename = QString();
