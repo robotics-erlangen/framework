@@ -119,9 +119,19 @@ void RefereeWidget::load()
 
     // this section MUST be first, in order for the internal ssl game controller not to swallow
     // the referee updates in its brief activation
-    ui->useInternalAutoref->setChecked(s.value("useInternalAutoref", false).toBool());
-    // emit some values regardless of change, so that it works with amun wether or not the default values match
-    emit enableInternalAutoref(ui->useInternalAutoref->isChecked());
+    {
+        const bool useInternalAutoref = s.value("useInternalAutoref", false).toBool();
+
+        if (useInternalAutoref != ui->useInternalAutoref->isChecked()) {
+            // This emits since the GUI value changes
+            ui->useInternalAutoref->setChecked(useInternalAutoref);
+        } else {
+            // Emit regardless of change, so Amun is guaranteed to see the same loaded
+            // value as the GUI, regardless of whether the default value differs from
+            // the loaded one
+            emit enableInternalAutoref(useInternalAutoref);
+        }
+    }
 
     ui->keeperIdYellow->setValue(s.value("YellowKeeper", 0).toInt());
     ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
