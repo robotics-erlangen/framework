@@ -552,10 +552,6 @@ void TeamWidget::sendPerformanceDebug(bool enable)
 
 void TeamWidget::sendAutomaticEntrypoints()
 {
-    if (m_automaticEntrypoints.allNull()) {
-        return;
-    }
-
     Command command(new amun::Command);
     amun::CommandStrategyAutomaticEntrypoints *automatic_entrypoints = commandStrategyFromType(command)->mutable_automatic_entrypoints();
 

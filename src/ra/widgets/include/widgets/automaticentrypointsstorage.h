@@ -33,12 +33,6 @@ struct AutomaticEntrypointsStorage {
             && forBreak == rhs.forBreak
             && forPostgame == rhs.forPostgame;
     }
-
-    bool allNull() const {
-        return forGame.isNull()
-            && forBreak.isNull()
-            && forPostgame.isNull();
-    }
 };
 
 #endif // AUTOMATICENTRYPOINTSSTORAGE_H
