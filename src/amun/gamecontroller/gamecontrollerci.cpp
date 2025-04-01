@@ -109,6 +109,8 @@ std::vector<gameController::CiOutput> GameControllerCI::clearQueuedOutputs()
 
 bool GameControllerCI::doSend(const gameController::CiInput &input)
 {
+    Q_ASSERT(input.IsInitialized());
+
     bool wentThrough = false;
 
     if ((wentThrough = m_gcCIProtocolConnection.sendGameControllerMessage(&input))) {

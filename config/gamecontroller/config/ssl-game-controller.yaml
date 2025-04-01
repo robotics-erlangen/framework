@@ -1,6 +1,7 @@
 time-acquisition-mode: ci
 network:
   publish-address:
+  publish-nif:
   vision-address:
   tracker-address:
   skip-interfaces: []
@@ -20,13 +21,13 @@ server:
   ci:
     address: :10009
 engine:
-  config-filename: config/engine.yaml
+  config-filename: data/engine.yaml
 game:
   state-store-file: data/state-store.json.stream
   yellow-card-duration: 2m
   yellow-card-bot-removal-time: 10s
   multiple-card-step: 2
-  multiple-foul-step: 30000
+  multiple-foul-step: 3
   multiple-placement-failures: 5
   auto-ref-proposal-timeout: 1s
   default-division: DIV_A
@@ -45,8 +46,11 @@ game:
   ball-placement-min-robot-distance: 0.05
   distance-to-ball-in-stop: 0.5
   auto-approve-goals: true
+  continue-from-halt: false
   challenge-flags: 3
   emergency-stop-grace-period: 10s
+  preparation-time-after-halt: 10s
+  preparation-time-before-resume: 2s
   normal:
     half-duration: 5m
     half-time-duration: 5m
@@ -68,6 +72,7 @@ game:
       defense-area-width: 3.6
       penalty-kick-dist-to-goal: 8.0
       goal-width: 1.8
+      center-circle-radius: 0.5
       placement-offset-touch-line: 0.2
       placement-offset-goal-line: 0.2
       placement-offset-goal-line-goal-kick: 1.0
@@ -79,6 +84,7 @@ game:
       defense-area-width: 2.0
       penalty-kick-dist-to-goal: 6.0
       goal-width: 1.0
+      center-circle-radius: 0.5
       placement-offset-touch-line: 0.2
       placement-offset-goal-line: 0.2
       placement-offset-goal-line-goal-kick: 1.0

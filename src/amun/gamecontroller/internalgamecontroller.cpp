@@ -75,7 +75,7 @@ void InternalGameController::handleStatus(const Status &status)
             gameController::CiInput ciInput;
             ciInput.set_timestamp(m_timer->currentTime());
             auto div = status->geometry().division() == world::Geometry::A ? gameController::Division::DIV_A : gameController::Division::DIV_B;
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_division(div);
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(div);
             if (sendCiInput(ciInput)) {
                 m_currentDivision = status->geometry().division();
             }
@@ -99,7 +99,7 @@ void InternalGameController::handleStatus(const Status &status)
                 gameController::CiInput ciInput;
                 ciInput.set_timestamp(m_timer->currentTime());
                 gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-                change->mutable_new_command()->mutable_command()->CopyFrom(mapCommand(m_nextCommand));
+                change->mutable_new_command_change()->mutable_command()->CopyFrom(mapCommand(m_nextCommand));
                 sendCiInput(ciInput);
             }
         }
@@ -149,16 +149,19 @@ void InternalGameController::handleGameEvent(std::shared_ptr<gameController::Aut
 
     gameController::CiInput ciInput;
     ciInput.set_timestamp(m_timer->currentTime());
-    ciInput.add_api_inputs()->mutable_change()->mutable_add_game_event()->mutable_game_event()->CopyFrom(message->game_event());
+    ciInput.add_api_inputs()->mutable_change()->mutable_add_game_event_change()->mutable_game_event()->CopyFrom(message->game_event());
     sendCiInput(ciInput);
 }
 
 static gameController::Command makeCommand(gameController::Command::Type type, bool teamIsBlue, bool commandIsNeutral) {
     gameController::Command command;
     command.set_type(type);
-    if (!commandIsNeutral) {
+    if (commandIsNeutral) {
+        command.set_for_team(gameController::Team::UNKNOWN);
+    } else {
         command.set_for_team(teamIsBlue ? gameController::Team::BLUE : gameController::Team::YELLOW);
     }
+
     return command;
 }
 
@@ -200,7 +203,7 @@ void InternalGameController::handleRefereeUpdate(const SSL_Referee &newState, bo
     // the stage change must be before the command change, as the GC issues commands on stage change
     if (!m_lastReferee.IsInitialized() || newState.stage() != m_lastReferee.stage()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        change->mutable_change_stage()->set_new_stage(newState.stage());
+        change->mutable_change_stage_change()->set_new_stage(newState.stage());
     }
 
     if (!m_lastReferee.IsInitialized() || newState.command() != m_lastReferee.command() ||
@@ -209,43 +212,43 @@ void InternalGameController::handleRefereeUpdate(const SSL_Referee &newState, bo
         // must be before the referee state change, otherwise the GC might send out the referee state without the placement pos
         if (newState.command() == SSL_Referee::BALL_PLACEMENT_BLUE || newState.command() == SSL_Referee::BALL_PLACEMENT_YELLOW) {
             gameController::Change *placementChange = ciInput.add_api_inputs()->mutable_change();
-            placementChange->mutable_set_ball_placement_pos()->mutable_pos()->set_x(newState.designated_position().x() / 1000.0f);
-            placementChange->mutable_set_ball_placement_pos()->mutable_pos()->set_y(newState.designated_position().y() / 1000.0f);
+            placementChange->mutable_set_ball_placement_pos_change()->mutable_pos()->set_x(newState.designated_position().x() / 1000.0f);
+            placementChange->mutable_set_ball_placement_pos_change()->mutable_pos()->set_y(newState.designated_position().y() / 1000.0f);
         }
 
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
 
         auto mapped = mapCommand(newState.command());
-        change->mutable_new_command()->mutable_command()->CopyFrom(mapped);
+        change->mutable_new_command_change()->mutable_command()->CopyFrom(mapped);
     }
 
     if (!m_lastReferee.IsInitialized() || newState.blue().goalie() != m_lastReferee.blue().goalie()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        auto updateTeam = change->mutable_update_team_state();
+        auto updateTeam = change->mutable_update_team_state_change();
         updateTeam->set_for_team(gameController::Team::BLUE);
-        updateTeam->set_goalkeeper(newState.blue().goalie());
+        updateTeam->mutable_goalkeeper()->set_value(newState.blue().goalie());
     }
     if (!m_lastReferee.IsInitialized() || newState.yellow().goalie() != m_lastReferee.yellow().goalie()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        auto updateTeam = change->mutable_update_team_state();
+        auto updateTeam = change->mutable_update_team_state_change();
         updateTeam->set_for_team(gameController::Team::YELLOW);
-        updateTeam->set_goalkeeper(newState.yellow().goalie());
+        updateTeam->mutable_goalkeeper()->set_value(newState.yellow().goalie());
     }
 
     if (!m_lastReferee.IsInitialized() || newState.blueteamonpositivehalf() != m_lastReferee.blueteamonpositivehalf()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        auto updateTeam = change->mutable_update_team_state();
+        auto updateTeam = change->mutable_update_team_state_change();
         updateTeam->set_for_team(gameController::Team::BLUE);
-        updateTeam->set_on_positive_half(newState.blueteamonpositivehalf());
+        updateTeam->mutable_on_positive_half()->set_value(newState.blueteamonpositivehalf());
     }
 
     if (m_lastReferee.has_blue() && newState.blue().yellow_cards() > m_lastReferee.blue().yellow_cards()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        change->mutable_add_yellow_card()->set_for_team(gameController::Team::BLUE);
+        change->mutable_add_yellow_card_change()->set_for_team(gameController::Team::BLUE);
     }
     if (m_lastReferee.has_yellow() && newState.yellow().yellow_cards() > m_lastReferee.yellow().yellow_cards()) {
         gameController::Change *change = ciInput.add_api_inputs()->mutable_change();
-        change->mutable_add_yellow_card()->set_for_team(gameController::Team::YELLOW);
+        change->mutable_add_yellow_card_change()->set_for_team(gameController::Team::YELLOW);
     }
 
     m_lastReferee = newState;
@@ -322,9 +325,9 @@ void InternalGameController::start()
             ciInput.set_timestamp(m_timer->currentTime());
             ciInput.add_api_inputs()->set_reset_match(true);
 
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_division(gameController::Division::DIV_A);
+            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(gameController::Division::DIV_A);
             // automatically continue events without needing human input
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config()->set_auto_continue(true);
+            ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(true);
             m_gcCIProcess.enqueueInput(ciInput);
         }
 
