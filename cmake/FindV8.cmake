@@ -49,16 +49,10 @@ endif()
 
 if(MINGW32)
     set(V8_ARCHITECTURE x86)
+elseif(ARM64)
+    set(V8_ARCHITECTURE arm64)
 else()
-    # CMAKE_SYSTEM_PROCESSOR uses uname -m on linux and these are all the possible values for arm64
-    if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64_be" OR
-        CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR
-        CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8b" OR
-        CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8l")
-            set(V8_ARCHITECTURE arm64)
-        else()
-            set(V8_ARCHITECTURE x64)
-        endif()
+    set(V8_ARCHITECTURE x64)
 endif()
 
 find_path(V8_OUTPUT_DIR_DYNAMIC

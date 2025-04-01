@@ -45,6 +45,17 @@ if(MINGW)
 endif()
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# CMAKE_SYSTEM_PROCESSOR uses uname -m on linux and these are all the possible values for arm64
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64_be" OR
+    CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64" OR
+    CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8b" OR
+    CMAKE_SYSTEM_PROCESSOR STREQUAL "armv8l")
+
+    set(ARM64 TRUE)
+else()
+    set(ARM64 FALSE)
+endif()
+
 #
 # Policies
 #
