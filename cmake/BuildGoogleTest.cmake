@@ -23,8 +23,8 @@ include(ExternalProjectHelper)
 
 set(GOOGLETEST_PATCH_FILE "${CMAKE_CURRENT_LIST_DIR}/googletest.patch")
 ExternalProject_Add(project_googletest
-    URL https://www.robotics-erlangen.de/downloads/googletest-release-1.10.0.tar.gz
-    URL_HASH SHA256=9f7370ce748fdd7c23a4dcd785d49c45f718899381af947de59b65544b08c7eb
+    URL https://downloads.robotics-erlangen.de/googletest-1.16.0.tar.gz
+    URL_HASH SHA256=78c676fc63881529bf97bf9d45948d905a66833fbfa5318ea2cd7478cb98f399
     DOWNLOAD_NO_PROGRESS true
     PATCH_COMMAND cat "${GOOGLETEST_PATCH_FILE}" | patch -p1
     CMAKE_ARGS

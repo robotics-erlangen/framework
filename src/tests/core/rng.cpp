@@ -22,6 +22,7 @@
 #include "gtest/gtest-param-test.h"
 #include "core/rng.h"
 
+#include <algorithm>
 #include <math.h>
 
 struct RNGData {
