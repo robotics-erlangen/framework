@@ -28,7 +28,7 @@
         <x>0</x>
         <y>0</y>
         <width>426</width>
-        <height>911</height>
+        <height>829</height>
        </rect>
       </property>
       <property name="maximumSize">
@@ -267,32 +267,6 @@
            <widget class="QCheckBox" name="controlYellow">
             <property name="text">
              <string>Control Yellow</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </widget>
-       </item>
-       <item>
-        <widget class="QGroupBox" name="groupBox_6">
-         <property name="title">
-          <string>Mixed team</string>
-         </property>
-         <layout class="QFormLayout" name="formLayout_6">
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="mixedPort">
-            <property name="maximum">
-             <number>65535</number>
-            </property>
-            <property name="value">
-             <number>10012</number>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLineEdit" name="mixedHost">
-            <property name="placeholderText">
-             <string>Hostname</string>
             </property>
            </widget>
           </item>

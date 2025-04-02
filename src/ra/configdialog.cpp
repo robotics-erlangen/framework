@@ -42,9 +42,6 @@ const bool DEFAULT_CONTROL_SIMULATOR = false;
 const bool DEFAULT_CONTROL_BLUE = false;
 const bool DEFAULT_CONTROL_YELLOW = false;
 
-const QString DEFAULT_MIXED_HOST = QStringLiteral("");
-const uint DEFAULT_MIXED_PORT = SSL_MIXED_TEAM_PORT;
-
 const FieldWidgetAction DEFAULT_ROBOT_DOUBLE_CLICK_ACTION = FieldWidgetAction::ToggleVisualization;
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING_2020 = ".*: <id>";
 const QString DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING = ".*: <id><team-s>";
@@ -159,9 +156,6 @@ void ConfigDialog::sendConfiguration()
     sn->set_control_blue(ui->controlBlue->isChecked());
     sn->set_control_yellow(ui->controlYellow->isChecked());
 
-    command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
-    command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
-
     emit sendCommand(command);
 
     emit useNumKeysForReferee(ui->numKeyUsage->currentText() != DEFAULT_NUMBER_KEYS_USAGE);
@@ -239,9 +233,6 @@ void ConfigDialog::load()
     ui->controlYellow->setChecked(s.value("Network/ControlYellow", DEFAULT_CONTROL_YELLOW).toBool());
     ui->networkPortYellow->setValue(s.value("Network/PortYellow", DEFAULT_NETWORK_PORT_YELLOW).toUInt());
 
-    ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
-    ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
-
     ui->numKeyUsage->setCurrentText(s.value("Ui/NumKeyUsage", DEFAULT_NUMBER_KEYS_USAGE).toString());
 
     FieldWidgetAction robotDoubleClick = static_cast<FieldWidgetAction>(s.value("Ui/RobotDoubleClickAction", static_cast<int>(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION)).toInt());
@@ -290,8 +281,6 @@ void ConfigDialog::reset()
     ui->networkPortBlue->setValue(DEFAULT_NETWORK_PORT_BLUE);
     ui->controlYellow->setChecked(DEFAULT_CONTROL_YELLOW);
     ui->networkPortYellow->setValue(DEFAULT_NETWORK_PORT_YELLOW);
-    ui->mixedHost->setText(DEFAULT_MIXED_HOST);
-    ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
     ui->doubleClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_DOUBLE_CLICK_ACTION));
     ui->doubleClickSearch->setText(DEFAULT_ROBOT_DOUBLE_CLICK_SEARCH_STRING);
     ui->ctrlClickAction->setCurrentText(robotActionString(DEFAULT_ROBOT_CTRL_CLICK_ACTION));
@@ -319,9 +308,6 @@ void ConfigDialog::apply()
     s.setValue("Network/PortBlue", ui->networkPortBlue->value());
     s.setValue("Network/ControlYellow", ui->controlYellow->isChecked());
     s.setValue("Network/PortYellow", ui->networkPortYellow->value());
-
-    s.setValue("Mixed/Host", ui->mixedHost->text());
-    s.setValue("Mixed/Port", ui->mixedPort->value());
 
     s.setValue("Ui/RobotDoubleClickAction", ui->doubleClickAction->currentData().toInt());
     s.setValue("Ui/RobotDoubleClickSearch", ui->doubleClickSearch->text());
