@@ -43,7 +43,7 @@ public:
 
 public slots:
     void timeoutCallback() {
-        int counter = m_executionCounter.load();
+        int counter = m_executionCounter.loadRelaxed();
         if (counter == m_lastCounter && counter != 0) {
             if (m_timeoutCallback != nullptr) {
                 m_isolate->RequestInterrupt(m_timeoutCallback, m_timeoutCallbackData);

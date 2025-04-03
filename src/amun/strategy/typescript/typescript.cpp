@@ -849,7 +849,7 @@ void Typescript::endProfiling(const std::string &filename)
 bool Typescript::process(double &pathPlanning)
 {
     m_executionCounter++;
-    m_timeoutCounter.store(m_executionCounter);
+    m_timeoutCounter.storeRelaxed(m_executionCounter);
 
     m_totalPathTime = 0;
 
@@ -860,7 +860,7 @@ bool Typescript::process(double &pathPlanning)
     TryCatch tryCatch(m_isolate);
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     USE(function->Call(context, context->Global(), 0, nullptr));
-    m_timeoutCounter.store(0);
+    m_timeoutCounter.storeRelaxed(0);
     if (buildStackTrace(context, m_errorMsg, tryCatch)) {
         m_isolate->CancelTerminateExecution();
     }
@@ -873,7 +873,7 @@ bool Typescript::process(double &pathPlanning)
 
 void Typescript::disableTimeoutOnce()
 {
-    m_timeoutCounter.store(0);
+    m_timeoutCounter.storeRelaxed(0);
 }
 
 void Typescript::tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace)
