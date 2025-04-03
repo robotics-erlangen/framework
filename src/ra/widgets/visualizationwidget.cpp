@@ -71,7 +71,7 @@ void VisualizationWidget::saveConfig()
 {
     QSettings s;
     s.beginGroup(QStringLiteral("Visualization"));
-    s.setValue(QStringLiteral("Visible"), QStringList(m_selection.toList()));
+    s.setValue(QStringLiteral("Visible"), QStringList(m_selection.values()));
     s.endGroup();
 }
 
@@ -181,7 +181,7 @@ void VisualizationWidget::invalidateItems()
 
 void VisualizationWidget::sendItemsChanged()
 {
-    emit itemsChanged(QStringList(m_selection.toList()));
+    emit itemsChanged(QStringList(m_selection.values()));
 }
 
 void VisualizationWidget::itemChanged(QStandardItem *item)

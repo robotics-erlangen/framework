@@ -128,13 +128,14 @@ void DebugTreeWidget::load()
 {
     QSettings s;
     header()->restoreState(s.value("Debug/TreeHeader").toByteArray());
-    m_expanded = s.value("Debug/Expanded").toStringList().toSet();
+    const auto stringList = s.value("Debug/Expanded").toStringList();
+    m_expanded = QSet<QString>{stringList.begin(), stringList.end()};
 }
 
 void DebugTreeWidget::save()
 {
     QSettings s;
-    s.setValue("Debug/Expanded", QStringList(QStringList::fromSet(m_expanded)));
+    s.setValue("Debug/Expanded", QStringList(m_expanded.values()));
 }
 
 void DebugTreeWidget::debugExpanded(const QModelIndex &index)

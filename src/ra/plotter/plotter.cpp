@@ -124,7 +124,7 @@ void Plotter::closeEvent(QCloseEvent *event)
     s.setValue(QStringLiteral("geometry"), saveGeometry());
     s.setValue(QStringLiteral("splitter"), ui->splitter->saveState());
     s.setValue(QStringLiteral("tree"), ui->tree->header()->saveState());
-    s.setValue(QStringLiteral("visible"), QStringList(m_selection.toList()));
+    s.setValue(QStringLiteral("visible"), QStringList(m_selection.values()));
     s.setValue(QStringLiteral("scaling"), QList<QVariant>({
         ui->spinYMin->value(),
         ui->spinYMax->value(),
