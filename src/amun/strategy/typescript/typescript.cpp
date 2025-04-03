@@ -416,7 +416,7 @@ bool Typescript::setupCompiler(const QString &filename, bool compileBlocking)
     }
 
     auto createCompiler = [](const QDir &baseDir) -> std::unique_ptr<Compiler> {
-        auto ptr = new InternalTypescriptCompiler(baseDir.filePath("tsconfig.json"));
+        auto ptr = new InternalTypescriptCompiler(QFileInfo(baseDir.filePath("tsconfig.json")));
         return std::unique_ptr<Compiler>(ptr);
     };
     m_compiler = m_compilerRegistry->getCompiler(*baseDir, createCompiler);
@@ -707,7 +707,7 @@ bool Typescript::loadModule(QString name)
         }
 
         std::unique_ptr<QDir> baseDir = getTsconfigDir(m_filename);
-        QFileInfo jsFile = m_compiler->comp()->mapToResult(baseDir->absolutePath() + "/" + name + ".ts");
+        QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(baseDir->absolutePath() + "/" + name + ".ts"));
         QString filename = jsFile.absoluteFilePath();
 
         QByteArray contentBytes = readFileContent(filename);

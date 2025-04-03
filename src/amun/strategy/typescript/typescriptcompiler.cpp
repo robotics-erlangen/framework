@@ -237,7 +237,7 @@ bool TypescriptCompiler::isCompilationNeeded()
         return true;
     }
 
-    if (shouldGenerateProtobufTypings(m_tsconfig.dir().filePath("base/protobuf.ts"))) {
+    if (shouldGenerateProtobufTypings(QFileInfo(m_tsconfig.dir().filePath("base/protobuf.ts")))) {
         return true;
     }
 
