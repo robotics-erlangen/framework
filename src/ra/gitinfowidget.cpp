@@ -36,11 +36,11 @@ GitInfoWidget::GitInfoWidget(QWidget *parent) :
     ui(new Ui::GitInfoWidget)
 {
     ui->setupUi(this);
-    ui->diffToComboBox->addItem("original", qVariantFromValue(DiffOptions::ORIGINAL));
-    ui->diffToComboBox->addItem("min hash", qVariantFromValue(DiffOptions::MIN_HASH));
-    ui->diffToComboBox->addItem("HEAD", qVariantFromValue(DiffOptions::HEAD));
-    ui->diffToComboBox->addItem("master", qVariantFromValue(DiffOptions::MASTER));
-    ui->diffToComboBox->addItem("custom", qVariantFromValue(DiffOptions::CUSTOM));
+    ui->diffToComboBox->addItem("original", QVariant::fromValue(DiffOptions::ORIGINAL));
+    ui->diffToComboBox->addItem("min hash", QVariant::fromValue(DiffOptions::MIN_HASH));
+    ui->diffToComboBox->addItem("HEAD", QVariant::fromValue(DiffOptions::HEAD));
+    ui->diffToComboBox->addItem("master", QVariant::fromValue(DiffOptions::MASTER));
+    ui->diffToComboBox->addItem("custom", QVariant::fromValue(DiffOptions::CUSTOM));
     ui->customDiffHashLabel->setEnabled(false);
     ui->customDiffHashEdit->setEnabled(false);
 
