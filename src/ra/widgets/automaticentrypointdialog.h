@@ -31,8 +31,6 @@ class AutomaticEntrypointDialog;
 class EntrypointSelectionToolButton;
 class QCheckBox;
 class QString;
-template<typename T>
-class QVector;
 
 class AutomaticEntrypointDialog : public QDialog
 {

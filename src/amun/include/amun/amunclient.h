@@ -24,6 +24,8 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 
+#include <QObject>
+
 class Amun;
 class QThread;
 

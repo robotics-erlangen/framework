@@ -28,8 +28,6 @@
 
 class QMenu;
 class QString;
-template<typename T>
-class QVector;
 
 class EntrypointSelectionToolButton : public QToolButton
 {

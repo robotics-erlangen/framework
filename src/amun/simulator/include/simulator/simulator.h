@@ -29,6 +29,7 @@
 #include <QPair>
 #include <QQueue>
 #include <QByteArray>
+#include <QObject>
 #include <tuple>
 #include <random>
 

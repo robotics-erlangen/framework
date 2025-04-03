@@ -21,8 +21,8 @@
 #ifndef STRATEGYSEARCH_H
 #define STRATEGYSEARCH_H
 
-class QStringList;
-class QString;
+#include <QString>
+#include <QStringList>
 
 namespace ra {
 

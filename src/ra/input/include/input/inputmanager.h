@@ -26,6 +26,8 @@
 #include <QMap>
 #include <QStringList>
 #include <QPair>
+#include <QObject>
+
 #ifdef SDL2_FOUND
 //#include <SDL_joystick.h>
 typedef int32_t SDL_JoystickID; // avoid pulling in the sdl header
