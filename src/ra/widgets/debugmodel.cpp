@@ -142,7 +142,7 @@ void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &d
         // key not cached yet
         if (entry == NULL) {
             // split key and create all parent items
-            QStringList key = keys.split("/", QString::SkipEmptyParts);
+            QStringList key = keys.split("/", Qt::SkipEmptyParts);
 
             QStandardItem *parent = parentItem;
             QString name = key.takeFirst();

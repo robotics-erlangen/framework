@@ -90,7 +90,7 @@ void DebugWidget::filterChanged(const QString &filter)
             keyRegex.append("^");
             missingFuzzyMatch = true;
         }
-        QStringList segments = keyFilter.split("/", QString::KeepEmptyParts);
+        QStringList segments = keyFilter.split("/", Qt::KeepEmptyParts);
         for (int i = 0;i<segments.size();i++) {
             QString segment = segments[i];
             QString currentFuzzyRegex = segment.contains(containsNoNumbers, nullptr) ? fuzzyWithNumbersRegex : fuzzyRegex;
