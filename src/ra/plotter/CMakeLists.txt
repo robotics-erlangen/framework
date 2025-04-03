@@ -33,7 +33,7 @@ add_library(plotter STATIC
 set(UI_SOURCES
     plotter.ui
 )
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+qt6_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(plotter PRIVATE ${UIC_SOURCES})
 
 target_link_libraries(plotter
@@ -41,8 +41,9 @@ target_link_libraries(plotter
     PUBLIC shared::protobuf
     PRIVATE ra::guihelper
     PRIVATE ${OPENGL_LIBRARIES}
-    PUBLIC Qt5::Widgets
-    PRIVATE Qt5::OpenGL
+    PUBLIC Qt6::Widgets
+    PRIVATE Qt6::OpenGL
+    PRIVATE Qt6::OpenGLWidgets
 )
 target_include_directories(plotter
     INTERFACE include

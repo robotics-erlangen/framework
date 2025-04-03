@@ -26,7 +26,7 @@ add_library(internalreferee STATIC
 
 target_link_libraries(internalreferee
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )
 
 target_include_directories(internalreferee

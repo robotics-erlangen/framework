@@ -49,8 +49,8 @@ target_link_libraries(processor
     PUBLIC amun::tracking
     PRIVATE amun::gamecontroller
     PRIVATE firmware::interface
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
+    PUBLIC Qt6::Core
+    PRIVATE Qt6::Network
 )
 target_include_directories(processor
     INTERFACE include

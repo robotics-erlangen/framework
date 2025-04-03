@@ -35,8 +35,8 @@ target_link_libraries(strategy
     PUBLIC amun::gamecontroller
     PUBLIC amun::strategy::script
 
-    PRIVATE Qt5::Network
-    PUBLIC Qt5::Core
+    PRIVATE Qt6::Network
+    PUBLIC Qt6::Core
 
     PRIVATE amun::strategy::lua
     PRIVATE shared::config

@@ -29,11 +29,11 @@ add_library(logcutter STATIC
 set(UI_SOURCES
     logcutter.ui
 )
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+qt6_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(logcutter PRIVATE ${UIC_SOURCES})
 
 target_link_libraries(logcutter
-    PUBLIC Qt5::Widgets
+    PUBLIC Qt6::Widgets
     PRIVATE shared::protobuf
     PRIVATE amun::seshat
 )

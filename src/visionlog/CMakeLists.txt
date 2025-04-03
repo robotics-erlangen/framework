@@ -31,7 +31,7 @@ add_library(visionlog STATIC
 target_link_libraries(visionlog
     PRIVATE shared::core
     PRIVATE shared::protobuf
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )
 
 target_include_directories(visionlog

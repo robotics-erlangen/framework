@@ -73,7 +73,7 @@ set(UI_SOURCES
     replayteamwidget.ui
     gameeventswidget.ui
 )
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+qt6_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(widgets PRIVATE ${UIC_SOURCES})
 
 target_link_libraries(widgets
@@ -81,8 +81,10 @@ target_link_libraries(widgets
     PRIVATE shared::config
     PUBLIC shared::protobuf
     PRIVATE ra::guihelper
-    PUBLIC Qt5::Widgets
-    PRIVATE Qt5::OpenGL
+    PUBLIC Qt6::Widgets
+    PRIVATE Qt6::OpenGL
+    PRIVATE Qt6::OpenGLWidgets
+    PRIVATE Qt6::Gui
 )
 target_include_directories(widgets
     INTERFACE include
@@ -91,10 +93,10 @@ target_include_directories(widgets
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-if (TARGET Qt5::Svg)
+if (TARGET Qt6::Svg)
     target_compile_definitions(widgets PUBLIC QTSVG_FOUND)
     target_link_libraries(widgets
-        PRIVATE Qt5::Svg
+        PRIVATE Qt6::Svg
     )
 endif()
 

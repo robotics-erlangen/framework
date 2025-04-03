@@ -25,7 +25,7 @@ add_executable(amun-cli
 )
 target_link_libraries(amun-cli
     amun::amun
-    Qt5::Core
+    Qt6::Core
     amuncli::testtools
 )
 v8_copy_deps(amun-cli)

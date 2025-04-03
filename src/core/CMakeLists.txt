@@ -42,7 +42,7 @@ add_library(core STATIC
     protobufhelper.cpp
 )
 target_link_libraries(core
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     PUBLIC shared::config
     PUBLIC shared::protobuf
 )

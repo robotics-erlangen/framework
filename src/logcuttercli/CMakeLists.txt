@@ -24,7 +24,7 @@ add_executable(logcutter-cli
 target_link_libraries(logcutter-cli
     amun::seshat
     ra::logcutter
-    Qt5::Core
+    Qt6::Core
 )
 target_include_directories(logcutter-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
@@ -40,7 +40,7 @@ add_executable(visionlogcutter-cli
 target_link_libraries(visionlogcutter-cli
     visionlog::visionlog
     shared::protobuf
-    Qt5::Core
+    Qt6::Core
 )
 target_include_directories(visionlogcutter-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"

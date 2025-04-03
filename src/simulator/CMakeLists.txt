@@ -23,9 +23,9 @@ add_executable(simulator-cli WIN32 MACOSX_BUNDLE
 )
 
 target_link_libraries(simulator-cli
-    Qt5::Network
+    Qt6::Network
     shared::protobuf
     shared::core
-    Qt5::Widgets
+    Qt6::Widgets
     amun::simulator
 )

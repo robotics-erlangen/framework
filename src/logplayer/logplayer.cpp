@@ -31,10 +31,7 @@ int main(int argc, char *argv[])
     // use Ra as the name to share a configuration with ra
     app.setApplicationName("Ra");
     app.setOrganizationName("ER-Force");
-// available starting with Qt 5.1
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 1, 0))
     qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
-#endif
 #ifdef Q_OS_OSX
     if (QDir::currentPath() == "/") {
         QDir::setCurrent(QDir::homePath());

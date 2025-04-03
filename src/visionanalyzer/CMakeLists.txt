@@ -29,7 +29,7 @@ target_link_libraries(visionanalyzer
     PRIVATE amun::processor
     PRIVATE shared::protobuf
     PRIVATE visionlog::visionlog
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     Threads::Threads
 )
 v8_copy_deps(visionanalyzer)
@@ -52,5 +52,5 @@ target_link_libraries(visionextractor
     PRIVATE amun::seshat
     PRIVATE shared::protobuf
     PRIVATE visionlog::visionlog
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )

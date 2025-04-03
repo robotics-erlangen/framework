@@ -35,7 +35,7 @@ endif(APPLE)
 
 target_link_libraries(logplayer
     shared::config
-    Qt5::Widgets
+    Qt6::Widgets
     ra::ra-horus
 )
 v8_copy_deps(logplayer)

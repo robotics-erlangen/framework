@@ -9,7 +9,7 @@ Currently, the software is also manually tested and proven to run for openSuse L
 In order to build the framework, you will need:
 - `cmake` >= `3.11`
 - `g++` >= `7.5`
-- `Qt` >= `5.9` (**NOT** `5.9.[0-2]` on Windows)
+- `Qt` >= `6.2`
 - `libssl`
 
 Also, `protobuf` >= `2.6.0` is required, but will be built from source when no
@@ -19,7 +19,7 @@ Certain features require additional libraries:
 - `libusb-1.0` >= `1.0.9` - USB communication with a wireless transceiver
 - `libsdl2` >= `2.0.2` - Gamepad support
 - `libudev` - required for Gamepad support (only required if `libsdl2` is not available via the package manager)
-- `libqt5svg5-dev` - Required for taking SVG screenshots of the fieldwidget
+- `libqt6svg6-dev` - Required for taking SVG screenshots of the fieldwidget
 - `python2` and `git` - Required to build V8
 
 ## Note for Robocup 2021 participants
@@ -35,20 +35,13 @@ faster.
 
 ### Required packages
 
-#### Ubuntu 20.04/22.04/24.04
+#### Ubuntu 22.04/24.04
 The package names are
 ```
-cmake protobuf-compiler libprotobuf-dev qtbase5-dev libqt5opengl5-dev g++ libusb-1.0-0-dev libsdl2-dev libqt5svg5-dev libssl-dev
+cmake protobuf-compiler libprotobuf-dev qt6-base-dev libqt6opengl6-dev g++ libusb-1.0-0-dev libsdl2-dev libqt6svg6-dev libssl-dev
 ```
 where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
 not already installed.
-For Ubuntu 20.04 the g++ version has to be manually bumped to version 10 by additionally installing g++-10 and doing:
-```
-update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100;
-update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 100;
-update-alternatives --set gcc /usr/bin/gcc-10;
-update-alternatives --set g++ /usr/bin/g++-10;
-```
 
 These additional packages are needed to debug the firmware:
 ```
@@ -60,30 +53,33 @@ sudo apt install software-properties-common
 sudo add-apt-repository ppa:deadsnakes/ppa
 sudo apt update
 ```
-#### Manjaro
+#### Arch/Manjaro
 The package names are
 ```
-cmake qt5-base patch base-devel sdl2 libusb pkgconf openssl
+cmake qt6-base patch base-devel sdl2 libusb pkgconf openssl
 ```
 There is a provided `protobuf` package, however its current version breaks
 compilation. It is advisable to let the build system build `protobuf` from
 source.
 
-#### Open Suse
+#### Fedora (tested with Fedora 42)
 The required packages can be installed with
 ```
-sudo zypper install git cmake libqt5-qtbase-devel libusb-1_0-devel libqt5-qtsvg-devel python2-pip libudev-devel patch glu-devel openssl-devel
+dnf install cmake pkgconf patch libusb1 libusb1-devel mesa-libGLU-devel mesa-libGL-devel openssl-devel qt6-qtbase-devel qt6-qtsvg g++
 ```
+There are provided `protobuf-compiler` and `protobuf-devel` packages, however we require 3.21.12 and the version in fedora 42 is 3.19.6.
+It is advisable to let the build system build `protobuf` from source.
 
-For building V8 you need to select pip2 as pip, with
+#### Open Suse (tested with Leap 15.6)
+The required packages can be installed with
 ```
-sudo alternatives --config pip
+sudo zypper install git cmake qt6-base-devel qt6-svg-devel libusb-1_0-devel libudev1 patch glu-devel libopenssl-devel
 ```
 
 Currently, builing the firmware on open suse is not supported.
 To ignore the firmware, even if you already have some arm compiler installed, use
 ```
-cmake -DBUILD_FIRMWARE=false ..
+cmake -DBUILD_FIRMWARE=FALSE ..
 ```
 
 instead of the normale cmake command (`cmake ..`)
@@ -107,11 +103,6 @@ out-of-source build. This can be done like this:
 mkdir build && cd build
 cmake ..
 make
-```
-
-Alternatively in order to select which Qt-Installation to use specify it using a similar command line:
-```
-cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ```
 
 In order to download and use the precompiled V8, use:
@@ -142,17 +133,12 @@ make install-menu
 
 ## Windows
 
-Compilation on Windows is done using `MSYS2` and `cmake`. You'll also need to
-install `Qt 5`.
+Compilation on Windows is done using `MSYS2`.
 
 ### Setup
 
 First, download dependencies and setup the compiler environment. The setup is
 tested using the given versions.
-
-#### cmake
-Use the [cmake 3.15.5 installer](https://github.com/Kitware/CMake/releases/download/v3.15.5/cmake-3.15.5-win64-x64.msi)
-and select add to `PATH`.
 
 #### MSYS2
 Run the most recent [installer](http://repo.msys2.org/distrib/x86_64) (e.g. msys2-x86_64-20190524.exe)
@@ -164,22 +150,21 @@ Close the console when prompted and open it again
 ```
 $ pacman -Su
 # Dependencies for Ra
-$ pacman -S patch make mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja
+$ pacman -S patch make git mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-ninja mingw-w64-x86_64-qt6-base mingw-w64-x86_64-qt6-svg mingw-w64-x86_64-SDL2 mingw-w64-x86_64-libusb
 # Dependencies for V8
-$ pacman -S python2 git
+$ pacman -S python3 git
 ```
 Close the MSYS console.
 It is very helpful to set the home directory of mingw to your actual home directory (the default one is something like C:\msys2\mingw64\usr\home).
-To accomplish that you can set/create the environment variable HOME to whatever you want e.g. C:\Users\<insert your username>.
+To accomplish this you have two options:
+1. Creating/updating /etc/nsswitch.conf with a line
+```
+db_home: windows
+```
+This way not only is the home where you expect it to be, but git and more specifically ssh finds your C:\Users\<username>\.ssh directory.
+2. Set/create the environment variable HOME to whatever you want e.g. C:\Users\<insert your username>.
 If you don't know how to do that google "set environment variable windows".
-
-#### QT 5
-Run the [online installer](http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe) (use the default install path).
-- On **32bit**, install `QT 5.13.2 > MinGW 7.3.0 32-bit`
-- On **64bit**, install `QT 5.13.2 > MinGW 7.3.0 64-bit`
-
-In case you use the offline installer, change to install path such that `Qt
-5.13.2` ends up in `c:\Qt\5.13.2`.
+Beware that git might not work with this option.
 
 ### Compiling
 After setting up the dependencies, you are ready to start the compilation
@@ -193,25 +178,16 @@ After setting up the dependencies, you are ready to start the compilation
 - Use a folder whose path contains whitespace
 - Use a base folder with a path name longer 30 characters
 
-If you're compiling on a 32bit system, setup the shell like this
-```
-$ export USED_QT=/c/Qt/5.13.2/mingw73_32/lib/cmake
-```
-On a 64bit system, do this
-```
-$ export PATH=/c/Qt/Tools/mingw730_64/bin:$PATH
-$ export USED_QT=/c/Qt/5.13.2/mingw73_64/lib/cmake
-```
 To compile Ra, run the following commands
 ```
 $ libs/v8/build.sh
 $ mkdir build-win && cd build-win
-$ cmake -GNinja -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -GNinja -DCMAKE_BUILD_TYPE=Release ..
 ```
 To use precompiled V8, use the following commands instead of the commands above
 ```
 $ mkdir build-win && cd build-win
-$ cmake -GNinja -DDOWNLOAD_V8=TRUE -DCMAKE_PREFIX_PATH="$USED_QT" -DCMAKE_BUILD_TYPE=Release ..
+$ cmake -GNinja -DDOWNLOAD_V8=TRUE -DCMAKE_BUILD_TYPE=Release ..
 ```
 Then close the shell to reset the PATH variable and in the new shell you can build with
 ```
@@ -223,6 +199,7 @@ Automatic packing of Ra is possible with
 $ cmake --build . --target pack
 ```
 Note than when doing this, the other calls to `cmake --build` are not necessary.
+
 ### Common problems
 
 #### Windows 10/11 - Problems with USB driver (e.g. radio device)
@@ -248,7 +225,7 @@ xcode-select --install
 Get dependencies using [Homebrew](http://brew.sh):
 
 ```
-brew install cmake git sdl2 protobuf libusb python@2 qt@5
+brew install cmake git sdl2 protobuf libusb python@2 qt@6
 ```
 
 Build using:

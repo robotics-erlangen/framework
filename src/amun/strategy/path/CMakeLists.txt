@@ -59,7 +59,7 @@ add_library(path STATIC ${path_files})
 target_link_libraries(path
     PRIVATE shared::core
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     PRIVATE shared::config
 )
 target_include_directories(path
@@ -73,7 +73,7 @@ add_library(path_parameter_optimization STATIC ${path_files})
 target_link_libraries(path_parameter_optimization
     PRIVATE shared::core
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     PRIVATE shared::config
 )
 target_include_directories(path_parameter_optimization

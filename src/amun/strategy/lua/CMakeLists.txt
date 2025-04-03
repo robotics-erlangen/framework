@@ -40,7 +40,7 @@ target_include_directories(lua
 target_link_libraries(lua
     PUBLIC lib::luajit
 
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 
     PRIVATE amun::path
     PUBLIC amun::strategy::script

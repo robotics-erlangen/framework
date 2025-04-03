@@ -174,6 +174,7 @@ if(NOT PROTOBUF_FOUND
 endif()
 
 # Try to auto-locate Qt5 on MacOS (won't work with custom installs)
+# TODO change this to qt6 and hope nothing explodes
 if (APPLE)
     if (EXISTS /usr/local/opt/qt@5)
         set(Qt5_DIR "/usr/local/opt/qt@5/lib/cmake/Qt5")
@@ -186,10 +187,10 @@ endif()
 
 
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
+find_package(Qt6 COMPONENTS Core Widgets OpenGLWidgets Network OpenGL Gui REQUIRED)
 
-find_package(Qt5 COMPONENTS Svg)
-if (NOT TARGET Qt5::Svg)
+find_package(Qt6 COMPONENTS Svg)
+if (NOT TARGET Qt6::Svg)
     message(STATUS "Qt svg component not found. Svg screenshots will not be supported.")
 endif()
 

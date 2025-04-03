@@ -39,8 +39,8 @@ target_link_libraries(simulator
     PRIVATE shared::core
     PUBLIC shared::protobuf
     PRIVATE lib::bullet
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Gui
+    PUBLIC Qt6::Core
+    PRIVATE Qt6::Gui
     PRIVATE lib::eigen
 )
 target_include_directories(simulator

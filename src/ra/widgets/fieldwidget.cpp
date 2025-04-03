@@ -23,6 +23,7 @@
 #include "protobuf/command.pb.h"
 #include "protobuf/geometry.h"
 #include "savesituation.h"
+#include <QActionGroup>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <cmath>
@@ -92,8 +93,6 @@ class TouchStatusRecognizer : public QGestureRecognizer
         case QEvent::TouchEnd:
             ts->setHasTouchInput(false);
             return QGestureRecognizer::FinishGesture;
-// native (mac only?) gestures are available starting from Qt 5.2
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 2, 0))
         case QEvent::NativeGesture:
         {
            QNativeGestureEvent *ev = static_cast<QNativeGestureEvent*>(event);
@@ -106,7 +105,6 @@ class TouchStatusRecognizer : public QGestureRecognizer
                return QGestureRecognizer::TriggerGesture;
            }
         }
-#endif
         default:
             break;
         }

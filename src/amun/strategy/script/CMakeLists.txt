@@ -41,8 +41,8 @@ target_link_libraries(script
     PRIVATE shared::core
     PUBLIC shared::protobuf
 
-    PRIVATE Qt5::Network
-    PUBLIC Qt5::Core
+    PRIVATE Qt6::Network
+    PUBLIC Qt6::Core
 )
 
 target_include_directories(script

@@ -25,7 +25,7 @@ add_library(guihelper STATIC
 )
 target_link_libraries(guihelper
     PRIVATE shared::core
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )
 target_include_directories(guihelper
     INTERFACE include

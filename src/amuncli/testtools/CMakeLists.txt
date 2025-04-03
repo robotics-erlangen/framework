@@ -27,7 +27,7 @@ add_library(testtools STATIC
 )
 
 target_link_libraries(testtools
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     PUBLIC shared::protobuf
     PUBLIC shared::config
     PUBLIC amun::seshat

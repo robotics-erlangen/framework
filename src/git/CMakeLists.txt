@@ -130,7 +130,7 @@ target_include_directories(gitconfig
 
 target_link_libraries(gitconfig
     PRIVATE lib::git2
-    PRIVATE Qt5::Core
+    PRIVATE Qt6::Core
 )
 add_dependencies(gitconfig lib::git2)
 

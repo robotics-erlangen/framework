@@ -69,8 +69,8 @@ add_library(typescript STATIC
 )
 
 target_link_libraries(typescript
-    PUBLIC Qt5::Core
-    PUBLIC Qt5::Network
+    PUBLIC Qt6::Core
+    PUBLIC Qt6::Network
 
     PRIVATE lib::luajit
     PRIVATE lib::sourcemap

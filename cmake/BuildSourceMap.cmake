@@ -22,7 +22,7 @@ include(ExternalProject)
 include(ExternalProjectHelper)
 
 set(LIBSM_SUBPATH "bin/${CMAKE_STATIC_LIBRARY_PREFIX}SourceMap${CMAKE_STATIC_LIBRARY_SUFFIX}")
-find_package(Qt5 COMPONENTS Core REQUIRED)
+find_package(Qt6 COMPONENTS Core REQUIRED)
 
 set(SOURCEMAP_PATCH_FILE ${CMAKE_CURRENT_LIST_DIR}/sourcemap.patch)
 ExternalProject_Add(project_sourcemap
@@ -57,7 +57,7 @@ file(MAKE_DIRECTORY "${source_dir}/src")
 add_library(project_sourcemap_import STATIC IMPORTED)
 set_target_properties(project_sourcemap_import PROPERTIES
     IMPORTED_LOCATION "${binary_dir}/${LIBSM_SUBPATH}"
-    INTERFACE_LINK_LIBRARIES "Qt5::Core"
+    INTERFACE_LINK_LIBRARIES "Qt6::Core"
     INTERFACE_INCLUDE_DIRECTORIES "${source_dir}/src"
 )
 

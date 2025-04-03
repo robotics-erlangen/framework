@@ -49,7 +49,7 @@ target_link_libraries(tracking
     PRIVATE lib::eigen
     PUBLIC shared::core
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )
 target_include_directories(tracking
     INTERFACE include

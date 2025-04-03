@@ -49,8 +49,8 @@ target_link_libraries(amun
     PUBLIC amun::strategy
     PRIVATE amun::seshat
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
-    PRIVATE Qt5::Network
+    PUBLIC Qt6::Core
+    PRIVATE Qt6::Network
     PUBLIC amun::gamecontroller
     PUBLIC amun::internalreferee
     PUBLIC gitconfig

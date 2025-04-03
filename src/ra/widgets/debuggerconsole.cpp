@@ -214,7 +214,7 @@ void DebuggerConsole::handleDocumentChange(int from, int charsRemove, int charsA
         return;
     }
 
-    int removedLineChars = std::min(m_line.length(), charsRemove);
+    int removedLineChars = std::min(static_cast<int>(m_line.length()), charsRemove);
     m_line = m_line.mid(0, m_line.length() - removedLineChars);
     m_expectedCursorPosition -= removedLineChars;
 

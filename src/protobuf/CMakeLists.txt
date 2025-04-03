@@ -102,7 +102,7 @@ set_source_files_properties(${GENERATED_FILES}
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
     PUBLIC Threads::Threads
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
 )
 target_include_directories(protobuf
     PUBLIC include

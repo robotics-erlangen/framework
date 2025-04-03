@@ -30,7 +30,7 @@ add_executable(trajectory-cli
 )
 target_link_libraries(trajectory-cli
     amun::path_parameter_optimization
-    Qt5::Core
+    Qt6::Core
     shared::core
     amun::seshat
 )

@@ -30,7 +30,7 @@ add_library(input STATIC
 target_link_libraries(input
     PRIVATE shared::config
     PUBLIC shared::protobuf
-    PRIVATE Qt5::Widgets
+    PRIVATE Qt6::Widgets
 )
 target_include_directories(input
     INTERFACE include

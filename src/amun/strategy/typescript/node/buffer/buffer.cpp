@@ -105,7 +105,7 @@ void Node::Buffer::Instance::lengthGet(Local<String> property, const PropertyCal
     Local<External> wrap = info.Holder()->GetInternalField(Node::Buffer::Instance::OBJECT_INSTANCE_INDEX).As<External>();
     auto instance = static_cast<Node::Buffer::Instance*>(wrap->Value());
 
-    info.GetReturnValue().Set(instance->m_data.length());
+    info.GetReturnValue().Set(static_cast<int32_t>(instance->m_data.length()));
 }
 
 void Node::Buffer::Instance::toString(const FunctionCallbackInfo<Value>& args) {

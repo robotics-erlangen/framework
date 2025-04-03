@@ -56,7 +56,7 @@ target_link_libraries(seshat
     PUBLIC shared::protobuf
     PUBLIC shared::core
     PUBLIC amun::processor
-    PUBLIC Qt5::Core
+    PUBLIC Qt6::Core
     PUBLIC visionlog
 )
 

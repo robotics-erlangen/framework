@@ -22,6 +22,13 @@
 #include "ui_debugwidget.h"
 #include <QRegularExpression>
 
+// qsizetype was moved from the QtGlobal header to the new QtTypes header in Qt6.5
+#if (QT_VERSION >= QT_VERSION_CHECK(6, 5, 0))
+    #include <QtTypes>
+#else
+    #include <QtGlobal>
+#endif
+
 DebugWidget::DebugWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::DebugWidget)
@@ -113,7 +120,7 @@ void DebugWidget::filterChanged(const QString &filter)
     }
 
     // create key regex
-    QString valueFilter = filter.right(std::max(0, filter.length()-keyValueFilter[0].length()-1));
+    QString valueFilter = filter.right(std::max(static_cast<qsizetype>(0), filter.length()-keyValueFilter[0].length()-1));
     QString valueRegex;
     if (valueFilter.length() > 0 && valueFilter[0] == FULL_REGEX_CHAR) {
         valueRegex = valueFilter.right(valueFilter.length()-1);

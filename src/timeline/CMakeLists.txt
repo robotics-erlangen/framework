@@ -32,7 +32,7 @@ target_include_directories(timeline
 )
 
 target_link_libraries(timeline
-    PRIVATE Qt5::Core
+    PRIVATE Qt6::Core
     PRIVATE amun::seshat
 )
 

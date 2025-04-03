@@ -100,7 +100,7 @@ set(UI_SOURCES
     fieldparameters.ui
 )
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+qt6_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 target_sources(ra-horus PRIVATE ${UIC_SOURCES})
 
@@ -116,8 +116,8 @@ target_link_libraries(ra-horus
     PRIVATE ra::logcutter
     PRIVATE ra::widgets
     PRIVATE ${OPENGL_LIBRARIES}
-    PRIVATE Qt5::Widgets
-    PRIVATE Qt5::OpenGL
+    PRIVATE Qt6::Widgets
+    PRIVATE Qt6::OpenGL
     PRIVATE Threads::Threads
 )
 
@@ -159,7 +159,7 @@ endif(APPLE)
 
 target_link_libraries(ra
     ra::ra-horus
-    Qt5::Widgets
+    Qt6::Widgets
     shared::config
 )
 v8_copy_deps(ra)

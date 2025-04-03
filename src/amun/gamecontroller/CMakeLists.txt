@@ -36,8 +36,8 @@ add_library(gamecontroller STATIC
 target_link_libraries(gamecontroller
     PUBLIC shared::core
     PUBLIC shared::protobuf
-    PUBLIC Qt5::Core
-    PUBLIC Qt5::Network
+    PUBLIC Qt6::Core
+    PUBLIC Qt6::Network
 )
 target_include_directories(gamecontroller
     INTERFACE include

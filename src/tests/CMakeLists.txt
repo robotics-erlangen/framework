@@ -68,5 +68,5 @@ target_link_libraries(cpptests
     amuncli::testtools
     visionlog
     pthread
-    Qt5::Gui
+    Qt6::Gui
 )

@@ -31,7 +31,7 @@ target_link_libraries(replay-cli
     shared::protobuf
     amun::seshat
     shared::core
-    Qt5::Core
+    Qt6::Core
     Threads::Threads
     amuncli::testtools
 )
