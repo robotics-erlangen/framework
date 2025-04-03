@@ -109,10 +109,10 @@ static void saveResults(QString filename, const QMap<QString, double> &fieldSize
         QStringList parts = key.split("/");
         for (auto i = parts.size()-1;i>=0;i--) {
             if (!parts[i].isEmpty()) {
-                stream <<parts[i]<<endl;
+                stream <<parts[i]<<Qt::endl;
             }
         }
-        stream <<"\t"<<static_cast<long>(fieldSizes[key])<<endl;
+        stream <<"\t"<<static_cast<long>(fieldSizes[key])<<Qt::endl;
     }
 }
 
