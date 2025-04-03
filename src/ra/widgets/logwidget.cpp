@@ -52,7 +52,7 @@ QString LogWidget::fromTime(qint64 time, QString prefix) {
     if (ltime != m_lastDate) {
         m_lastDate = ltime;
         QDateTime dt;
-        dt.setTime_t(time * 1E-9);
+        dt.setTime(QTime().addSecs(time * 1E-9));
         ret += QString("<div><small><tt>%1</tt></small></div>\n").arg(dt.toString("hh:mm"));
     }
     const QString stime = QString("%1.%2").arg((time / 1000000000LL) % 60, 2, 10, QChar('0'))
