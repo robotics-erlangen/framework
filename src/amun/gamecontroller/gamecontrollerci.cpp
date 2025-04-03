@@ -22,6 +22,7 @@
 
 #include "config/config.h"
 #include "core/timer.h"
+#include <QDir>
 #include <QFile>
 #include <QRegularExpression>
 #include <QString>
@@ -46,6 +47,11 @@ void GameControllerCI::start()
     m_nonResponseCounter = 0;
     m_deliberatlyStopped = false;
     updateCurrentStatus(amun::StatusGameController::STARTING);
+
+    // Delete game controller data to ensure stale state-stores and configs by
+    // previous runs (or GC versions) are removed
+    QDir gameControllerData { QString("%1/gamecontroller/data").arg(ERFORCE_CONFDIR) };
+    gameControllerData.removeRecursively();
 
     int port = findFreePort(GC_CI_PORT_START);
     m_gcCIProtocolConnection.setPort(port);
