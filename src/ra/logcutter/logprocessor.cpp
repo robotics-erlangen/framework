@@ -26,9 +26,9 @@
 #include "protobuf/status.pb.h"
 #include <QSemaphore>
 #include <QMutex>
-#include <QLinkedList>
 #include <QTemporaryFile>
 #include <QFlags>
+#include <queue>
 
 class Exchanger {
 public:
@@ -39,7 +39,7 @@ public:
     void transfer(Status &status) {
         m_inSemaphore.acquire();
         m_mutex.lock();
-        m_status.prepend(status);
+        m_status.push(status);
         m_mutex.unlock();
         status.clear(); // drop own reference to ensure gc in the receiver thread
         m_outSemaphore.release();
@@ -48,14 +48,15 @@ public:
     Status take() {
         m_outSemaphore.acquire();
         m_mutex.lock();
-        Status status = m_status.takeLast();
+        Status status = m_status.front();
+        m_status.pop();
         m_mutex.unlock();
         m_inSemaphore.release();
         return status;
     }
 
 private:
-    QLinkedList<Status> m_status;
+    std::queue<Status> m_status;
     QSemaphore m_inSemaphore;
     QSemaphore m_outSemaphore;
     QMutex m_mutex;
