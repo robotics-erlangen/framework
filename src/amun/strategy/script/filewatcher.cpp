@@ -56,7 +56,7 @@ bool FileWatcher::addFile(const QString &filename)
     } while (path != oldPath);
 
     if (!isReadable) {
-        m_missingFiles.insertMulti(path, filename);
+        m_missingFiles.insert(path, filename);
     }
 
     return isReadable;
