@@ -23,7 +23,7 @@
 #include "google/protobuf/util/json_util.h"
 #include <QFileDialog>
 #include <QFile>
-#include <QRegExp>
+#include <QRegularExpression>
 #include <QTextStream>
 
 static QString formatJson(QString input, QMap<QString, QString> enumReplacements)
@@ -43,10 +43,10 @@ static QString formatJson(QString input, QMap<QString, QString> enumReplacements
     // the json converter takes 64 bit integers and expresses them as a string,
     // as they can not be perfectly represented as a double
     // Therefore, this codes finds these cases and converts it properly, possibly loosing some precision in the number
-    input.replace(QRegExp("\\\"([0-9]+)\\\""), "\\1");
+    input.replace(QRegularExpression("\\\"([0-9]+)\\\""), "\\1");
 
     for (const auto &rep : enumReplacements.keys()) {
-        input.replace(QRegExp(rep + "\\\": \\\"([A-Z_a-z0-9]+)\\\""), rep + "\": " + enumReplacements[rep] + ".\\1");
+        input.replace(QRegularExpression(rep + "\\\": \\\"([A-Z_a-z0-9]+)\\\""), rep + "\": " + enumReplacements[rep] + ".\\1");
     }
     return input;
 }

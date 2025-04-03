@@ -25,6 +25,7 @@
 #include <QMenu>
 #include <QSettings>
 #include <QStandardItemModel>
+#include <QRegularExpression>
 
 VisualizationWidget::VisualizationWidget(QWidget *parent) :
     QWidget(parent),
@@ -243,16 +244,17 @@ void VisualizationWidget::filterTextChanged(QString text)
         }
     }
     m_proxy->setSortByChecked(text.length() == 0);
-    m_proxy->setFilterRegExp(regex);
+    m_proxy->setFilterRegularExpression(regex);
     m_proxy->invalidate();
     m_proxy->sort(0);
 }
 
 void VisualizationWidget::toggleVisualization(QString filterRegex)
 {
-    QRegExp regex(filterRegex);
+    // TODO check if this really is the same as exactMatch
+    QRegularExpression regex(QRegularExpression::anchoredPattern(filterRegex));
     for (auto entry : m_items) {
-        if (regex.exactMatch(entry.first->text())) {
+        if (regex.match(entry.first->text()).hasMatch()) {
             entry.first->setCheckState(entry.first->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
         }
     }

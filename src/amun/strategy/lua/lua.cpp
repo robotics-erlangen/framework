@@ -27,6 +27,7 @@
 #include "strategy/script/debughelper.h"
 #include "strategy/script/filewatcher.h"
 #include "strategy/script/scriptstate.h"
+#include <QRegularExpression>
 
 Lua *getStrategyThread(lua_State *state)
 {
@@ -208,11 +209,10 @@ static int luaErrorHandler(lua_State* state)
     s.replace(QStringLiteral(">"), QStringLiteral("&gt;"));
 
     // highlight string enclosed in ':' or everything
-    QRegExp regexp(QStringLiteral("^.*:.*: "));
-    regexp.setMinimal(true);
-    int i = regexp.indexIn(s);
-    if (i >= 0) {
-        s.insert(i + regexp.cap().length(), QStringLiteral("<font color=\"red\">"));
+    QRegularExpression regexp(QStringLiteral("^.*?:.*?: "));
+    const auto match = regexp.match(s);
+    if (match.hasMatch()) {
+        s.insert(match.capturedStart() + match.capturedLength(), QStringLiteral("<font color=\"red\">"));
     } else {
         s.prepend(QStringLiteral("<font color=\"red\">"));
     }
