@@ -1946,7 +1946,7 @@ void FieldWidget::wheelEvent(QWheelEvent *event)
     }
 
     // transform centered on the mouse cursor
-    const QPointF p = mapToScene(event->pos());
+    const QPointF p = mapToScene(event->position().toPoint());
     translate(p.x(), p.y());
     scale(scaleFactor, scaleFactor);
     translate(-p.x(), -p.y());
