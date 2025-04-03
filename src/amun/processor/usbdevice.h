@@ -74,7 +74,7 @@ private:
     quint8 m_buffer[512];
     qint64 m_bufferSize;
 
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
     libusb_transfer *m_inboundTransfer;
 
     QSemaphore m_shutdownSemaphore;

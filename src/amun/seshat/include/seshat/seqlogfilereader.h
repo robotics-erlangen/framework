@@ -27,6 +27,7 @@
 #include <QDataStream>
 #include <QFile>
 #include <QList>
+#include <QRecursiveMutex>
 
 class QMutex;
 
@@ -84,7 +85,7 @@ private:
     // reading timestamps or for reading status
     Status readStatus(bool loadNextGroup);
 
-    mutable QMutex *m_mutex;
+    mutable QRecursiveMutex *m_mutex;
     QString m_errorMsg;
 
     std::unique_ptr<QFile> m_file;

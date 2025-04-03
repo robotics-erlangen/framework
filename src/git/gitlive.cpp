@@ -41,6 +41,7 @@
 #include <vector>
 
 #include <QMutexLocker>
+#include <QRecursiveMutex>
 
 #define GIT_RAII(pointer, cleanup) std::unique_ptr<std::remove_reference<decltype(*pointer)>::type, void(*)(decltype(pointer))> raii_##pointer{pointer, cleanup}
 
@@ -96,7 +97,7 @@ struct Git_tree_raii {
     git_diff_options diffopt;
 };
 
-QMutex mutex{QMutex::Recursive};
+QRecursiveMutex mutex{};
 
 /* Populates Git_tree_raii with repo and oid,
  * assummes mutex to be locked and libgit running */

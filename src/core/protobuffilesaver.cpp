@@ -28,8 +28,7 @@ ProtobufFileSaver::ProtobufFileSaver(QString filename, QString filePrefix, QObje
     QObject(parent),
     m_filename(filename),
     m_filePrefix(filePrefix),
-    m_stream(&m_file),
-    m_mutex(QMutex::Recursive)
+    m_stream(&m_file)
 { }
 
 void ProtobufFileSaver::open()

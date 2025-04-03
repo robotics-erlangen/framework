@@ -48,7 +48,7 @@ private:
     QString m_filePrefix;
     QFile m_file;
     QDataStream m_stream;
-    QMutex m_mutex;
+    QRecursiveMutex m_mutex;
 };
 
 #endif // PROTOBUFFILESAVER_H

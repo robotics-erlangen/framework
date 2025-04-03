@@ -72,7 +72,6 @@ QList<USBDevice*> USBDevice::getDevices(quint16 vendorId, quint16 productId, USB
 USBDevice::USBDevice(void *device) :
     m_timeout(1000),
     m_bufferSize(0),
-    m_mutex(QMutex::Recursive),
     m_inboundTransfer(NULL),
     m_shutingDown(false),
     m_readError(false)

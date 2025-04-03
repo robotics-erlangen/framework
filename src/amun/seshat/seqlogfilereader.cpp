@@ -20,14 +20,14 @@
 
 #include "seqlogfilereader.h"
 
-#include <QMutex>
 #include <QMutexLocker>
+#include <QRecursiveMutex>
 
 SeqLogFileReader::SeqLogFileReader() :
     m_file(new QFile()),
     m_stream(new QDataStream(m_file.get()))
 {
-    m_mutex = new QMutex(QMutex::Recursive);
+    m_mutex = new QRecursiveMutex();
     // ensure compatibility across qt versions
     m_stream->setVersion(QDataStream::Qt_4_6);
 }
@@ -39,7 +39,7 @@ SeqLogFileReader::~SeqLogFileReader()
 }
 
 SeqLogFileReader::SeqLogFileReader(SeqLogFileReader&& o) :
-    m_mutex(new QMutex(QMutex::Recursive)),
+    m_mutex(new QRecursiveMutex()),
     m_file(std::move(o.m_file)),
     m_stream(std::move(o.m_stream)),
     m_version(std::move(o.m_version)),

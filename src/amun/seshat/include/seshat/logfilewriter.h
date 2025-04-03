@@ -29,6 +29,7 @@
 #include <QDataStream>
 #include <QFile>
 #include <QList>
+#include <QRecursiveMutex>
 
 class QMutex;
 
@@ -58,7 +59,7 @@ private:
     void writePackageEntry(qint64 time, QByteArray &&data);
     void addFirstPackage(qint64 time, QByteArray &&data);
 
-    mutable QMutex *m_mutex;
+    mutable QRecursiveMutex *m_mutex;
     QFile m_file;
     QDataStream m_stream;
     QByteArray m_packageBuffer;

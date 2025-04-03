@@ -21,6 +21,7 @@
 #include "logfilewriter.h"
 #include <QByteArray>
 #include <QMutexLocker>
+#include <QRecursiveMutex>
 #include <functional>
 
 #include "core/protobufhelper.h"
@@ -29,7 +30,7 @@
 LogFileWriter::LogFileWriter() :
     QObject(), m_stream(&m_file)
 {
-    m_mutex = new QMutex(QMutex::Recursive);
+    m_mutex = new QRecursiveMutex();
     // ensure compatibility across qt versions
     m_stream.setVersion(QDataStream::Qt_4_6);
 }
