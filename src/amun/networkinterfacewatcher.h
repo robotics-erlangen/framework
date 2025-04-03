@@ -22,8 +22,8 @@
 #define NETWORKINTERFACEWATCHER_H
 
 #include <QObject>
-#include <QNetworkConfiguration>
 #include <QNetworkInterface>
+#include <QTimer>
 
 class QNetworkConfigurationManager;
 
@@ -37,10 +37,11 @@ signals:
     void interfaceUpdated(const QNetworkInterface &interface);
 
 private slots:
-    void configurationUpdate(const QNetworkConfiguration &config);
+    void checkInterfaces();
 
 private:
-    QNetworkConfigurationManager *m_ncm;
+    QList<QNetworkInterface> m_currentConnectedInterfaces;
+    QTimer* m_interfaceCheckTimer;
 };
 
 #endif // NETWORKINTERFACEWATCHER_H

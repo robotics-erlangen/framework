@@ -20,26 +20,46 @@
 
 #include "networkinterfacewatcher.h"
 
-#include <QNetworkConfigurationManager>
-#include <QNetworkSession>
+#include <algorithm>
+#include <QAbstractSocket>
+#include <QNetworkInterface>
 
 NetworkInterfaceWatcher::NetworkInterfaceWatcher(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_interfaceCheckTimer(new QTimer(this))
 {
-    m_ncm = new QNetworkConfigurationManager(this);
-
-    connect(m_ncm, &QNetworkConfigurationManager::configurationChanged, this, &NetworkInterfaceWatcher::configurationUpdate);
-    connect(m_ncm, &QNetworkConfigurationManager::configurationAdded, this, &NetworkInterfaceWatcher::configurationUpdate);
+    connect(m_interfaceCheckTimer, &QTimer::timeout, this, &NetworkInterfaceWatcher::checkInterfaces);
+    m_interfaceCheckTimer->start(1000);
 }
 
-// configuration updates are triggered whenever something is added / changed
-void NetworkInterfaceWatcher::configurationUpdate(const QNetworkConfiguration &config)
+// checks whether something is added / changed
+void NetworkInterfaceWatcher::checkInterfaces()
 {
-    if (!config.state().testFlag(QNetworkConfiguration::Undefined)) {
-        QNetworkSession qns(config);
-        // a interface is only accessible if the configuration is connected
-        if (qns.interface().isValid()) {
-            emit interfaceUpdated(qns.interface());
+    const auto currentInterfaces = QNetworkInterface::allInterfaces();
+    QList<QNetworkInterface> newInterfaces;
+    for (const auto& interface : currentInterfaces) {
+        const auto addressEntries = interface.addressEntries();
+        const bool hasValidIpV4Address = std::any_of(addressEntries.begin(), addressEntries.end(), [] (const auto address) {
+                                                return address.ip().protocol() == QAbstractSocket::IPv4Protocol;
+                                            });
+
+        // the udp joinMulticast in the receiver fails if no ipv4 address is found
+        if (hasValidIpV4Address) {
+
+            // check if the interface is not in the previous m_currentInterfaces
+            const auto equivalentInterface = std::find_if(
+                                                m_currentConnectedInterfaces.begin(),
+                                                m_currentConnectedInterfaces.end(),
+                                                [&] (const auto prevInterface) { return interface.hardwareAddress() == prevInterface.hardwareAddress();
+                                            });
+
+            if (equivalentInterface == m_currentConnectedInterfaces.end()) {
+                emit interfaceUpdated(interface);
+            }
+
+            newInterfaces.append(interface);
         }
     }
+
+    m_currentConnectedInterfaces = newInterfaces;
 }
