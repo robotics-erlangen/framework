@@ -18,8 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef CORE_COORDINATES.h
-#define CORE_COORDINATES.h
+#pragma once
 
 #include "vector.h"
 
@@ -196,5 +195,3 @@ namespace coordinates {
     }
 
 }
-
-#endif
