@@ -1515,7 +1515,6 @@ void FieldWidget::flipField()
 void FieldWidget::setAntialiasing(bool enable)
 {
     setRenderHint(QPainter::Antialiasing, enable);
-    setRenderHint(QPainter::HighQualityAntialiasing, enable);
     resetCachedContent();
 }
 
