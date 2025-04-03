@@ -85,7 +85,7 @@
    <item>
     <widget class="Line" name="line">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -236,7 +236,7 @@
    <item>
     <widget class="Line" name="line_2">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -253,7 +253,7 @@
           </sizepolicy>
          </property>
          <property name="focusPolicy">
-          <enum>Qt::TabFocus</enum>
+          <enum>Qt::FocusPolicy::TabFocus</enum>
          </property>
          <property name="text">
           <string>Add Card</string>
@@ -346,18 +346,29 @@
    <item>
     <widget class="Line" name="line_3">
      <property name="orientation">
-      <enum>Qt::Horizontal</enum>
+      <enum>Qt::Orientation::Horizontal</enum>
      </property>
     </widget>
    </item>
    <item>
     <layout class="QVBoxLayout" name="options">
      <item>
-      <widget class="QCheckBox" name="sidesFlipped">
-       <property name="text">
-        <string>Sides Flipped</string>
-       </property>
-      </widget>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item alignment="Qt::AlignmentFlag::AlignLeft">
+        <widget class="QCheckBox" name="sidesFlipped">
+         <property name="text">
+          <string>Sides Flipped</string>
+         </property>
+        </widget>
+       </item>
+       <item alignment="Qt::AlignmentFlag::AlignRight">
+        <widget class="QPushButton" name="restartGC">
+         <property name="text">
+          <string>Restart GC</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </item>
      <item>
       <widget class="QLabel" name="gcStatusLabel">

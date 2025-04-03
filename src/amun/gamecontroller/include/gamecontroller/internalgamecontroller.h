@@ -48,6 +48,7 @@ private:
     bool sendCiInput(const gameController::CiInput &input);
     static gameController::Command mapCommand(SSL_Referee::Command command);
     void handleRefereeUpdate(const SSL_Referee &newState, bool delayedSending);
+    void handleRestartGameController();
     void handleUseAutoContinue(bool useAutoContinue);
 
 signals:

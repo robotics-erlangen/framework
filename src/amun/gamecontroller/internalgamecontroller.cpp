@@ -278,6 +278,19 @@ void InternalGameController::handleCommand(const amun::CommandReferee &refereeCo
     if (refereeCommand.has_use_auto_continue()) {
         handleUseAutoContinue(refereeCommand.use_auto_continue());
     }
+    if (refereeCommand.has_restart_game_controller() && refereeCommand.restart_game_controller()) {
+        handleRestartGameController();
+    }
+}
+
+void InternalGameController::handleRestartGameController()
+{
+    if (!m_isEnabled) {
+        return;
+    }
+
+    stop();
+    start();
 }
 
 void InternalGameController::handleUseAutoContinue(bool useAutoContinue)

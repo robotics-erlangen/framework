@@ -67,6 +67,7 @@ private slots:
     void handleStage(int index);
     void handleYellowKeeper(int id);
     void handleBlueKeeper(int id);
+    void handleRestartGameController();
     void divisionChanged(QString division);
     void handleAutomaticRobotExchangeChanged(bool enable);
 

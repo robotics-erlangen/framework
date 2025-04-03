@@ -40,6 +40,7 @@ message CommandSimulator {
 message CommandReferee {
     // Activation
     optional bool active = 1;
+    optional bool restart_game_controller = 2;
 
     // Configuration
     optional bool use_automatic_robot_exchange = 10;

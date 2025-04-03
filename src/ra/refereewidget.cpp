@@ -66,6 +66,7 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     ui->gameStage->setCurrentIndex(activeStage); // select default value
     connect(ui->gameStage, SIGNAL(currentIndexChanged(int)), SLOT(handleStage(int)));
     connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
+    connect(ui->restartGC, &QPushButton::clicked, this, &RefereeWidget::handleRestartGameController);
     connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
     connect(ui->enableAutoContinue, &QCheckBox::toggled, this, &RefereeWidget::enableAutoContinue);
 
@@ -322,6 +323,13 @@ void RefereeWidget::handleYellowKeeper(int id)
 void RefereeWidget::handleBlueKeeper(int id)
 {
     emit changeBlueKeeper((uint)id);
+}
+
+void RefereeWidget::handleRestartGameController()
+{
+    Command command(new amun::Command);
+    command->mutable_referee()->set_restart_game_controller(true);
+    emit sendCommand(command);
 }
 
 void RefereeWidget::divisionChanged(QString division)
