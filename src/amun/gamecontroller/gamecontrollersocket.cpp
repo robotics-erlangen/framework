@@ -79,8 +79,8 @@ bool GameControllerSocket::receiveGameControllerMessage(google::protobuf::Messag
 bool GameControllerSocket::sendGameControllerMessage(const google::protobuf::Message *message)
 {
     if (connectGameController()) {
-        google::protobuf::uint32 messageLength = message->ByteSize();
-        int bufferLength = messageLength + 20; // for some extra space
+        size_t messageLength = message->ByteSizeLong();
+        size_t bufferLength = messageLength + 20; // for some extra space
         std::vector<google::protobuf::uint8> buffer(bufferLength);
 
         google::protobuf::io::ArrayOutputStream arrayOutput(buffer.data(), bufferLength);

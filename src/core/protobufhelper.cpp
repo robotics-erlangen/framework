@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2023 Michel Schmid                                          *
+ *   Copyright 2025 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,31 +18,26 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "uicommandserver.h"
-#include <QtNetwork>
-#include <QColor>
+#include "protobufhelper.h"
 
-#include "core/protobufhelper.h"
+#include <QByteArray>
+#include <QtGlobal>
+#include <google/protobuf/message_lite.h>
+#include <limits>
 
-UiCommandServer::UiCommandServer(const quint16 sendPort, const quint16 bindPort) :
-    m_port(sendPort),
-    m_net_address(QHostAddress(QHostAddress::LocalHost))
+QByteArray protobufhelper::bufferWithSpaceFor(const google::protobuf::MessageLite &message)
 {
-    m_socket.bind(m_net_address, bindPort);
-}
+    const auto size = message.ByteSizeLong();
+    // TODO The signature of QByteArray::resize() changes in Qt 6, it takes a
+    // qsizetype instead of an int
+    using resize_argument_type = int;
 
-bool UiCommandServer::send(const Command& command)
-{
-    QByteArray datagram = protobufhelper::bufferWithSpaceFor(*command);
-    if (!command->SerializeToArray(datagram.data(), datagram.size())) {
-        datagram = {};
+    if (size > std::numeric_limits<resize_argument_type>::max()) {
+        qFatal("Message is too large to fit into a QByteArray");
     }
 
-    quint64 bytes_sent = m_socket.writeDatagram(datagram, m_net_address, m_port);
-    if (bytes_sent != datagram.size()) {
-        qDebug() << QString("Sending UDP datagram failed (maybe too large?). Size was: %1 byte(s).").arg(datagram.size()), QColor("red");
-        return false;
-    }
+    QByteArray buffer;
+    buffer.resize(static_cast<resize_argument_type>(size));
 
-    return true;
+    return buffer;
 }

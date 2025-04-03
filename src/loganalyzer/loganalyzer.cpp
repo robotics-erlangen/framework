@@ -25,6 +25,7 @@
 #include <QDebug>
 #include <clocale>
 
+#include "core/protobufhelper.h"
 #include "seshat/logfilereader.h"
 
 
@@ -52,8 +53,7 @@ static unsigned long multipleStatusSize(QList<Status> &packets)
 {
     QByteArray buffer;
     for (const Status &status : packets) {
-        QByteArray onePacket;
-        onePacket.resize(status->ByteSize());
+        QByteArray onePacket = protobufhelper::bufferWithSpaceFor(*status);
         status->SerializePartialToArray(onePacket.data(), onePacket.size());
         buffer.append(onePacket);
     }

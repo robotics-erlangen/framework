@@ -30,6 +30,7 @@
 #include "js_protobuf.h"
 #include "typescript.h"
 #include "internaldebugger.h"
+#include "core/protobufhelper.h"
 #include "protobuf/ssl_game_controller_team.pb.h"
 #include "protobuf/ssl_game_controller_auto_ref.pb.h"
 #include "v8utility.h"
@@ -519,8 +520,7 @@ static void amunSendMixedTeamInfo(const FunctionCallbackInfo<Value>& args)
         return;
     }
 
-    QByteArray data;
-    data.resize(mixedTeamInfo.ByteSize());
+    QByteArray data = protobufhelper::bufferWithSpaceFor(mixedTeamInfo);
     if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
         throwError(isolate, "Invalid mixed team information packet!");
         return;

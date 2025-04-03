@@ -23,6 +23,7 @@
 #include <QMutexLocker>
 #include <functional>
 
+#include "core/protobufhelper.h"
 #include "logfilereader.h"
 
 LogFileWriter::LogFileWriter() :
@@ -54,8 +55,7 @@ std::shared_ptr<StatusSource> LogFileWriter::makeStatusSource()
 
 static bool serializeStatus(std::function<void(LogFileWriter*, qint64, QByteArray&&)> lambda, const Status &status, LogFileWriter* self)
 {
-    QByteArray data;
-    data.resize(status->ByteSize());
+    QByteArray data = protobufhelper::bufferWithSpaceFor(*status);
     if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
         lambda(self, status->time(), std::move(data));
         return true;

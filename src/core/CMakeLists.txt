@@ -26,6 +26,7 @@ add_library(core STATIC
     include/core/vector.h
     include/core/protobuffilesaver.h
     include/core/protobuffilereader.h
+    include/core/protobufhelper.h
     include/core/run_out_of_scope.h
     include/core/coordinates.h
     include/core/configuration.h
@@ -36,6 +37,7 @@ add_library(core STATIC
     timer.cpp
     protobuffilesaver.cpp
     protobuffilereader.cpp
+    protobufhelper.cpp
 )
 target_link_libraries(core
     PUBLIC Qt5::Core

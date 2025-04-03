@@ -19,6 +19,8 @@
  ***************************************************************************/
 
 #include "trackingreplay.h"
+
+#include "core/protobufhelper.h"
 #include "core/timer.h"
 #include "core/configuration.h"
 
@@ -101,7 +103,7 @@ void TrackingReplay::handleStatus(const Status &status)
     // referee commands (mostly for which side is on which half)
     if (status->has_game_state()) {
         const SSL_Referee referee = m_refereeExtractor.convertGameState(status->game_state(), status->time());
-        QByteArray data(referee.ByteSize(), 0);
+        QByteArray data = protobufhelper::bufferWithSpaceFor(referee);
         if (referee.SerializeToArray(data.data(), data.size())) {
             m_replayProcessor.handleRefereePacket(data, status->time(), SENDER_NAME_FOR_REFEREE);
         }
@@ -149,7 +151,7 @@ void TrackingReplay::handleStatus(const Status &status)
         }
         for (int i = 0;i<status->world_state().vision_frames_size();i++) {
             auto vision = status->world_state().vision_frames(i);
-            QByteArray visionData(vision.ByteSize(), 0);
+            QByteArray visionData = protobufhelper::bufferWithSpaceFor(vision);
             if (vision.SerializeToArray(visionData.data(), visionData.size())) {
                 auto time = status->world_state().time();
                 if (i < status->world_state().vision_frame_times_size()) {
@@ -159,7 +161,7 @@ void TrackingReplay::handleStatus(const Status &status)
             }
         }
         for (const auto &truth : status->world_state().reality()) {
-            QByteArray simulatorData(truth.ByteSize(), 0);
+            QByteArray simulatorData = protobufhelper::bufferWithSpaceFor(truth);
             if (truth.SerializeToArray(simulatorData.data(), simulatorData.size())) {
                 m_replayProcessor.handleSimulatorExtraVision(simulatorData);
             }

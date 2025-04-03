@@ -21,6 +21,7 @@
 #include "core/timer.h"
 #include "core/run_out_of_scope.h"
 #include "core/coordinates.h"
+#include "core/protobufhelper.h"
 #include "protobuf/grsim_commands.pb.h"
 #include "protobuf/grsim_replacement.pb.h"
 #include "protobuf/geometry.h"
@@ -46,8 +47,7 @@ bool NetworkTransceiver::sendSSLSimPacket(const sslsim::RobotControl& control, b
     if (isConfigInitialized()) {
         QHostAddress address(getHost());
 
-        QByteArray data;
-        data.resize(control.ByteSize());
+        QByteArray data = protobufhelper::bufferWithSpaceFor(control);
         if (control.SerializeToArray(data.data(), data.size())) {
             int port = getPortBlue();
             if (!blueTeam) {
@@ -69,8 +69,7 @@ bool NetworkTransceiver::sendSSLSimCommand(const sslsim::SimulatorCommand& cmd)
     if (isConfigInitialized()) {
         QHostAddress address(getHost());
 
-        QByteArray data;
-        data.resize(cmd.ByteSize());
+        QByteArray data = protobufhelper::bufferWithSpaceFor(cmd);
         if (cmd.SerializeToArray(data.data(), data.size())) {
             int port = getPortControl();
             sendingSuccessful = m_udpSocket->writeDatagram(data, address, port) == data.size();

@@ -20,6 +20,8 @@
 
 #include "timelinewriter.h"
 
+#include "core/protobufhelper.h"
+
 TimelineWriter::TimelineWriter():
     m_file(),
     m_stream(&m_file)
@@ -57,8 +59,8 @@ void TimelineWriter::close()
 
 static bool serializeMessage(const google::protobuf::Message& message, QDataStream& stream)
 {
-    QByteArray data;
-    data.resize(message.ByteSize());
+    QByteArray data = protobufhelper::bufferWithSpaceFor(message);
+
     if (!message.IsInitialized() || !message.SerializeToArray(data.data(), data.size())) {
         return false;
     }

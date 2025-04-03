@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2023 Michel Schmid                                          *
+ *   Copyright 2025 Paul Bergmann                                          *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,31 +18,22 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "uicommandserver.h"
-#include <QtNetwork>
-#include <QColor>
+#pragma once
 
-#include "core/protobufhelper.h"
+#include <google/protobuf/message_lite.h>
 
-UiCommandServer::UiCommandServer(const quint16 sendPort, const quint16 bindPort) :
-    m_port(sendPort),
-    m_net_address(QHostAddress(QHostAddress::LocalHost))
-{
-    m_socket.bind(m_net_address, bindPort);
-}
+class QByteArray;
 
-bool UiCommandServer::send(const Command& command)
-{
-    QByteArray datagram = protobufhelper::bufferWithSpaceFor(*command);
-    if (!command->SerializeToArray(datagram.data(), datagram.size())) {
-        datagram = {};
-    }
+namespace protobufhelper {
 
-    quint64 bytes_sent = m_socket.writeDatagram(datagram, m_net_address, m_port);
-    if (bytes_sent != datagram.size()) {
-        qDebug() << QString("Sending UDP datagram failed (maybe too large?). Size was: %1 byte(s).").arg(datagram.size()), QColor("red");
-        return false;
-    }
+/*! \brief Creates a QByteArray with enough space for message to be serialized
+ * into.
+ *
+ * Will error if the message is too large to fit into a QByteArray.
+ *
+ * \param message The message to be serialized
+ * \return A QByteArray with enough space for the serialized message
+ */
+QByteArray bufferWithSpaceFor(const google::protobuf::MessageLite &message);
 
-    return true;
 }

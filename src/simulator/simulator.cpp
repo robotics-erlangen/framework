@@ -28,6 +28,7 @@
 #include <cstdio>
 #include <cstdarg>
 
+#include "core/protobufhelper.h"
 #include "protobuf/ssl_simulation_robot_control.pb.h"
 #include "protobuf/ssl_simulation_robot_feedback.pb.h"
 #include "protobuf/ssl_simulation_custom_erforce_robot_spec.pb.h"
@@ -226,8 +227,7 @@ static void setError(sslsim::SimulatorError* error, SimError code, SimErrorSourc
 }
 
 static void sendUDP(const google::protobuf::Message& out, QUdpSocket& server, const QHostAddress& senderAddress, int senderPort) {
-    QByteArray data;
-    data.resize(out.ByteSize());
+    QByteArray data = protobufhelper::bufferWithSpaceFor(out);
     bool sendingSuccessful = false;
     if (out.SerializeToArray(data.data(), data.size())) {
         sendingSuccessful = server.writeDatagram(data, senderAddress, senderPort) == data.size();

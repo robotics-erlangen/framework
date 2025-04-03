@@ -25,6 +25,7 @@
 #include "core/timer.h"
 #include "core/vector.h"
 #include "core/coordinates.h"
+#include "core/protobufhelper.h"
 #include "config/config.h"
 
 #include <QDebug>
@@ -306,8 +307,7 @@ bool InternalGameController::sendCiInput(const gameController::CiInput &input)
 
             const SSL_Referee &referee = ciOutput.referee_msg();
 
-            QByteArray packetData;
-            packetData.resize(referee.ByteSize());
+            QByteArray packetData = protobufhelper::bufferWithSpaceFor(referee);
             if (referee.SerializeToArray(packetData.data(), packetData.size())) {
                 emit gotPacketForReferee(packetData, SENDER_NAME_FOR_REFEREE);
                 handleBallTeleportation(referee);

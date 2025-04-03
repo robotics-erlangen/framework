@@ -22,6 +22,8 @@
 
 #include <QDebug>
 
+#include "protobufhelper.h"
+
 ProtobufFileSaver::ProtobufFileSaver(QString filename, QString filePrefix, QObject *parent) :
     QObject(parent),
     m_filename(filename),
@@ -49,9 +51,8 @@ void ProtobufFileSaver::open()
 }
 
 void ProtobufFileSaver::saveMessage(const google::protobuf::Message &message)
-{   
-    QByteArray data;
-    data.resize(message.ByteSize());
+{
+    QByteArray data = protobufhelper::bufferWithSpaceFor(message);
     if (!message.IsInitialized() || !message.SerializeToArray(data.data(), data.size())) {
         return;
     }

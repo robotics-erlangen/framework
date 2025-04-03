@@ -29,6 +29,8 @@
 #include <QtEndian>
 #include <QByteArray>
 
+#include "core/protobufhelper.h"
+
 VisionLogWriter::VisionLogWriter(const QString& filename):
     QObject()
 {
@@ -59,8 +61,7 @@ void VisionLogWriter::addVisionPacket(const SSL_WrapperPacket& frame, qint64 tim
     if (!isOpen()) {
         return;
     }
-    QByteArray data;
-    data.resize(frame.ByteSize());
+    QByteArray data = protobufhelper::bufferWithSpaceFor(frame);
     if (!frame.IsInitialized()){
         qFatal("Writing an uninitialized detectionFrame to Vision log");
     }

@@ -25,6 +25,8 @@
 #include <QByteArray>
 #include <QCoreApplication>
 
+#include "core/protobufhelper.h"
+
 BacklogStatusSource::BacklogStatusSource(const QContiguousCache<QByteArray> &backlog, const QContiguousCache<qint64> &timings)
     : m_packets(backlog)
 {
@@ -65,8 +67,7 @@ std::shared_ptr<StatusSource> BacklogWriter::makeStatusSource()
 
 void BacklogWriter::handleStatus(const Status &status)
 {
-    QByteArray packetData;
-    packetData.resize(status->ByteSize());
+    QByteArray packetData = protobufhelper::bufferWithSpaceFor(*status);
     if (status->IsInitialized() && status->SerializeToArray(packetData.data(), packetData.size())) {
         if (m_packets.isFull()) {
             Status discarded = packetFromByteArray(m_packets.first());

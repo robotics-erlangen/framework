@@ -22,6 +22,7 @@
 #include "core/rng.h"
 #include "core/timer.h"
 #include "core/coordinates.h"
+#include "core/protobufhelper.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "protobuf/geometry.h"
 #include "simball.h"
@@ -535,8 +536,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
     // serialize "vision packet"
     QList<QByteArray> data;
     for (std::size_t i = 0; i < packets.size(); ++i) {
-        QByteArray d;
-        d.resize(packets[i].ByteSize());
+        QByteArray d = protobufhelper::bufferWithSpaceFor(packets[i]);
         if (packets[i].SerializeToArray(d.data(), d.size())) {
             data.push_back(d);
         } else {
@@ -544,8 +544,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
         }
     }
 
-    QByteArray d;
-    d.resize(simState.ByteSize());
+    QByteArray d = protobufhelper::bufferWithSpaceFor(simState);
     if (!simState.SerializeToArray(d.data(), d.size())) {
         d = {};
     }
