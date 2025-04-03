@@ -84,7 +84,7 @@ void TeamWidget::init(amun::StatusStrategyWrapper::StrategyType type, bool tourn
     m_isTournamentMode = tournamentMode;
 
     QBoxLayout *hLayout = new QHBoxLayout(this);
-    hLayout->setMargin(4);
+    hLayout->setContentsMargins(4, 4, 4, 4);
     hLayout->setSpacing(3);
 
     m_scriptMenu = new QMenu(this);

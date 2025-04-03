@@ -29,7 +29,7 @@ WidgetResetWrapper::WidgetResetWrapper(QWidget *child, QWidget* parent):
     m_isReset(false)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setMargin(0); // no margin to have widgets use the complete editor space
+    layout->setContentsMargins(0, 0, 0, 0); // no margin to have widgets use the complete editor space
     layout->setSpacing(0);
 
     child->setParent(this);

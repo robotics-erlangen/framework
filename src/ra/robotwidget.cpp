@@ -39,7 +39,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_strategyControlled(false)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
-    layout->setMargin(0);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(3);
 
     m_teamMenu = new QMenu(this);
@@ -62,7 +62,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     if (!m_isGeneration) {
         // tightly pack icons
         QLayout *iconLayout = new QHBoxLayout;
-        iconLayout->setMargin(0);
+        iconLayout->setContentsMargins(0, 0, 0, 0);
         iconLayout->setSpacing(0);
 
         setupIcon(m_warning, "icon:16/dialog-warning.png", iconLayout);
