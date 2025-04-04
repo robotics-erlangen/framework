@@ -443,7 +443,7 @@ void PlotterWidget::prepareRenderText(double x, double y, double z, const QStrin
 
 void PlotterWidget::renderTexts()
 {
-    for (const auto [pixmap, pos] : m_texts) {
+    for (const auto& [pixmap, pos] : m_texts) {
         m_painter.drawPixmap(QRectF(pos, pixmap.size()/pixmap.devicePixelRatio()), pixmap, QRectF(QPointF(0, 0), pixmap.size()));
     }
     m_texts.clear();

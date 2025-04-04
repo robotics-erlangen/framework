@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
     parser.addPositionalArgument("logfiles", "Log files to read", "files...");
     parser.process(app);
 
-    for (const QString filename : parser.positionalArguments()) {
+    for (const QString& filename : parser.positionalArguments()) {
         SeqLogFileReader logfile;
         if (!logfile.open(filename)){
             std::cerr << "Error reading logfile " << filename.toStdString() << ": " << logfile.errorMsg().toStdString() << std::endl;

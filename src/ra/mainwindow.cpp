@@ -260,7 +260,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     }
 
     std::sort(shownFileNames.begin(), shownFileNames.end(), std::greater<QString>());
-    for (const auto shownFilename : shownFileNames) {
+    for (const auto& shownFilename : shownFileNames) {
         QAction *setupAction = new QAction(this);
         setupAction->setText(shownFilename);
         setupAction->setCheckable(true);
@@ -1191,7 +1191,7 @@ void MainWindow::changeDivision(world::Geometry::Division division) {
     }
     const auto setupActions = m_simulatorSetupGroup->actions();
     // first try to find action for newSetup and if that fails try again with defaultSetup
-    for (const auto setup : { newSetup, defaultSetup }) {
+    for (const auto& setup : { newSetup, defaultSetup }) {
         const auto findResult = std::find_if(setupActions.begin(), setupActions.end(),
             [&] (const auto action) {
                 return action->text() == setup;

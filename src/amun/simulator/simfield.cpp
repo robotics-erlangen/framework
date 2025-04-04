@@ -82,7 +82,7 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
         // this places the blocks to smooth the edges in order of angle, but since half of it can just be mirrored with a 180° rotation only the cases of
         // M_PI / 4 and 3 * M_PI / 4 are listed and if negativeYHalf is true it computes the same positions and just additionally rotates them in the end
         for (const auto negativeYHalf : { false, true }) {
-            for (const auto [multipleOfPi, mirrorX] : { std::pair{0.25, false}, std::pair{0.75, true} }) {
+            for (const auto& [multipleOfPi, mirrorX] : { std::pair{0.25, false}, std::pair{0.75, true} }) {
                 // the sign of totalWidthOffset and goalWidthOffset are flipped, because for the same rotation the triangle is
                 // e.g. at the lower left corner of the field and on the upper left corner of the goal
                 const auto totalWidthOffset = mirrorX ? totalWidth : -totalWidth;

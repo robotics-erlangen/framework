@@ -174,8 +174,8 @@ void RadioSystem::openTransceiver()
     m_transceivers[1] = std::move(transceiversHBC);
 
     const bool foundWorkingTransceiver = anyTransceiverPresent();
-    for (const auto errors : {errors2015, errorsHBC}) {
-        for (const auto error : errors) {
+    for (const auto& errors : {errors2015, errorsHBC}) {
+        for (const auto& error : errors) {
             if (foundWorkingTransceiver) {
                 Status status { new amun::Status };
                 status->mutable_transceiver()->set_active(false);
