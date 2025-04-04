@@ -29,10 +29,10 @@ VirtualFieldSetupDialog::VirtualFieldSetupDialog(const VirtualFieldConfiguration
 {
     ui->setupUi(this);
     setFixedSize(width(), height());
-    connect(ui->quadSizeWidth, &QRadioButton::toggled, [=](bool set){ if (set) ui->widthSpinBox->setValue(QUAD_SIZE_WIDTH); });
-    connect(ui->doubleSizeWidth, &QRadioButton::toggled, [=](bool set){ if (set) ui->widthSpinBox->setValue(DOUBLE_SIZE_WIDTH); });
-    connect(ui->quadSizeHeight, &QRadioButton::toggled, [=](bool set){ if (set) ui->heightSpinBox->setValue(QUAD_SIZE_HEIGHT); });
-    connect(ui->doubleSizeHeight, &QRadioButton::toggled, [=](bool set){ if (set) ui->heightSpinBox->setValue(DOUBLE_SIZE_HEIGHT); });
+    connect(ui->quadSizeWidth, &QRadioButton::toggled, [this](bool set){ if (set) ui->widthSpinBox->setValue(QUAD_SIZE_WIDTH); });
+    connect(ui->doubleSizeWidth, &QRadioButton::toggled, [this](bool set){ if (set) ui->widthSpinBox->setValue(DOUBLE_SIZE_WIDTH); });
+    connect(ui->quadSizeHeight, &QRadioButton::toggled, [this](bool set){ if (set) ui->heightSpinBox->setValue(QUAD_SIZE_HEIGHT); });
+    connect(ui->doubleSizeHeight, &QRadioButton::toggled, [this](bool set){ if (set) ui->heightSpinBox->setValue(DOUBLE_SIZE_HEIGHT); });
     connect(ui->enableVirtualField, &QCheckBox::toggled, ui->widthGroupBox, &QGroupBox::setEnabled);
     connect(ui->enableVirtualField, &QCheckBox::toggled, ui->heightGroupBox, &QGroupBox::setEnabled);
     connect(ui->enableVirtualField, &QCheckBox::toggled, this, &VirtualFieldSetupDialog::adaptGoalBoxVisibility);
