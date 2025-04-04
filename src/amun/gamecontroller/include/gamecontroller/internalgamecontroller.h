@@ -97,7 +97,7 @@ private:
     int m_allowedRobotsYellow = 11;
     float m_fieldWidth = 1; // short side of the field
     qint64 m_lastExchangeTime = 0;
-    QVector<int> m_blueTeamIds, m_yellowTeamIds;
+    QVector<uint32_t> m_blueTeamIds, m_yellowTeamIds;
 
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;

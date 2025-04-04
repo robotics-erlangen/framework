@@ -59,7 +59,7 @@ static void logStatus(QString string, QColor) {
 
 bool RoboCupSSLServer::send(const QByteArray& datagram) {
     mutex.lock();
-    quint64 bytes_sent = _socket->writeDatagram(datagram, *_net_address, _port);
+    qint64 bytes_sent = _socket->writeDatagram(datagram, *_net_address, _port);
     mutex.unlock();
     if (bytes_sent != datagram.size()) {
         logStatus(QString("Sending UDP datagram failed (maybe too large?). Size was: %1 byte(s).").arg(datagram.size()), QColor("red"));

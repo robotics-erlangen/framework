@@ -38,7 +38,7 @@ bool UiCommandServer::send(const Command& command)
         datagram = {};
     }
 
-    quint64 bytes_sent = m_socket.writeDatagram(datagram, m_net_address, m_port);
+    qint64 bytes_sent = m_socket.writeDatagram(datagram, m_net_address, m_port);
     if (bytes_sent != datagram.size()) {
         qDebug() << QString("Sending UDP datagram failed (maybe too large?). Size was: %1 byte(s).").arg(datagram.size()), QColor("red");
         return false;

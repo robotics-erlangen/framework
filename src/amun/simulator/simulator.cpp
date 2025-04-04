@@ -97,7 +97,7 @@ struct camun::simulator::SimulatorData
     float missingBallDetections;
     bool dribblePerfect;
     float missingRobotDetections;
-    uint64_t commandDelay;
+    int64_t commandDelay;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)

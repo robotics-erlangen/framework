@@ -240,7 +240,7 @@ void InternalGameController::handleNumberOfRobots(const world::State &worldState
             }
 
             // find a robot that is enabled in the ui but currently removed in the simulator
-            for (const int possibleId : teamIds) {
+            for (const auto possibleId : teamIds) {
                 bool isPresent = std::any_of(teamRobots.begin(), teamRobots.end(), [possibleId](const auto &robot) {
                     return robot.id() == possibleId;
                 });

@@ -64,7 +64,7 @@ public:
     void teleportBall(Vector position, Vector velocity);
     void addTestFunction(TestFunction f) { m_testFunctions.push_back(f); }
     void clearTestFunctions() { m_testFunctions.clear(); }
-    void spawnBallDetectionOnce(int cameraId, Vector pos);
+    void spawnBallDetectionOnce(uint32_t cameraId, Vector pos);
 
 private:
     static amun::SimulatorSetup createDefaultSetup();
@@ -84,7 +84,7 @@ private:
     std::vector<TestFunction> m_testFunctions;
     std::optional<Vector> m_lastTrueBallPos;
     std::optional<Vector> m_lastTrueBallSpeed;
-    std::vector<std::pair<int, SSL_DetectionBall>> m_ballDetectionsToAdd;
+    std::vector<std::pair<uint32_t, SSL_DetectionBall>> m_ballDetectionsToAdd;
 };
 
 SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfigErForce overwriteRealism) :
@@ -131,7 +131,7 @@ SimulationController::SimulationController(int predictTimeOffsetMs, RealismConfi
         // add additional fake ball detections if there are any
         if (wrapper.has_detection() && m_ballDetectionsToAdd.size() > 0) {
             for (const auto &det : m_ballDetectionsToAdd) {
-                if (det.first == (int)wrapper.detection().camera_id()) {
+                if (det.first == wrapper.detection().camera_id()) {
                     wrapper.mutable_detection()->add_balls()->CopyFrom(det.second);
                 }
             }
@@ -295,7 +295,7 @@ void SimulationController::teleportBall(Vector position, Vector velocity)
     m_simulator.handleCommand(command);
 }
 
-void SimulationController::spawnBallDetectionOnce(int cameraId, Vector pos)
+void SimulationController::spawnBallDetectionOnce(uint32_t cameraId, Vector pos)
 {
     SSL_DetectionBall detection;
     detection.set_confidence(1);
