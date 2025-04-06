@@ -142,7 +142,7 @@ int main(int argc, char* argv[])
             break;
         } else if (!openResult.second.isEmpty()) {
             // the header matched, but the log file is corrupt
-            qFatal(("Error: " + openResult.second).toStdString().c_str());
+            qFatal("%s", ("Error: " + openResult.second).toStdString().c_str());
         }
     }
     if (!logfile) {
