@@ -23,6 +23,17 @@ project(erforce)
 enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
+#
+# Options
+#
+
+option(BUILD_FIRMWARE "Whether to build the firmware. Downloads GCC and ChibiOS" OFF)
+option(DOWNLOAD_V8    "Whether to download a prebuilt V8 version. If disabled, V8 must be built locally to enable Typescript support" OFF)
+
+#
+# System queries
+#
+
 if(MINGW)
     if(CMAKE_SIZEOF_VOID_P EQUAL 4)
         set(MINGW32 TRUE)
