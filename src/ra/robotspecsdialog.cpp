@@ -101,7 +101,7 @@ void RobotSpecsDialog::init(const robot::Specs *def)
     }
 
     QItemEditorFactory *factory = new QItemEditorFactory();
-    factory->registerEditor(QVariant::Double, new DoubleEditorCreator());
+    factory->registerEditor(QMetaType::Type::Double, new DoubleEditorCreator());
     delegate->setItemEditorFactory(factory);
 
     ui->tree->setItemDelegate(delegate);
