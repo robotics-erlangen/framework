@@ -39,7 +39,6 @@ ExternalProject_Add(project_protobuf
         -DCMAKE_BUILD_TYPE:STRING=Release
         "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -w"
         -Dprotobuf_BUILD_TESTS:BOOL=OFF
-    STEP_TARGETS install
 )
 
 EPHelper_Add_Cleanup(project_protobuf ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_INCLUDEDIR})
