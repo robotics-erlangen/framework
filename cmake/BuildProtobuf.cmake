@@ -41,6 +41,10 @@ ExternalProject_Add(project_protobuf
         -Dprotobuf_BUILD_TESTS:BOOL=OFF
     STEP_TARGETS install
 )
+
+EPHelper_Add_Cleanup(project_protobuf ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_INCLUDEDIR})
+EPHelper_Mark_For_Download(project_protobuf)
+
 # the byproducts are available after the install step
 ExternalProject_Add_Step(project_protobuf out
     DEPENDEES install
@@ -48,7 +52,6 @@ ExternalProject_Add_Step(project_protobuf out
         "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
         "<INSTALL_DIR>/${PROTOC_SUBPATH}"
 )
-EPHelper_Mark_For_Download(project_protobuf)
 
 externalproject_get_property(project_protobuf install_dir)
 set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
