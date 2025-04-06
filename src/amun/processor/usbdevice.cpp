@@ -172,7 +172,7 @@ bool USBDevice::open(OpenMode)
         m_data->handle = NULL;
         return false;
     }
-    m_serialNumber = QString::fromUtf16((const ushort *) &c[2], (qMin<int>(ret, c[0]) - 2) / 2);
+    m_serialNumber = QString::fromUtf16(reinterpret_cast<const char16_t *>(&c[2]), (qMin<int>(ret, c[0]) - 2) / 2);
 
     // create transfer for receiving robot status
     startInTransfer();

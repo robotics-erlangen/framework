@@ -34,7 +34,7 @@ QString stringViewToQString(StringView view)
     if (view.is8Bit()) {
         return QString::fromUtf8(reinterpret_cast<const char*>(view.characters8()), view.length());
     }
-    return QString::fromUtf16(reinterpret_cast<const unsigned short*>(view.characters16()), view.length());
+    return QString::fromUtf16(reinterpret_cast<const char16_t*>(view.characters16()), view.length());
 }
 
 // InspectorHolder
