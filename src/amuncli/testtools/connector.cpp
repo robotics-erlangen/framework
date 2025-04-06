@@ -34,10 +34,10 @@
 #include <google/protobuf/util/message_differencer.h>
 #include <QCoreApplication>
 #include <QDir>
-#include <QTimer>
 #include <QSet>
 #include <QTimer>
 #include <QDateTime>
+#include <QRegularExpression>
 #include <QDebug>
 #include <iostream>
 #include <memory>
@@ -320,9 +320,10 @@ void Connector::handleStatus(const Status &status)
                 // allow the strategy/autoref/pathfinding... to create backlogs by printing logging a string like "amun.requestBacklog(INTERNAL_ERROR)"
                 for (const amun::StatusLog &entry: debug.log()) {
                     const QString line = QString::fromStdString(entry.text());
-                    const QRegExp regex("amuncli\\.requestBacklog\\((.*)\\)$");
-                    if (regex.indexIn(line) != -1) {
-                        const QString errorName = regex.capturedTexts().at(1);
+                    const QRegularExpression regex("amuncli\\.requestBacklog\\((.*)\\)$");
+                    const auto match = regex.match(line);
+                    if (match.hasMatch()) {
+                        const QString errorName = match.captured(1);
                         m_backlogList.push_back({status->time(), errorName});
                     }
                 }
