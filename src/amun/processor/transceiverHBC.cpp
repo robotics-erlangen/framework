@@ -29,6 +29,7 @@
 #include "usbthread.h"
 #include <QByteArray>
 #include <QString>
+#include <QtGlobal>
 #include <libusb.h>
 #include <memory>
 #include <qeventloop.h>
@@ -64,6 +65,7 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
             case Kind::Secondary:
                 return HBC_PRODUCT_ID_SECONDARY;
         }
+        Q_UNREACHABLE();
     };
 
     constexpr auto getNameForKind = [](Kind kind) {
@@ -73,6 +75,7 @@ std::pair<std::vector<std::unique_ptr<TransceiverLayer>>, std::vector<Transceive
             case Kind::Secondary:
                 return "HBCSec";
         };
+        Q_UNREACHABLE();
     };
 
     for (const Kind kind : {Kind::Primary, Kind::Secondary}) {

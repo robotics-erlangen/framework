@@ -21,6 +21,8 @@
 #include "logfileselectiondialog.h"
 #include "ui_logfileselectiondialog.h"
 
+#include <QtGlobal>
+
 LogFileSelectionDialog::LogFileSelectionDialog(QWidget *parent, bool filter) :
     QDialog(parent),
     ui(new Ui::LogFileSelectionDialog),
@@ -46,6 +48,8 @@ static int mapQuality(logfile::LogOfferEntry::QUALITY q)
         case logfile::LogOfferEntry::UNKNOWN: return 1;
         case logfile::LogOfferEntry::UNREADABLE: return 1000;
     }
+
+    qFatal("Invalid quality %d", q);
 }
 
 struct LogEntry {

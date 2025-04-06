@@ -28,6 +28,7 @@
 #include <QByteArray>
 #include <QList>
 #include <QTimer>
+#include <QtGlobal>
 #include <algorithm>
 #include <array>
 #include <numbers>
@@ -53,6 +54,8 @@ static Radio::Generation uintToGeneration(uint pbGeneration) {
         case (uint)Radio::Generation::GenPasta:
             return Radio::Generation::GenPasta;
     }
+
+    qFatal("Invalid generation %u", pbGeneration);
 }
 
 /* Used for RadioSystem::m_transceivers  to select the generation */
