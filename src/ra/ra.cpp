@@ -34,7 +34,6 @@ int main(int argc, char* argv[])
     QApplication app(argc, argv);
     app.setApplicationName("Ra");
     app.setOrganizationName("ER-Force");
-    qApp->setAttribute(Qt::AA_UseHighDpiPixmaps);
 #ifdef Q_OS_OSX
     if (QDir::currentPath() == "/") {
         QDir::setCurrent(QDir::homePath());
