@@ -42,8 +42,6 @@ typedef struct
     int64_t time;
 } __attribute__ ((packed)) TransceiverPingData;
 
-const int PROTOCOL_VERSION = 5;
-
 constexpr qint16 HBC_VENDOR_ID  = 0x09fb;
 constexpr qint16 HBC_PRODUCT_ID_PRIMARY = 0x0de2;
 constexpr qint16 HBC_PRODUCT_ID_SECONDARY = 0x0ee2;

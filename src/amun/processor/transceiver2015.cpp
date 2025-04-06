@@ -34,6 +34,7 @@
 #include <libusb.h>
 #include <QEventLoop>
 #include <QTimer>
+#include <optional>
 
 using namespace Radio;
 
@@ -97,8 +98,8 @@ std::optional<std::vector<TransceiverError>> Transceiver2015::tryConnect(QObject
 {
     connect(this, SIGNAL(sendStatus(Status)), parent, SIGNAL(sendStatus(Status)));
     std::vector<TransceiverError> deviceError;
-    const auto gatherErrorConnection = connect(this, &TransceiverLayer::errorOccurred, [&deviceError] (const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs = 0) {
-        deviceError.emplace_back(transceiverName, errorMsg, restartDelayInNs);
+    const auto gatherErrorConnection = connect(this, &TransceiverLayer::errorOccurred, [&deviceError] (const TransceiverError& error) {
+        deviceError.emplace_back(error);
     });
     connect(this, SIGNAL(sendRawRadioResponses(qint64, QList<QByteArray>)), parent, SLOT(onRawRadioResponse(qint64, QList<QByteArray>)));
     // TODO We should keep a per device timeout
@@ -109,7 +110,10 @@ std::optional<std::vector<TransceiverError>> Transceiver2015::tryConnect(QObject
         return {{TransceiverError(m_debugName, m_device->errorString())}};
     }
 
-    sendInitPacket();
+    const auto maybeError = sendInitPacket();
+    if (maybeError.has_value()) {
+        return {{*maybeError}};
+    }
     QEventLoop loop;
     connect(this, &Transceiver2015::connectionSucceeded, &loop, &QEventLoop::quit, Qt::ConnectionType::DirectConnection);
     QTimer timer;
@@ -127,7 +131,7 @@ std::optional<std::vector<TransceiverError>> Transceiver2015::tryConnect(QObject
     } else {
         // technically we could lose an error that happens between the disconnect above and here,
         // but it *probably* will never lead to any issues. Hopefully.
-        connect(this, SIGNAL(errorOccurred(QString, QString, qint64)), parent, SLOT(transceiverErrorOccurred(QString, QString, qint64)));
+        connect(this, SIGNAL(errorOccurred(TransceiverError)), parent, SLOT(transceiverErrorOccurred(TransceiverError)));
         return {};
     }
 }
@@ -204,33 +208,34 @@ void Transceiver2015::addStatusPacket()
     m_packet.append((const char*) &senderCommand, sizeof(senderCommand));
 }
 
-void Transceiver2015::flush(qint64 time)
+std::optional<TransceiverError> Transceiver2015::flush(qint64 time)
 {
     // Workaround for usb problems if packet size is a multiple of transfer size
     if (m_packet.size() % 64 == 0) {
         addPingPacket(time);
     }
 
-    write(m_packet);
+    return write(m_packet);
 }
 
-void Transceiver2015::handleCommand(const Command &command)
+std::optional<TransceiverError> Transceiver2015::handleCommand(const Command &command)
 {
     if (command->has_transceiver()) {
         const amun::CommandTransceiver &t = command->transceiver();
 
         if (t.has_configuration()) {
             m_configuration = t.configuration();
-            sendTransceiverConfiguration();
+            return sendTransceiverConfiguration();
         }
     }
+    return {};
 }
 
 void Transceiver2015::onReadyRead()
 {
     const auto readError = read();
     if (readError.has_value()) {
-        emit errorOccurred(readError->m_deviceName, readError->m_errorMessage, readError->m_restartDelayInNs);
+        emit errorOccurred(*readError);
     }
 }
 

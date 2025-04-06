@@ -68,10 +68,8 @@ public:
     void addPingPacket(qint64 time) final;
     void addStatusPacket() final;
 
-    void flush(qint64 time) final;
-
-public slots:
-    void handleCommand(const Command &command) final;
+    [[nodiscard]] std::optional<TransceiverError> flush(qint64 time) final;
+    [[nodiscard]] std::optional<TransceiverError> handleCommand(const Command &command) final;
 
 private slots:
     void onReadyRead();

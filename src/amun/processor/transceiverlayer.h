@@ -24,6 +24,7 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include <QObject>
+#include <optional>
 
 namespace Radio { class Address; }
 
@@ -32,6 +33,7 @@ struct TransceiverError {
     QString m_errorMessage;
     qint64 m_restartDelayInNs = 0;
 };
+Q_DECLARE_METATYPE(TransceiverError);
 
 // IMPORTANT: constructed TransceiverLayer objects are expected to be completely initialized.
 // If it is unfeasable to handle the initialization in the constructor then handle this in a
@@ -52,16 +54,14 @@ public:
     virtual void addPingPacket(qint64 time) = 0;
     virtual void addStatusPacket() = 0;
 
-    virtual void flush(qint64 time) = 0;
+    [[nodiscard]] virtual std::optional<TransceiverError> flush(qint64 time) = 0;
+    [[nodiscard]] virtual std::optional<TransceiverError> handleCommand(const Command &command) = 0;
 
 signals:
     void sendStatus(const Status &status);
-    void errorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs = 0);
+    void errorOccurred(const TransceiverError& error);
     void sendRawRadioResponses(qint64 receiveTime, const QList<QByteArray> &rawResponses);
     void deviceResponded(const QString &transceiverName);
-
-public slots:
-    virtual void handleCommand(const Command &command) = 0;
 
 protected:
     /** When multiple transceivers of the same kind are used, this can be used

@@ -26,12 +26,14 @@
 #include "radio_address.h"
 
 #include <QMap>
+#include <QObject>
 #include <QPair>
 #include <array>
 
 class QTimer;
 class Timer;
 class TransceiverLayer;
+struct TransceiverError;
 class USBThread;
 
 class RadioSystem : public QObject
@@ -64,7 +66,7 @@ public slots:
 
 private slots:
     void process();
-    void transceiverErrorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs);
+    void transceiverErrorOccurred(const TransceiverError &error);
     void transceiverResponded(const QString &transceiverName);
     void timeout();
     void onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses);

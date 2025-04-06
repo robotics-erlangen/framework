@@ -152,7 +152,10 @@ void RadioSystem::handleCommand(const Command &command)
 
     for (const auto &generation : m_transceivers) {
         for (auto& transceiver : generation) {
-            transceiver->handleCommand(command);
+            const auto maybeError = transceiver->handleCommand(command);
+            if (maybeError.has_value()) {
+                transceiverErrorOccurred(*maybeError);
+            }
         }
     }
 }
@@ -188,7 +191,7 @@ void RadioSystem::openTransceiver()
                 status->mutable_transceiver()->set_error(error.m_errorMessage.toStdString());
                 emit sendStatus(status);
             } else {
-                transceiverErrorOccurred(error.m_deviceName, error.m_errorMessage, error.m_restartDelayInNs);
+                transceiverErrorOccurred(error);
             }
         }
     }
@@ -196,10 +199,10 @@ void RadioSystem::openTransceiver()
     if (foundWorkingTransceiver) {
         m_timeoutTimer->start(500);
     } else {
-        transceiverErrorOccurred("T2015|HBC", "No devices found!", 0);
+        transceiverErrorOccurred({"T2015|HBC", "No devices found!", 0});
     }
 #else
-    transceiverErrorOccurred("USB", "No USB Support", 0);
+    transceiverErrorOccurred({"USB", "No USB Support", 0});
 #endif // USB_FOUND
 }
 
@@ -236,19 +239,19 @@ bool RadioSystem::areAllTransceiversOpen() const
     return true;
 }
 
-void RadioSystem::transceiverErrorOccurred(const QString &transceiverName, const QString &errorMsg, qint64 restartDelayInNs)
+void RadioSystem::transceiverErrorOccurred(const TransceiverError &transceiverError)
 {
     closeTransceiver();
 
     Status status { new amun::Status };
     status->mutable_transceiver()->set_active(false);
-    if (!transceiverName.isNull()) {
-        status->mutable_transceiver()->set_name(transceiverName.toStdString());
+    if (!transceiverError.m_deviceName.isNull()) {
+        status->mutable_transceiver()->set_name(transceiverError.m_deviceName.toStdString());
     }
-    status->mutable_transceiver()->set_error(errorMsg.toStdString());
+    status->mutable_transceiver()->set_error(transceiverError.m_errorMessage.toStdString());
     emit sendStatus(status);
 
-    m_onlyRestartAfterTimestamp = Timer::systemTime() + restartDelayInNs;
+    m_onlyRestartAfterTimestamp = Timer::systemTime() + transceiverError.m_restartDelayInNs;
 }
 
 void RadioSystem::transceiverResponded(const QString &transceiverName)
@@ -268,7 +271,7 @@ void RadioSystem::transceiverResponded(const QString &transceiverName)
 
 void RadioSystem::timeout()
 {
-    transceiverErrorOccurred(QString{}, "Some transceiver is not responding", (qint64)100*1000*1000);
+    transceiverErrorOccurred({QString{}, "Some transceiver is not responding", (qint64)100*1000*1000});
 }
 
 void RadioSystem::onRawRadioResponse(qint64 receiveTime, const QList<QByteArray> &rawResponses)
@@ -657,7 +660,10 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
                 transceiver->addStatusPacket();
             }
 
-            transceiver->flush(time);
+            const auto maybeError = transceiver->flush(time);
+            if (maybeError.has_value()) {
+                transceiverErrorOccurred(*maybeError);
+            }
         }
     }
 
