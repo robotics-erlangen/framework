@@ -29,6 +29,7 @@
 #include <QSettings>
 #include <QCoreApplication>
 #include <QVector>
+#include <QTimeZone>
 #include <string>
 #include <utility>
 
@@ -246,7 +247,7 @@ void CombinedLogWriter::saveBackLog()
 
 QString CombinedLogWriter::dateTimeToString(const QDateTime & dt)
 {
-    const int utcOffset = dt.secsTo(QDateTime(dt.date(), dt.time(), Qt::UTC));
+    const int utcOffset = dt.secsTo(QDateTime(dt.date(), dt.time(), QTimeZone::utc()));
 
     int sign = utcOffset >= 0 ? 1: -1;
     const QString date = dt.toString(Qt::ISODate) + QString::fromLatin1("%1%2%3")
