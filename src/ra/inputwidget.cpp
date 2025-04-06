@@ -29,7 +29,16 @@ InputWidget::InputWidget(QWidget *parent) :
     ui(new Ui::InputWidget)
 {
     ui->setupUi(this);
-    connect(ui->checkBroadcast, &QCheckBox::stateChanged, this, &InputWidget::convertBroadcastState);
+
+    // In Qt6.7 checkStateChanged was introduced which is basically the same as stateChanged,
+    // but the signal has a typed enum instead of an int.
+    // stateChanged is deprecated since Qt6.9
+    // When this #if is removed the convertBroadCastStateLegacy method can also be removed entirely
+    #if (QT_VERSION >= QT_VERSION_CHECK(6, 7, 0))
+        connect(ui->checkBroadcast, &QCheckBox::checkStateChanged, this, &InputWidget::convertBroadcastState);
+    #else
+        connect(ui->checkBroadcast, &QCheckBox::stateChanged, this, &InputWidget::convertBroadcastStateLegacy);
+    #endif
 }
 
 InputWidget::~InputWidget()
@@ -79,10 +88,14 @@ void InputWidget::load()
     s.endGroup();
 }
 
-void InputWidget::convertBroadcastState(int state)
+void InputWidget::convertBroadcastStateLegacy(int state)
 {
-    const auto actualState = static_cast<Qt::CheckState>(state);
-    switch (actualState) {
+    convertBroadcastState(static_cast<Qt::CheckState>(state));
+}
+
+void InputWidget::convertBroadcastState(Qt::CheckState state)
+{
+    switch (state) {
         case Qt::CheckState::Checked: {
             emit broadcastCommandsChanged(true);
             break;

@@ -36,7 +36,15 @@ DebugWidget::DebugWidget(QWidget *parent) :
     ui->setupUi(this);
     connect(ui->filter, SIGNAL(textChanged(QString)), SLOT(filterChanged(QString)));
     connect(ui->filter, SIGNAL(returnPressed()), ui->filter, SLOT(clear()));
-    connect(ui->checkBreakOnFind, &QCheckBox::stateChanged, ui->tree, &DebugTreeWidget::setBreakOnItem);
+    // In Qt6.7 checkStateChanged was introduced which is basically the same as stateChanged,
+    // but the signal has a typed enum instead of an int.
+    // stateChanged is deprecated since Qt6.9
+    #if (QT_VERSION >= QT_VERSION_CHECK(6, 7, 0))
+        connect(ui->checkBreakOnFind, &QCheckBox::checkStateChanged,
+                [this] (const Qt::CheckState state) { this->ui->tree->setBreakOnItem(state != Qt::CheckState::Unchecked); });
+    #else
+        connect(ui->checkBreakOnFind, &QCheckBox::stateChanged, ui->tree, &DebugTreeWidget::setBreakOnItem);
+    #endif
     connect(ui->tree, &DebugTreeWidget::triggerBreak, this, &DebugWidget::triggerBreakpoint);
     m_filterDefaultStyleSheet = ui->filter->styleSheet();
     QString filterDescription = "Filter the debug tree\n"\

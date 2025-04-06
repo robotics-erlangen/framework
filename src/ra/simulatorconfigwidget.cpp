@@ -38,8 +38,18 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
-    connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
+    // In Qt6.7 checkStateChanged was introduced which is basically the same as stateChanged,
+    // but the signal has a typed enum instead of an int.
+    // stateChanged is deprecated since Qt6.9
+    #if (QT_VERSION >= QT_VERSION_CHECK(6, 7, 0))
+        connect(ui->chkEnableNoise, &QCheckBox::checkStateChanged, this, &SimulatorConfigWidget::sendAll);
+        connect(ui->chkEnableInvisibleBall, &QCheckBox::checkStateChanged, this, &SimulatorConfigWidget::sendAll);
+        connect(ui->chkSimulateDribbling, &QCheckBox::checkStateChanged, this, &SimulatorConfigWidget::sendAll);
+    #else
+        connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
+        connect(ui->chkEnableInvisibleBall, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
+        connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
+    #endif
     connect(ui->chkEnableInvisibleBall, &QCheckBox::toggled, ui->spinBallVisibilityThreshold, &QSpinBox::setEnabled);
     connect(ui->chkEnableInvisibleBall, &QCheckBox::toggled, ui->ballVisibilityThresholdLabel, &QSpinBox::setEnabled);
 
@@ -58,8 +68,6 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingRobotDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinRotationError, SIGNAL(valueChanged(double)), SLOT(sendAll()));
-
-    connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
 
     connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(sendAll()));
     connect(ui->spinProcessingTime, SIGNAL(valueChanged(int)), SLOT(sendAll()));

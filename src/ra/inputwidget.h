@@ -22,6 +22,7 @@
 #define INPUTWIDGET_H
 
 #include <QWidget>
+#include <Qt>
 
 class InputManager;
 namespace Ui {
@@ -53,7 +54,8 @@ private:
     Ui::InputWidget *ui;
 
 private slots:
-    void convertBroadcastState(int state);
+    void convertBroadcastStateLegacy(int state);
+    void convertBroadcastState(Qt::CheckState state);
 };
 
 #endif // INPUTWIDGET_H
