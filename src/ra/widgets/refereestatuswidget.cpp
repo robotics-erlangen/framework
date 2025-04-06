@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "refereestatuswidget.h"
+#include "core/deprecated.h"
 #include "protobuf/gamestate.pb.h"
 
 #include "ui_refereestatuswidget.h"
@@ -264,9 +265,15 @@ void RefereeStatusWidget::handleStatus(const Status &status)
         if (game_state.game_event_2019_size() > 0) {
             QString text = gameEvent2019Message(game_state.game_event_2019(game_state.game_event_2019_size() - 1));
             ui->gameEvent->setText(text);
-        } else if (game_state.has_game_event()) {
-            QString text = gameEventMessage(game_state.game_event());
-            ui->gameEvent->setText(text);
+        } else {
+            ALLOW_DEPRECATED_BECAUSE("We want to display game events from old log files");
+
+            if (game_state.has_game_event()) {
+                QString text = gameEventMessage(game_state.game_event());
+                ui->gameEvent->setText(text);
+            }
+
+            ALLOW_DEPRECATED_END();
         }
 
         ui->refereeState->setText(QString::fromStdString(game_state.State_Name(state)) + timeout);

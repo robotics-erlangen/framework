@@ -20,6 +20,7 @@
 
 add_library(core STATIC
     include/core/areaofinterest.h
+    include/core/deprecated.h
     include/core/fieldtransform.h
     include/core/rng.h
     include/core/timer.h
