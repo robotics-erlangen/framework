@@ -80,7 +80,7 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     signalMapper->setMapping(ui->btnRefereeAddCardBlue, false);
     connect(ui->btnRefereeAddCardYellow, SIGNAL(clicked()), signalMapper, SLOT(map()));
     signalMapper->setMapping(ui->btnRefereeAddCardYellow, true);
-    connect(signalMapper, SIGNAL(mapped(int)), this, SIGNAL(sendYellowCard(int)));
+    connect(signalMapper, &QSignalMapper::mappedInt, this, &RefereeWidget::sendYellowCard);
 
     ui->boxDivision->addItem("A");
     ui->boxDivision->addItem("B");

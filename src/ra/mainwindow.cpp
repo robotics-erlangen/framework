@@ -298,7 +298,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
         switchConfigMapper->setMapping(action, int(i));
         addAction(action);
     }
-    connect(switchConfigMapper, SIGNAL(mapped(int)), SLOT(switchToWidgetConfiguration(int)));
+    connect(switchConfigMapper, &QSignalMapper::mappedInt, [this] (int configId) { this->switchToWidgetConfiguration(configId); });
 
     ui->actionSimulator->setChecked(s.value("Simulator/Enabled").toBool());
     ui->actionInternalReferee->setChecked(s.value("Referee/Internal").toBool());
@@ -333,7 +333,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
-    connect(mapper, SIGNAL(mapped(int)), this, SLOT(setSpeed(int)));
+    connect(mapper, &QSignalMapper::mappedInt, this, &MainWindow::setSpeed);
     QAction *speedActions[] = { ui->actionSpeed1, ui->actionSpeed5, ui->actionSpeed10, ui->actionSpeed20,
                               ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed1000 };
     int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 1000 };

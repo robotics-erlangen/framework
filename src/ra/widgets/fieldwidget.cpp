@@ -227,7 +227,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(actionSaveSituationTsYellow, SIGNAL(triggered()), saveSituationMapper, SLOT(map()));
     saveSituationMapper->setMapping(actionSaveSituationTsYellow, static_cast<int>(TrackingFrom::YELLOW));
 
-    connect(saveSituationMapper, SIGNAL(mapped(int)), SLOT(saveSituationTypescript(int)));
+    connect(saveSituationMapper, &QSignalMapper::mappedInt, this, &FieldWidget::saveSituationTypescript);
 
     m_actionRestoreSimulatorState = m_contextMenu->addAction("Restore Simulator State");
     m_actionRestoreSimulatorState->setVisible(false);
@@ -266,7 +266,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(actionTrackingFromNone, SIGNAL(triggered()), trackingMapper, SLOT(map()));
     trackingMapper->setMapping(actionTrackingFromNone, static_cast<int>(TrackingFrom::NONE));
 
-    connect(trackingMapper, SIGNAL(mapped(int)), SLOT(setTrackingFrom(int)));
+    connect(trackingMapper, &QSignalMapper::mappedInt, this, &FieldWidget::setTrackingFrom);
 
     QActionGroup *trackingGroup = new QActionGroup(trackingFromMenu);
     trackingGroup->setExclusive(true);

@@ -207,7 +207,7 @@ void LogOpener::makeRecentFileMenu()
         }
         m_recentFilesMenu = newMenu;
         QSignalMapper *mapper = new QSignalMapper(newMenu);
-        connect(mapper, SIGNAL(mapped(QString)), SLOT(openFile(QString)));
+        connect(mapper, &QSignalMapper::mappedString, this, qOverload<const QString&>(&LogOpener::openFile));
         for (int i = m_recentFiles.size()-1;i>=0;i--) {
             QFileInfo file(m_recentFiles[i]);
             QString fileName = file.fileName();
