@@ -674,7 +674,6 @@ void MainWindow::simulatorSetupChanged(QAction * action)
     // change field setup to play with boundaries
     if (ui->actionSimulateWithBoundaries->isChecked()) {
         auto mutableSimulatorSetupGeometry = command->mutable_simulator()->mutable_simulator_setup()->mutable_geometry();
-        const auto boundaryWidthTotal = 2.0 * mutableSimulatorSetupGeometry->boundary_width();
         const auto fieldHeight = mutableSimulatorSetupGeometry->field_height();
         const auto fieldWidth = mutableSimulatorSetupGeometry->field_width();
         mutableSimulatorSetupGeometry->set_field_height(fieldHeight);
