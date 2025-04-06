@@ -251,7 +251,6 @@ void VisualizationWidget::filterTextChanged(QString text)
 
 void VisualizationWidget::toggleVisualization(QString filterRegex)
 {
-    // TODO check if this really is the same as exactMatch
     QRegularExpression regex(QRegularExpression::anchoredPattern(filterRegex));
     for (auto entry : m_items) {
         if (regex.match(entry.first->text()).hasMatch()) {
