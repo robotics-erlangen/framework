@@ -288,7 +288,12 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     QSignalMapper *switchConfigMapper = new QSignalMapper(this);
     for (uint i = 0;i<10;i++) {
         QAction *action = new QAction(this);
-        action->setShortcut(QKeySequence(static_cast<Qt::Key>(static_cast<unsigned int>((Qt::ALT + Qt::Key_0) + i))));
+
+        const Qt::Key shortcutKey = static_cast<Qt::Key>(
+            static_cast<unsigned int>(Qt::ALT) + static_cast<unsigned int>(Qt::Key_0) + i
+        );
+
+        action->setShortcut(QKeySequence(shortcutKey));
         connect(action, SIGNAL(triggered()), switchConfigMapper, SLOT(map()));
         switchConfigMapper->setMapping(action, int(i));
         addAction(action);

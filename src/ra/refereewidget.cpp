@@ -152,12 +152,16 @@ void RefereeWidget::enableNumberShortcuts(bool enable)
         ui->btnRefereeDirectYellow->setShortcut(Qt::Key_7);
         ui->btnRefereeDirectBlue->setShortcut(Qt::Key_9);
     } else {
-        ui->btnRefereeStop->setShortcut(Qt::Key_0 + Qt::KeypadModifier);
-        ui->btnRefereeForceStart->setShortcut(Qt::Key_5 + Qt::KeypadModifier);
-        ui->btnRefereeKickoffYellow->setShortcut(Qt::Key_1 + Qt::KeypadModifier);
-        ui->btnRefereeKickoffBlue->setShortcut(Qt::Key_3 + Qt::KeypadModifier);
-        ui->btnRefereeDirectYellow->setShortcut(Qt::Key_7 + Qt::KeypadModifier);
-        ui->btnRefereeDirectBlue->setShortcut(Qt::Key_9 + Qt::KeypadModifier);
+        const auto applyKeypadModifier = [](Qt::Key key) {
+            return static_cast<Qt::Key>(static_cast<unsigned int>(key) + static_cast<unsigned int>(Qt::KeypadModifier));
+        };
+
+        ui->btnRefereeStop->setShortcut(applyKeypadModifier(Qt::Key_0));
+        ui->btnRefereeForceStart->setShortcut(applyKeypadModifier(Qt::Key_5));
+        ui->btnRefereeKickoffYellow->setShortcut(applyKeypadModifier(Qt::Key_1));
+        ui->btnRefereeKickoffBlue->setShortcut(applyKeypadModifier(Qt::Key_3));
+        ui->btnRefereeDirectYellow->setShortcut(applyKeypadModifier(Qt::Key_7));
+        ui->btnRefereeDirectBlue->setShortcut(applyKeypadModifier(Qt::Key_9));
     }
 }
 
