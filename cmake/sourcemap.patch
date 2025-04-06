@@ -20,3 +20,138 @@
              names.push_back(entry.name);
          }
      }
+--- /dev/null
++++ b/CMakeLists.txt
+@@ -0,0 +1,94 @@
++cmake_minimum_required(VERSION 3.13.0)
++project(sourcemap-qt)
++enable_testing()
++
++#
++# System queries
++#
++
++if(MINGW)
++    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
++        set(MINGW32 TRUE)
++    elseif(CMAKE_SIZEOF_VOID_P EQUAL 8)
++        set(MINGW64 TRUE)
++    endif()
++endif()
++set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
++
++#
++# Policies
++#
++
++if (POLICY CMP0071)
++    cmake_policy(SET CMP0071 NEW)
++endif()
++
++if(POLICY CMP0072)
++    cmake_policy(SET CMP0072 NEW)
++endif()
++
++if (POLICY CMP0114)
++    cmake_policy(SET CMP0114 OLD)
++endif()
++
++if (POLICY CMP0135)
++    cmake_policy(SET CMP0135 NEW)
++endif()
++
++include(CheckCXXCompilerFlag)
++CHECK_CXX_COMPILER_FLAG(-std=c++20 HAVE_CPP20)
++if (NOT HAVE_CPP20)
++    message(FATAL_ERROR "Your compiler does not understand -std=c++20, consider updating your compiler")
++endif()
++SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w")
++SET(CMAKE_CXX_STANDARD 20)
++SET(CMAKE_CXX_STANDARD_REQUIRED YES)
++SET(CMAKE_CXX_EXTENSIONS ON)
++
++if(NOT CMAKE_BUILD_TYPE)
++    message(STATUS "Setting build type to Release")
++    set(CMAKE_BUILD_TYPE "Release")
++endif()
++
++if(MINGW)
++    find_program(WINDRES_EXECUTABLE NAMES windres)
++    set(CMAKE_RC_COMPILER_INIT ${WINDRES_EXECUTABLE})
++    enable_language(RC)
++    set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> \"-I${CMAKE_SOURCE_DIR}/data/pkg\" -i <SOURCE> -o <OBJECT>")
++    # make sure MinGW doesn't screw up packing the radiocommands
++    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ms-bitfields")
++
++    # sse floats are already the default for x64
++    if(MINGW32)
++        # use sse floats, not the insane x87 fpu where intermediate values
++        # may have up to 80bit precision, instead of the expected 32bit for floats
++        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -mfpmath=sse")
++        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -mfpmath=sse")
++    endif()
++endif(MINGW)
++
++if(APPLE)
++    # the option "S" prevents execution of ranlib
++    SET(CMAKE_C_ARCHIVE_CREATE "<CMAKE_AR> Sqc <TARGET> <LINK_FLAGS> <OBJECTS>")
++    SET(CMAKE_CXX_ARCHIVE_CREATE "<CMAKE_AR> Sqc <TARGET> <LINK_FLAGS> <OBJECTS>")
++    # silence ranlib "has no symbols"-warning
++    SET(CMAKE_C_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
++    SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
++endif()
++
++# Try to auto-locate Qt5 on MacOS (won't work with custom installs)
++if (APPLE)
++    if (EXISTS /usr/local/opt/qt@5)
++        set(Qt5_DIR "/usr/local/opt/qt@5/lib/cmake/Qt5")
++    elseif(EXISTS /usr/local/opt/qt5)
++        set(Qt5_DIR "/usr/local/opt/qt5/lib/cmake/Qt5")
++    else()
++        message(FATAL_ERROR "Could not find Qt5. Please install with `brew install qt@5`.")
++    endif()
++endif()
++
++set(CMAKE_AUTOMOC ON)
++find_package(Qt5 COMPONENTS Core REQUIRED)
++
++set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
++add_subdirectory(src)
+--- /dev/null
++++ b/src/CMakeLists.txt
+@@ -0,0 +1,35 @@
++add_library(SourceMap STATIC
++  SourceMap/RevisionThree.cpp
++  SourceMap/RevisionThree.h
++  SourceMap/RevisionThree_impl.h
++  SourceMap/Data.h
++  SourceMap/Entry.h
++  SourceMap/Extensions.h
++  SourceMap/FileLineColumnPosition.h
++  SourceMap/FilePosition.h
++  SourceMap/Mapping.h
++  SourceMap/Mapping_impl.h
++  SourceMap/Position.h
++  SourceMap/Extension/Base.h
++  SourceMap/Extension/Caller.cpp
++  SourceMap/Extension/Caller.h
++  SourceMap/Extension/Caller_impl.h
++  SourceMap/Extension/Interpolation.cpp
++  SourceMap/Extension/Interpolation.h
++  SourceMap/Extension/Interpolation_impl.h
++  SourceMap/intern/Base64VLQ.cpp
++  SourceMap/intern/Base64VLQ.h
++  SourceMap/meta/tuple_index_of.h
++  SourceMap/meta/tuple_without_void.h
++)
++
++target_include_directories(SourceMap
++    INTERFACE .
++    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
++    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
++)
++
++target_link_libraries(SourceMap
++    PRIVATE Qt5::Core
++)
++
