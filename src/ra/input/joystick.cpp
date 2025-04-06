@@ -152,18 +152,6 @@ void Joystick::handleButton(SDL_GameControllerButton button, bool pressed)
             emit sendRefereeCommand(SSL_Referee::FORCE_START);
         }
         break;
-
-    case SDL_CONTROLLER_BUTTON_BACK: // button 9 on logitech rumblepad 2
-        if (pressed) {
-            emit sendRefereeCommand(SSL_Referee::INDIRECT_FREE_YELLOW);
-        }
-        break;
-
-    case SDL_CONTROLLER_BUTTON_START: // button 10 on logitech rumblepad 2
-        if (pressed) {
-            emit sendRefereeCommand(SSL_Referee::INDIRECT_FREE_BLUE);
-        }
-        break;
     default:
         break;
     }
