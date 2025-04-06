@@ -22,7 +22,7 @@ include(ExternalProject)
 include(ExternalProjectHelper)
 
 set(PROTOBUF_SUBPATH "${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_LIBRARY_SUFFIX}")
-set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
+set(PROTOC_SUBPATH "${CMAKE_INSTALL_BINDIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 ExternalProject_Add(project_protobuf
     URL http://downloads.robotics-erlangen.de/protobuf-cpp-3.21.12.tar.gz
