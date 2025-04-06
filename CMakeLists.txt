@@ -136,16 +136,10 @@ find_package(Threads REQUIRED)
 sanitize_env()
 find_package(Protobuf 3.21.12)
 restore_env()
-# if protobouf is not found the version string is empty and apparently ifs in cmake do not follow short-circuit logic,
-# which means below it evaluates the if condition to "... OR VERSION_GREATER_EQUAL 4.25.0" and then cmake dies
-# this is stupid, but can't be helped
-if (NOT ${PROTOBUF_FOUND})
-    set(Protobuf_VERSION 4.25.0)
-endif()
 
-if(NOT ${PROTOBUF_FOUND}
+if(NOT PROTOBUF_FOUND
         # protobuf version 4.25.0 leads to weird linker errors, not sure if versions greater than that cause the same issues
-        OR ${Protobuf_VERSION} VERSION_GREATER_EQUAL 4.25.0
+        OR Protobuf_VERSION VERSION_GREATER_EQUAL 4.25.0
         OR NOT TARGET protobuf::protoc)
     include(BuildProtobuf)
 endif()
