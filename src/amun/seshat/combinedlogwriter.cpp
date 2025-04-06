@@ -30,6 +30,7 @@
 #include <QCoreApplication>
 #include <QVector>
 #include <string>
+#include <utility>
 
 namespace CombinedLogWriterInternal {
     class SignalSource: public QObject {
@@ -198,7 +199,7 @@ void CombinedLogWriter::handleStatus(Status status)
 
     if (m_isLoggingEnabled && m_logState == LogState::PENDING) {
         startLogfile();
-        for (const Status &status : qAsConst(m_zeroTimeStatus)) {
+        for (const Status &status : std::as_const(m_zeroTimeStatus)) {
             status->set_time(m_lastTime);
             m_signalSource->emitStatusToRecording(status);
         }
