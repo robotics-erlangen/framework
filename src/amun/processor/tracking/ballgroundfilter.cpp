@@ -23,8 +23,8 @@
 
 // TODO maybe exclude z axis from kalman filter
 
-GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
-    AbstractBallFilter(frame, cameraInfo, transform, ballModel)
+GroundFilter::GroundFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const world::BallModel &ballModel) :
+    AbstractBallFilter(frame, cameraInfo, ballModel)
 {
     reset(frame);
 }

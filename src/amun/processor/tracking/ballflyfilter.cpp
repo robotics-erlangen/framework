@@ -45,7 +45,7 @@ static const float INITIAL_BIAS_STRENGTH = 0.1f;
 static const float GRAVITY = 9.81;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
-    AbstractBallFilter(frame, cameraInfo, transform, ballModel),
+    AbstractBallFilter(frame, cameraInfo, ballModel),
     m_debugger(frame.cameraId, transform),
     m_initTime(frame.sourceTime)
 {
