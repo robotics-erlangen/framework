@@ -22,6 +22,7 @@
 #define BALLFLYFILTER_H
 
 #include "abstractballfilter.h"
+#include "filterdebugger.h"
 #include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 
@@ -39,6 +40,10 @@ public:
     float distToStartPos() { return m_distToStartPos; }
 
     bool isActive() const;
+
+#ifdef ENABLE_TRACKING_DEBUG
+    FilterDebugger &debugger() { return m_debugger; }
+#endif
 
 private:
     enum ShootCommand {
@@ -124,6 +129,8 @@ private:
     Prediction predictTrajectory(float time) const;
 
 private:
+    FilterDebugger m_debugger;
+
     qint64 m_initTime;
 
     bool m_chipDetected;

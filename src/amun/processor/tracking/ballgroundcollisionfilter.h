@@ -23,6 +23,7 @@
 
 #include "abstractballfilter.h"
 #include "ballgroundfilter.h"
+#include "filterdebugger.h"
 #include "protobuf/ssl_vision/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include "protobuf/debug.pb.h"
@@ -41,6 +42,10 @@ public:
 
     bool isFeasiblyInvisible() const { return m_feasiblyInvisible; };
     float getMaxSpeed() const { return m_maxSpeed; }
+
+#ifdef ENABLE_TRACKING_DEBUG
+    FilterDebugger &debugger() { return m_debugger; }
+#endif
 
 private:
     struct BallOffsetInfo {
@@ -71,6 +76,8 @@ private:
     void resetFilter(const VisionFrame &frame);
 
 private:
+    FilterDebugger m_debugger;
+
     GroundFilter m_groundFilter;
     qint64 m_lastUpdateTime = 0;
     // is always at the time of m_lastUpdateTime

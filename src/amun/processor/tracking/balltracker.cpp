@@ -123,10 +123,13 @@ void BallTracker::update(qint64 time)
     }
     m_lastUpdateTime = time;
 #ifdef ENABLE_TRACKING_DEBUG
-    m_debug.MergeFrom(m_groundFilter->debugValues());
-    m_groundFilter->clearDebugValues();
-    m_debug.MergeFrom(m_flyFilter->debugValues());
-    m_flyFilter->clearDebugValues();
+    auto& groundFilterDebugger = m_groundFilter->debugger();
+    m_debug.MergeFrom(groundFilterDebugger.debugValues());
+    groundFilterDebugger.clearDebugValues();
+
+    auto& flyFilterDebugger = m_flyFilter->debugger();
+    m_debug.MergeFrom(flyFilterDebugger.debugValues());
+    flyFilterDebugger.clearDebugValues();
 #endif
 }
 

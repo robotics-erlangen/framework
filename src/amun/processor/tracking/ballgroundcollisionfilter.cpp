@@ -28,12 +28,14 @@ const float ROBOT_HEIGHT = 0.15f;
 
 BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
     AbstractBallFilter(frame, cameraInfo, transform, ballModel),
+    m_debugger(frame.cameraId, transform),
     m_groundFilter(frame, cameraInfo, transform, ballModel),
     m_lastVisionFrame(frame)
 { }
 
 BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera) :
     AbstractBallFilter(filter, primaryCamera),
+    m_debugger(filter.m_debugger, primaryCamera),
     m_groundFilter(filter.m_groundFilter, primaryCamera),
     m_lastUpdateTime(filter.m_lastUpdateTime),
     m_pastBallState(filter.m_pastBallState),
@@ -450,7 +452,7 @@ void BallGroundCollisionFilter::checkVolleyShot(const VisionFrame &frame)
 void BallGroundCollisionFilter::writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime)
 {
     computeBallState(ball, time, robots, lastCameraFrameTime);
-    debugLine("new speed", ball->p_x(), ball->p_y(), ball->p_x() + ball->v_x(), ball->p_y() + ball->v_y());
+    m_debugger.debugLine("new speed", ball->p_x(), ball->p_y(), ball->p_x() + ball->v_x(), ball->p_y() + ball->v_y());
     m_lastReportedBallPos = Eigen::Vector2f(ball->p_x(), ball->p_y());
 }
 
@@ -501,17 +503,17 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
 
         if (m_dribbleOffset->dribblerActive && !robot->dribblerActive) {
             setBallData(ball, m_dribbleOffset->stopDribblingPos, Eigen::Vector2f(0, 0), overwriteBallSpeed);
-            debug("ground filter mode", "stopped dribbling");
+            m_debugger.debug("ground filter mode", "stopped dribbling");
         } else {
             // TODO: only allow this when the ball is near the dribbler not the robot body
             const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(*robot, m_dribbleOffset->ballOffset);
             setBallData(ball, ballPos, ballSpeed, overwriteBallSpeed);
-            debug("ground filter mode", "dribbling");
+            m_debugger.debug("ground filter mode", "dribbling");
         }
 
     } else {
         setBallData(ball, m_dribbleOffset->pushingBallPos, Eigen::Vector2f(0, 0), overwriteBallSpeed);
-        debug("ground filter mode", "invisible standing ball");
+        m_debugger.debug("ground filter mode", "invisible standing ball");
     }
     return true;
 }
@@ -536,7 +538,7 @@ bool BallGroundCollisionFilter::checkBallRobotIntersection(world::Ball *ball, co
     if (intersection) {
         const Eigen::Vector2f ballSpeed = computeDribblingBallSpeed(robot, computeRelativePosition(*intersection, robot));
         setBallData(ball, *intersection, ballSpeed, overwriteBallSpeed);
-        debug("ground filter mode", "shot at robot");
+        m_debugger.debug("ground filter mode", "shot at robot");
         return true;
     }
     return false;
@@ -564,7 +566,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
         pastSpeed = Eigen::Vector2f{m_pastBallState.v_x(), m_pastBallState.v_y()};
     }
 
-    debugCircle("invisible ball now", pastPos.x(), pastPos.y(), 0.05f);
+    m_debugger.debugCircle("invisible ball now", pastPos.x(), pastPos.y(), 0.05f);
     // TODO: fix 0 time
     m_groundFilter.writeBallState(&m_pastBallState, frameTime, robots, 0);
     const Eigen::Vector2f currentPos{m_pastBallState.p_x(), m_pastBallState.p_y()};
@@ -608,7 +610,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
             const Eigen::Vector2f unprojected = unprojectRelativePosition(m_rotateAndDribbleOffset->ballOffset, robot);
             if (!isBallVisible(unprojected, robot, ROBOT_RADIUS, ROBOT_HEIGHT, m_cameraInfo->cameraPosition[m_primaryCamera])) {
                 m_dribbleOffset  = m_rotateAndDribbleOffset;
-                debug("activate rotate and dribble", 1);
+                m_debugger.debug("activate rotate and dribble", 1);
                 return;
             }
         }
@@ -631,12 +633,7 @@ void BallGroundCollisionFilter::computeBallState(world::Ball *ball, qint64 time,
     // TODO: test sides flipped (fieldtransform difference in robotinfo and groundfilter result?)
     m_groundFilter.writeBallState(ball, time, robots, lastCameraFrameTime);
     // might be overwritten later
-    debug("ground filter mode", "regular ground filter");
-
-#ifdef ENABLE_TRACKING_DEBUG
-    // prevent accumulation of debug values, since they are never read
-    m_groundFilter.clearDebugValues();
-#endif
+    m_debugger.debug("ground filter mode", "regular ground filter");
 
     // During dribbling etc. the ball speed should be set to the robot speed.
     // However, during a volley shot, it is not desirable to have the speed at

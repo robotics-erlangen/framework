@@ -46,6 +46,7 @@ static const float GRAVITY = 9.81;
 
 FlyFilter::FlyFilter(const VisionFrame& frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
     AbstractBallFilter(frame, cameraInfo, transform, ballModel),
+    m_debugger(frame.cameraId, transform),
     m_initTime(frame.sourceTime)
 {
     resetFlightReconstruction();
@@ -195,13 +196,13 @@ auto FlyFilter::calcPinv() -> std::optional<BallFlight>
     result.startFrame = m_shotStartFrame;
     result.reconstructionError = piError / (m_kickFrames.size() - m_shotStartFrame);
 
-    debug("pinv_params/x0", result.flightStartPos.x());
-    debug("pinv_params/y0", result.flightStartPos.y());
-    debug("pinv_params/vx", result.groundSpeed.x());
-    debug("pinv_params/vy", result.groundSpeed.y());
-    debug("pinv_params/vz", result.zSpeed);
-    debug("pinv_params/relStartTime", atGroundTime);
-    plot("reconstruction error", result.reconstructionError);
+    m_debugger.debug("pinv_params/x0", result.flightStartPos.x());
+    m_debugger.debug("pinv_params/y0", result.flightStartPos.y());
+    m_debugger.debug("pinv_params/vx", result.groundSpeed.x());
+    m_debugger.debug("pinv_params/vy", result.groundSpeed.y());
+    m_debugger.debug("pinv_params/vz", result.zSpeed);
+    m_debugger.debug("pinv_params/relStartTime", atGroundTime);
+    m_debugger.plot("reconstruction error", result.reconstructionError);
 
     const float distStartPos = (result.flightStartPos - firstInTheAir.ballPos).norm();
     if (m_flightReconstructions.size() < 2) {
@@ -209,7 +210,7 @@ auto FlyFilter::calcPinv() -> std::optional<BallFlight>
     }
 
     const Eigen::Vector2f endPos = result.flightStartPos + result.groundSpeed;
-    debugLine("computed ground speed", result.flightStartPos.x(), result.flightStartPos.y(), endPos.x(), endPos.y());
+    m_debugger.debugLine("computed ground speed", result.flightStartPos.x(), result.flightStartPos.y(), endPos.x(), endPos.y());
 
     return result;
 }
@@ -246,7 +247,7 @@ auto FlyFilter::constrainedReconstruction(Eigen::Vector2f shotStartPos, Eigen::V
     const Eigen::VectorXf values = solver.colPivHouseholderQr().solve(positions);
 
     const float error = (solver * values - positions).norm() / (m_kickFrames.size() - startFrame);
-    plot("constrained error", error);
+    m_debugger.plot("constrained error", error);
 
     // ignore the z0 component here, since it should be rather small
     // it is just important to correct noise in the start position
@@ -307,7 +308,7 @@ float FlyFilter::chipShotError(const BallFlight &pinvRes) const
         error += dist;
     }
 
-    plot("flight error", error / m_kickFrames.size());
+    m_debugger.plot("flight error", error / m_kickFrames.size());
     return error;
 }
 
@@ -363,7 +364,7 @@ float FlyFilter::linearShotError() const
         error += dist;
     }
 
-    plot("ground error", error / m_kickFrames.size());
+    m_debugger.plot("ground error", error / m_kickFrames.size());
     return error;
 }
 
@@ -377,7 +378,7 @@ bool FlyFilter::approachPinvApplicable(const BallFlight &pinvRes) const
 {
     const Eigen::Vector2f center = m_kickFrames.first().ballPos;
     const double vToProj = innerAngle(center, m_kickFrames.back().ballPos, center + pinvRes.groundSpeed);
-    debug("vToProjPinv", vToProj);
+    m_debugger.debug("vToProjPinv", vToProj);
 
     const float vz = pinvRes.zSpeed;
     const int frames = (m_kickFrames.size() - m_shotStartFrame);
@@ -406,16 +407,16 @@ bool FlyFilter::approachShotDirectionApplicable(const BallFlight &reconstruction
 auto FlyFilter::parabolicFlightReconstruct(const BallFlight& pinvRes) const -> std::optional<BallFlight>
 {
     if (approachPinvApplicable(pinvRes)) {
-        debug("chip approach", "pinv");
+        m_debugger.debug("chip approach", "pinv");
         return pinvRes;
     }
 
     const BallFlight shotDirReconstruction = approachShotDirectionApply();
     if (approachShotDirectionApplicable(shotDirReconstruction)) {
-        debug("chip approach", "shot direction");
+        m_debugger.debug("chip approach", "shot direction");
         return {shotDirReconstruction};
     }
-    debug("chip approach", "unavailable");
+    m_debugger.debug("chip approach", "unavailable");
     return {};
 }
 
@@ -447,7 +448,7 @@ bool FlyFilter::detectionSpeed() const
     int n = speeds.size()-1;
     for(int i=1; i<speeds.size(); i++) {
         if (speeds.at(i) > 1.4*avg) {
-            debug("detection speed/leave out", true);
+            m_debugger.debug("detection speed/leave out", true);
             n--;
             continue;
         }
@@ -459,9 +460,9 @@ bool FlyFilter::detectionSpeed() const
     float slope = (n * valXSum - xSum * valSum) / (n * xSumSq - xSum * xSum);
     slope /= valSum / n;
 
-    debug("detection speed/slope", slope);
-    debug("detection speed/avg", avg);
-    debug("detection speed/last", speeds.back());
+    m_debugger.debug("detection speed/slope", slope);
+    m_debugger.debug("detection speed/avg", avg);
+    m_debugger.debug("detection speed/last", speeds.back());
 
     return slope > 0.005 && speeds.size() > 15 && numMeasurementsWithOwnCamera() > 10;
 }
@@ -474,7 +475,7 @@ bool FlyFilter::detectionPinv(const BallFlight &pinvRes) const
     const float timeElapsed = m_kickFrames.back().time - pinvRes.flightStartTime;
 
     if (m_kickFrames.front().cameraId != m_kickFrames.back().cameraId) {
-        debug("pinv detection/cameraChange", true);
+        m_debugger.debug("pinv detection/cameraChange", true);
         if (maxHeight < 0.5) {
             // camera changes lead to false detections, probably because of
             // geometry calibration differences
@@ -504,15 +505,15 @@ bool FlyFilter::checkIsDribbling() const
 bool FlyFilter::detectChip(const BallFlight &pinvRes) const
 {
     if (m_shootCommand == ShootCommand::CHIP) {
-        debug("detection source", "chip");
+        m_debugger.debug("detection source", "chip");
         return true;
     }
     if (detectionSpeed()) {
-        debug("detection source", "speed");
+        m_debugger.debug("detection source", "speed");
         return true;
     }
     if (detectionPinv(pinvRes)) {
-        debug("detection source", "pinv");
+        m_debugger.debug("detection source", "pinv");
         return true;
     }
     return false;
@@ -561,7 +562,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         m_shotDetectionWindow.pop_front();
     }
 
-    debug("chip measurements", m_kickFrames.size());
+    m_debugger.debug("chip measurements", m_kickFrames.size());
 
     if (m_kickFrames.empty() && checkIsShot()) {
 
@@ -586,11 +587,11 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         // we need to keep the last measurement to infer speed
         m_shotDetectionWindow.append(currentDetection);
 
-        debug("shot detected", 1);
+        m_debugger.debug("shot detected", 1);
     }
 
     if (checkIsDribbling()) {
-        debug("abort shot dribbling", 1);
+        m_debugger.debug("abort shot dribbling", 1);
         resetFlightReconstruction();
         return;
     }
@@ -599,7 +600,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         m_kickFrames.append(currentDetection);
 
         if (collision()) {
-            debug("abort collision", true);
+            m_debugger.debug("abort collision", true);
             resetFlightReconstruction();
             return;
         }
@@ -611,10 +612,10 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
             }
         }
         if (m_flightReconstructions.size() < 2) {
-            debug("chip detected", m_chipDetected);
+            m_debugger.debug("chip detected", m_chipDetected);
             if (m_shootCommand == ShootCommand::LINEAR) {
                 resetFlightReconstruction();
-                debug("kick command", "linear");
+                m_debugger.debug("kick command", "linear");
                 return; // no detection for linear kicks
             }
 
@@ -635,7 +636,7 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
     }
 
     if (m_kickFrames.size() > 30 && !m_chipDetected) {
-        debug("abort still no detection", true);
+        m_debugger.debug("abort still no detection", true);
         resetFlightReconstruction();
     }
     if (m_kickFrames.size() >= MAX_FRAMES_PER_FLIGHT) {
@@ -650,7 +651,7 @@ static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
 
 int FlyFilter::detectBouncing()
 {
-    debugCircle("bounce detected", m_kickFrames.at(m_lastBounceFrame).ballPos.x(), m_kickFrames.at(m_lastBounceFrame).ballPos.y(), 0.03f);
+    m_debugger.debugCircle("bounce detected", m_kickFrames.at(m_lastBounceFrame).ballPos.x(), m_kickFrames.at(m_lastBounceFrame).ballPos.y(), 0.03f);
 
     if (m_kickFrames.size() < 10 || m_kickFrames.back().cameraId != m_kickFrames.at(m_kickFrames.size() - 7).cameraId) {
         return -1;
@@ -739,7 +740,7 @@ void FlyFilter::updateBouncing(qint64 time)
 
         const float distToDetection = (afterBounce.flightStartPos - m_kickFrames.back().ballPos).norm();
         if (m_flightReconstructions.size() > 2 && distToDetection > 0.3f) {
-            debug("abort bad bounce", true);
+            m_debugger.debug("abort bad bounce", true);
             resetFlightReconstruction();
             return;
         }
@@ -792,7 +793,7 @@ void FlyFilter::updateBouncing(qint64 time)
     }
 
     if (t > 0.5f && m_flightReconstructions.back().zSpeed < 0.5f) {
-        debug("abort bounce", true);
+        m_debugger.debug("abort bounce", true);
         resetFlightReconstruction();
         return;
     }
@@ -828,7 +829,7 @@ int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
     const float lambda = -cam(2) / (cam(2)-pred.pos(2));
     const Eigen::Vector3f predGround = cam + (cam-pred.pos)*lambda;
 
-    debugCircle("predicted ground pos", predGround.x(), predGround.y(), 0.02f);
+    m_debugger.debugCircle("predicted ground pos", predGround.x(), predGround.y(), 0.02f);
 
     int bestDetection = -1;
     float bestDistance = ACCEPT_DIST;
@@ -842,7 +843,7 @@ int FlyFilter::chooseDetection(const std::vector<VisionFrame> &frames) const
         }
     }
 
-    debug("accept dist", bestDistance);
+    m_debugger.debug("accept dist", bestDistance);
     return bestDetection;
 }
 
@@ -863,7 +864,7 @@ void FlyFilter::writeBallState(world::Ball *ball, qint64 predictionTime, const Q
 
 void FlyFilter::resetFlightReconstruction()
 {
-    debug("RESET", true);
+    m_debugger.debug("RESET", true);
     m_chipDetected = false;
     m_flightReconstructions.clear();
     m_kickFrames.clear();

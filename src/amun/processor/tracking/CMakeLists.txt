@@ -36,6 +36,7 @@ add_library(tracking STATIC
     ballgroundfilter.cpp
     filter.cpp
     filter.h
+    filterdebugger.h
     kalmanfilter.h
     robotfilter.cpp
     robotfilter.h
