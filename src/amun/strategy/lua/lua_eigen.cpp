@@ -46,7 +46,7 @@ static int createMatrix(lua_State *L) {
     size_t nbytes = sizeof(Eigen::MatrixXd);
     void *userData = lua_newuserdata(L, nbytes); /* new userdatum is already on the stack */
     createGCMetatable(L);
-    Eigen::MatrixXd *matrix = new (userData) Eigen::MatrixXd(x, y);
+    new (userData) Eigen::MatrixXd(x, y);
     return 1;
 }
 
