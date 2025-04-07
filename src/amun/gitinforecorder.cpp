@@ -21,6 +21,8 @@
 #include "gitinforecorder.h"
 #include "git/gitconfig.h"
 
+#include <QtGlobal>
+
 void GitInfoRecorder::startGitDiffStrategy(const QString& dir, bool changed, int type) {
     amun::GitInfo::Kind infoKind;
     switch (static_cast<StrategyType>(type)) {
@@ -32,6 +34,9 @@ void GitInfoRecorder::startGitDiffStrategy(const QString& dir, bool changed, int
             break;
         case StrategyType::AUTOREF:
             infoKind = amun::GitInfo_Kind_AUTOREF;
+            break;
+        default:
+            qFatal("Invalid strategy type %d", type);
             break;
     }
     startGitDiff(dir, changed, infoKind);
