@@ -341,8 +341,8 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, const QString
     cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
     cameraPos(2) = c.derived_camera_world_tz() / 1000.f;
 
-    m_cameraInfo->cameraPosition[c.camera_id()] = cameraPos;
-    m_cameraInfo->focalLength[c.camera_id()] = c.focal_length();
+    m_cameraInfo->cameraPosition.insert(c.camera_id(), cameraPos);
+    m_cameraInfo->focalLength.insert(c.camera_id(), c.focal_length());
 }
 
 void Tracker::invalidateRobotFilter(QList<RobotFilter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime)
