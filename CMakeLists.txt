@@ -138,8 +138,14 @@ find_package(Protobuf 3.21.12)
 restore_env()
 
 if(NOT PROTOBUF_FOUND
-        # protobuf version 4.25.0 leads to weird linker errors, not sure if versions greater than that cause the same issues
-        OR Protobuf_VERSION VERSION_GREATER_EQUAL 4.25.0
+        # Protobuf versions 4.22 upwards have a dependency on Abseil which we
+        # do not yet handle, leading to linker errors.
+        #
+        # Note that Protobuf uses a variant of semantic versioning: the minor
+        # part denotes the protoc version, while the major part is incremented
+        # independently if the release *for a certain language* has breaking
+        # changes. So for C++, 3.21 is followed by 4.22
+        OR Protobuf_VERSION VERSION_GREATER_EQUAL 4.22.0
         OR NOT TARGET protobuf::protoc)
     include(BuildProtobuf)
 endif()
