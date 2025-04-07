@@ -54,4 +54,9 @@ target_include_directories(tracking
     INTERFACE include
     PRIVATE include/tracking
 )
+
+if (TRACKING_DEBUG)
+    target_compile_definitions(tracking PRIVATE ENABLE_TRACKING_DEBUG)
+endif()
+
 add_library(amun::tracking ALIAS tracking)

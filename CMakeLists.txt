@@ -29,6 +29,8 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
 option(BUILD_FIRMWARE "Whether to build the firmware. Downloads GCC and ChibiOS" OFF)
 option(DOWNLOAD_V8    "Whether to download a prebuilt V8 version. If disabled, V8 must be built locally to enable Typescript support" OFF)
+option(TRACKING_DEBUG "Whether to enable tracking debug mode (extra data written to plotter and debug tree)" OFF)
+option(EASY_MODE      "Whether to enable easy mode (changes to Ra for first time users)" OFF)
 
 #
 # System queries
