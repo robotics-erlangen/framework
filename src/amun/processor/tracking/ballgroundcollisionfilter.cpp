@@ -26,14 +26,15 @@ const float BALL_RADIUS = 0.0215f;
 const float ROBOT_RADIUS = 0.09f;
 const float ROBOT_HEIGHT = 0.15f;
 
-BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+BallGroundCollisionFilter::BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel, Eigen::Vector3f primaryCameraPos) :
     AbstractBallFilter(frame, cameraInfo, ballModel),
     m_debugger(frame.cameraId, transform),
     m_groundFilter(frame, cameraInfo, ballModel),
-    m_lastVisionFrame(frame)
+    m_lastVisionFrame(frame),
+    PRIMARY_CAMERA_POS(primaryCameraPos)
 { }
 
-BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera) :
+BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera, Eigen::Vector3f primaryCameraPos) :
     AbstractBallFilter(filter, primaryCamera),
     m_debugger(filter.m_debugger, primaryCamera),
     m_groundFilter(filter.m_groundFilter, primaryCamera),
@@ -51,7 +52,8 @@ BallGroundCollisionFilter::BallGroundCollisionFilter(const BallGroundCollisionFi
     m_maxSpeed(filter.m_maxSpeed),
     m_framesDecelerating(filter.m_framesDecelerating),
     m_ballWasNearRobot(filter.m_ballWasNearRobot),
-    m_highestSpeed(filter.m_highestSpeed)
+    m_highestSpeed(filter.m_highestSpeed),
+    PRIMARY_CAMERA_POS(primaryCameraPos)
 { }
 
 static Eigen::Vector2f perpendicular(const Eigen::Vector2f dir)
@@ -305,9 +307,8 @@ static float distToRobotShadow(Eigen::Vector2f pos, const RobotInfo &robot, floa
 
 bool BallGroundCollisionFilter::isBallCloseToRobotShadow(const VisionFrame &frame) const
 {
-    const Eigen::Vector3f camPos = m_cameraInfo->cameraPosition[m_primaryCamera];
     const Eigen::Vector2f ballPos(frame.x, frame.y);
-    const float shadowDist = distToRobotShadow(ballPos, frame.robot, ROBOT_RADIUS, ROBOT_HEIGHT, camPos);
+    const float shadowDist = distToRobotShadow(ballPos, frame.robot, ROBOT_RADIUS, ROBOT_HEIGHT, PRIMARY_CAMERA_POS);
     const float robotDist = (ballPos - frame.robot.robotPos).norm();
     return shadowDist < 0.02f && robotDist > ROBOT_RADIUS + 0.03f;
 }
@@ -419,10 +420,9 @@ bool BallGroundCollisionFilter::checkFeasibleInvisibility(const QVector<RobotInf
         }
     }
     const float sizeFactor = DRIBBLING_ROBOT_VISIBILITY_FACTOR;
-    const Eigen::Vector3f camPos = m_cameraInfo->cameraPosition[m_primaryCamera];
-    return std::any_of(robots.begin(), robots.end(), [=](const RobotInfo &r) {
+    return std::any_of(robots.begin(), robots.end(), [=, this](const RobotInfo &r) {
         return !isBallVisible(ballPos, pastToCurrentRobotInfo(r), ROBOT_RADIUS * sizeFactor,
-                              ROBOT_HEIGHT * sizeFactor, camPos);
+                              ROBOT_HEIGHT * sizeFactor, PRIMARY_CAMERA_POS);
     });
 }
 
@@ -490,11 +490,11 @@ bool BallGroundCollisionFilter::handleDribbling(world::Ball *ball, const QVector
 
     const bool wasPushed = isInsideRobot(m_dribbleOffset->pushingBallPos, robot->robotPos, robot->dribblerPos, ROBOT_RADIUS);
     const bool pushingPosVisible = isBallVisible(m_dribbleOffset->pushingBallPos, *robot, ROBOT_RADIUS * DRIBBLING_ROBOT_VISIBILITY_FACTOR,
-                                                 ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR, m_cameraInfo->cameraPosition[m_primaryCamera]);
+                                                 ROBOT_HEIGHT * DRIBBLING_ROBOT_VISIBILITY_FACTOR, PRIMARY_CAMERA_POS);
     bool otherRobotObstruction = false;
     for (const RobotInfo &r : robots) {
-        if (r.identifier != robot->identifier && !isBallVisible(m_dribbleOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT,
-                           m_cameraInfo->cameraPosition[m_primaryCamera])) {
+        if (r.identifier != robot->identifier
+                && !isBallVisible(m_dribbleOffset->pushingBallPos, r, ROBOT_RADIUS, ROBOT_HEIGHT, PRIMARY_CAMERA_POS)) {
             otherRobotObstruction = true;
             break;
         }
@@ -608,7 +608,7 @@ void BallGroundCollisionFilter::updateEmptyFrame(qint64 frameTime, const QVector
         if (r != robots.end()) {
             const RobotInfo robot = pastToCurrentRobotInfo(*r);
             const Eigen::Vector2f unprojected = unprojectRelativePosition(m_rotateAndDribbleOffset->ballOffset, robot);
-            if (!isBallVisible(unprojected, robot, ROBOT_RADIUS, ROBOT_HEIGHT, m_cameraInfo->cameraPosition[m_primaryCamera])) {
+            if (!isBallVisible(unprojected, robot, ROBOT_RADIUS, ROBOT_HEIGHT, PRIMARY_CAMERA_POS)) {
                 m_dribbleOffset  = m_rotateAndDribbleOffset;
                 m_debugger.debug("activate rotate and dribble", 1);
                 return;

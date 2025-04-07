@@ -33,7 +33,13 @@ BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const
     m_cachedDistToCamera(0)
 {
     m_primaryCamera = frame.cameraId;
-    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform, ballModel);
+
+    const auto primaryCameraPos = cameraInfo->cameraPosition.constFind(m_primaryCamera);
+    if (primaryCameraPos == cameraInfo->cameraPosition.end()) {
+        qFatal("No camera position for camera %d", m_primaryCamera);
+    }
+
+    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform, ballModel, *primaryCameraPos);
     m_flyFilter = new FlyFilter(frame, cameraInfo, transform, ballModel);
 }
 
@@ -50,9 +56,14 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 {
     m_primaryCamera = primaryCamera;
 
+    const auto primaryCameraPos = m_cameraInfo->cameraPosition.constFind(primaryCamera);
+    if (primaryCameraPos == m_cameraInfo->cameraPosition.end()) {
+        qFatal("No camera position for camera %d", m_primaryCamera);
+    }
+
     m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter);
     m_flyFilter->moveToCamera(primaryCamera);
-    m_groundFilter = new BallGroundCollisionFilter(*previousFilter.m_groundFilter, primaryCamera);
+    m_groundFilter = new BallGroundCollisionFilter(*previousFilter.m_groundFilter, primaryCamera, *primaryCameraPos);
     m_groundFilter->moveToCamera(primaryCamera);
 }
 

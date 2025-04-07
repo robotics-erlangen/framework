@@ -33,8 +33,9 @@ class BallGroundCollisionFilter : public AbstractBallFilter
 {
 public:
     explicit BallGroundCollisionFilter(const VisionFrame &frame, CameraInfo* cameraInfo,
-                                       const FieldTransform &transform, const world::BallModel &ballModel);
-    BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera);
+                                       const FieldTransform &transform, const world::BallModel &ballModel,
+                                       Eigen::Vector3f primaryCameraPos);
+    BallGroundCollisionFilter(const BallGroundCollisionFilter& filter, qint32 primaryCamera, Eigen::Vector3f primaryCameraPos);
 
     void processVisionFrame(const VisionFrame& frame) override;
     void writeBallState(world::Ball *ball, qint64 time, const QVector<RobotInfo> &robots, qint64 lastCameraFrameTime) override;
@@ -103,6 +104,7 @@ private:
     float m_highestSpeed = 0;
 
     const float DRIBBLING_ROBOT_VISIBILITY_FACTOR = 1.03f;
+    const Eigen::Vector3f PRIMARY_CAMERA_POS;
 };
 
 #endif // BALLGROUNDCOLLISIONFILTER_H
