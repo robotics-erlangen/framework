@@ -278,7 +278,6 @@ static double innerAngle(Eigen::Vector2f center, Eigen::Vector2f A, Eigen::Vecto
 float FlyFilter::chipShotError(const BallFlight &pinvRes) const
 {
     const int startFrame = m_shotStartFrame+2;
-    const ChipDetection firstInTheAir = m_kickFrames.at(m_shotStartFrame);
 
     float error = 0;
     for (int i = startFrame;i<m_kickFrames.size();i++) {
