@@ -123,8 +123,8 @@ TEST_F(RNGTest, seeding) {
         values.push_back(vu.x);
         values.push_back(vu.y);
         auto vui = r.uniformVectorIn(Vector(2, 5), Vector(-10, 12));
-        values.push_back(vu.x);
-        values.push_back(vu.y);
+        values.push_back(vui.x);
+        values.push_back(vui.y);
         values.push_back(r.normal(1));
         auto vn = r.normalVector(1);
         values.push_back(vn.x);
@@ -144,8 +144,8 @@ TEST_F(RNGTest, seeding) {
         ASSERT_EQ(vu.x, values[i * NUMS_PER_RUN + 4]);
         ASSERT_EQ(vu.y, values[i * NUMS_PER_RUN + 5]);
         auto vui = r.uniformVectorIn(Vector(2, 5), Vector(-10, 12));
-        ASSERT_EQ(vu.x, values[i * NUMS_PER_RUN + 6]);
-        ASSERT_EQ(vu.y, values[i * NUMS_PER_RUN + 7]);
+        ASSERT_EQ(vui.x, values[i * NUMS_PER_RUN + 6]);
+        ASSERT_EQ(vui.y, values[i * NUMS_PER_RUN + 7]);
         ASSERT_EQ(r.normal(1), values[i * NUMS_PER_RUN + 8]);
         auto vn = r.normalVector(1);
         ASSERT_EQ(vn.x, values[i * NUMS_PER_RUN + 9]);
