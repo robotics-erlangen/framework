@@ -18,12 +18,25 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+// Include Eigen first, since in GCC, it throws a warning somewhere deep when
+// instantiating templates, but only in this translation unit. GCC reports a
+// transitive include chain via abstractballfilter > kalmanfilter > Eigen, but
+// no instantiation point in our code, neither in the KalmanFilter nor here.
+// Including Eigen first "fixes" the issue.
+//
+// Note that we can't disable the diagnostic in the header since this would
+// disable it for Eigen usages in every translation unit
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+#include <Eigen/Core>
+#include <Eigen/SVD>
+#pragma GCC diagnostic pop
+
 #include "ballflyfilter.h"
+
 #include <cmath>
 #include <numeric>
 #include <iostream>
-#include <Eigen/Core>
-#include <Eigen/SVD>
 #include <QDebug>
 
 static const int MAX_FRAMES_PER_FLIGHT = 200; // 60Hz, 3 seconds in the air
