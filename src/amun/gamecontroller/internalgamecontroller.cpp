@@ -311,6 +311,49 @@ void InternalGameController::setEnabled(bool enabled)
     }
 }
 
+static ::gameController::Config acceptAllGameEvents()
+{
+    // Taken from the old engine.yml which we now regenerate on startup
+    const std::string ALL_EVENTS[] = {
+        "AIMLESS_KICK",
+        "ATTACKER_DOUBLE_TOUCHED_BALL",
+        "ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA",
+        "ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA",
+        "BALL_LEFT_FIELD_GOAL_LINE",
+        "BALL_LEFT_FIELD_TOUCH_LINE",
+        "BOT_CRASH_DRAWN",
+        "BOT_CRASH_UNIQUE",
+        "BOT_DRIBBLED_BALL_TOO_FAR",
+        "BOT_HELD_BALL_DELIBERATELY",
+        "BOT_INTERFERED_PLACEMENT",
+        "BOT_KICKED_BALL_TOO_FAST",
+        "BOT_PUSHED_BOT",
+        "BOT_TIPPED_OVER",
+        "BOT_TOO_FAST_IN_STOP",
+        "BOUNDARY_CROSSING",
+        "DEFENDER_IN_DEFENSE_AREA",
+        "DEFENDER_TOO_CLOSE_TO_KICK_POINT",
+        "GOAL",
+        "INVALID_GOAL",
+        "KEEPER_HELD_BALL",
+        "NO_PROGRESS_IN_GAME",
+        "PENALTY_KICK_FAILED",
+        "PLACEMENT_SUCCEEDED",
+        "POSSIBLE_GOAL",
+    };
+
+    ::gameController::Config config;
+    auto* behavior = config.mutable_game_event_behavior();
+
+    for (const auto& event : ALL_EVENTS) {
+        (*behavior)[event] = gameController::Config::BEHAVIOR_ACCEPT;
+    }
+
+    return config;
+}
+
+static const ::gameController::Config ACCEPTING_ALL_EVENTS = acceptAllGameEvents();
+
 void InternalGameController::start()
 {
     if (!m_trackedVisionGenerator) {
@@ -328,6 +371,11 @@ void InternalGameController::start()
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(gameController::Division::DIV_A);
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(true);
+
+            // Accept all, as there is only one Autoref, and sometimes the GC
+            // does not agree for the majority
+            ciInput.add_api_inputs()->mutable_config_delta()->CopyFrom(ACCEPTING_ALL_EVENTS);
+
             m_gcCIProcess.enqueueInput(ciInput);
         }
 
