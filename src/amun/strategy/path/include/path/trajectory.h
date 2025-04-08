@@ -76,7 +76,7 @@ public:
 
 private:
     std::array<T, n> elements;
-    int counter = 0;
+    std::size_t counter = 0;
 };
 
 class Trajectory1D {
