@@ -25,9 +25,17 @@
 #include "protobuf/status.h"
 #include <QObject>
 #include <QProcess>
+#include <optional>
 #include <vector>
 
 class Timer;
+
+/*! \brief The ports allocated for the game controller CI instance. */
+struct GameControllerPorts
+{
+    /*! \brief The port allocated for the CI protocol. */
+    int ci;
+};
 
 /*! \brief Connection to a local game controller instance using the CI
  * protocol.
@@ -62,7 +70,8 @@ private:
     bool doSend(const gameController::CiInput &input);
     void updateCurrentStatus(amun::StatusGameController::GameControllerState state);
 
-    static int findFreePort(int startingFrom);
+    static std::optional<int> findFreePort(int startingFrom);
+    static std::optional<GameControllerPorts> allocatePorts();
 
 private slots:
     void handleGCStdout();

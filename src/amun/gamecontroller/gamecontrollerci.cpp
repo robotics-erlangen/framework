@@ -28,6 +28,7 @@
 #include <QString>
 #include <QStringList>
 #include <QTcpServer>
+#include <QtGlobal>
 
 GameControllerCI::GameControllerCI(const Timer *timer, QObject *parent) :
     QObject(parent),
@@ -48,6 +49,16 @@ void GameControllerCI::start()
     m_deliberatlyStopped = false;
     updateCurrentStatus(amun::StatusGameController::STARTING);
 
+    const auto ports = allocatePorts();
+
+    if (Q_UNLIKELY(!ports)) {
+        // Not entirely accurate, but gets the point across
+        updateCurrentStatus(amun::StatusGameController::CRASHED);
+        return;
+    }
+
+    m_gcCIProtocolConnection.setPort(ports->ci);
+
     // Delete game controller data to ensure stale state-stores and configs by
     // previous runs (or GC versions) are removed
     //
@@ -60,16 +71,13 @@ void GameControllerCI::start()
     QDir gameControllerData { QString("%1/gamecontroller/data").arg(ERFORCE_CONFDIR) };
     gameControllerData.removeRecursively();
 
-    int port = findFreePort(GC_CI_PORT_START);
-    m_gcCIProtocolConnection.setPort(port);
-
     QString gameControllerExecutable(GAMECONTROLLER_EXECUTABLE_LOCATION);
 
     // the downloaded game controller file is not executable at first (relevant for linux and mac only)
     QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser);
 
     QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly";
+    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(ports->ci) << "-backendOnly";
 
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);
@@ -152,7 +160,7 @@ void GameControllerCI::updateCurrentStatus(amun::StatusGameController::GameContr
     emit sendStatus(status);
 }
 
-int GameControllerCI::findFreePort(int startingFrom)
+std::optional<int> GameControllerCI::findFreePort(int startingFrom)
 {
     for (int i = 0;i<10;i++) {
         int port = startingFrom + i;
@@ -163,8 +171,20 @@ int GameControllerCI::findFreePort(int startingFrom)
             return port;
         }
     }
-    // just give up
-    return startingFrom;
+
+    return std::nullopt;
+}
+
+std::optional<GameControllerPorts> GameControllerCI::allocatePorts()
+{
+    const auto ci = findFreePort(GC_CI_PORT_START);
+    if (!ci) {
+        return std::nullopt;
+    }
+
+    return GameControllerPorts {
+        .ci = *ci,
+    };
 }
 
 void GameControllerCI::handleGCStdout()
