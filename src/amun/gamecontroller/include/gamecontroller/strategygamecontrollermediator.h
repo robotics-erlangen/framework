@@ -22,13 +22,14 @@
 #define GAMECONTROLLERCONNECTION_H
 
 #include "gamecontrollersocket.h"
-#include "internalgamecontroller.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
 #include <google/protobuf/message.h>
 #include <QObject>
 #include <QList>
 #include <memory>
+
+class InternalGameController;
 
 class StrategyGameControllerMediator : public QObject
 {

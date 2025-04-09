@@ -25,6 +25,7 @@
 #include "core/timer.h"
 #include "core/protobuffilesaver.h"
 #include "core/sslprotocols.h"
+#include "gamecontroller/internalgamecontroller.h"
 #include "processor/processor.h"
 #include "processor/trackingreplay.h"
 #include "processor/radiosystem.h"
