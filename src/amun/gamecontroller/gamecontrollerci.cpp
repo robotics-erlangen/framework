@@ -69,7 +69,7 @@ void GameControllerCI::start()
     QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser);
 
     QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly" << "True";
+    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(port) << "-backendOnly";
 
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);
