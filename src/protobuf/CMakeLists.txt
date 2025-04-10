@@ -91,10 +91,14 @@ protobuf_generate(
     PROTOS ${PROTO_FILES}
     TARGET protobuf
     PROTOC_OUT_DIR ${PROTO_BINARY_DIR}
+    OUT_VAR GENERATED_FILES
 )
 
 # disable warnings for generated files
-target_compile_options(protobuf PUBLIC -w)
+# GENERATED_FILES includes headers as well, but the option is ignored for them
+set_source_files_properties(${GENERATED_FILES}
+    PROPERTIES COMPILE_FLAGS "-w"
+)
 
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
