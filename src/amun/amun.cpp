@@ -239,7 +239,7 @@ void Amun::start()
 
         m_gameControllerConnection[i].reset(new StrategyGameControllerMediator(m_processor->getInternalGameController(), i == 2));
         m_gameControllerConnection[i]->moveToThread(m_strategyThread[i]);
-        connect(m_processor, &Processor::refereeHostChanged, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::handleRefereeHost);
+        connect(m_processor, &Processor::refereeHostChanged, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::handleExternalRefereeHost);
         connect(this, &Amun::useInternalGameController, m_gameControllerConnection[i].get(), &StrategyGameControllerMediator::switchInternalGameController);
 
         Q_ASSERT(m_strategy[i] == nullptr);

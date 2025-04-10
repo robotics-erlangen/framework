@@ -32,20 +32,43 @@
 
 class InternalGameController;
 
+/*! \brief Multiplexes a RCON connection to the game controller.
+ *
+ * This class can connect to both an external and an internal game controller.
+ * Users (e.g. the Strategies or the Autoref) can send and receive RCON
+ * messages to either without having to know which one is currently active.
+ */
 class StrategyGameControllerMediator : public QObject
 {
     Q_OBJECT
 
 public:
+    /*! \brief Constructor without internal game controller.
+     *
+     * Since no internal game controller is provided, this instance can only
+     * connect to an external game controller.
+     */
     StrategyGameControllerMediator(bool isAutoref);
+
+    /*! \brief Constructor with internal game controller.
+     *
+     * This instance can connect to an external game controller and also
+     * communicate with the internal game controller.
+     */
     StrategyGameControllerMediator(InternalGameController *internalGameController, bool isAutoref);
+
     bool connectGameController();
+
+    /*! \brief Close the connection to both game controllers. */
     void closeConnection();
     bool receiveGameControllerMessage(google::protobuf::Message *type);
     bool sendGameControllerMessage(const google::protobuf::Message *message, const QString &messageType);
 
 public slots:
-    void handleRefereeHost(QString host);
+    /*! \brief Switch over to a new host for the external game controller. */
+    void handleExternalRefereeHost(QString host);
+
+    /*! \brief Enable or disable usage of the internal game controller. */
     void switchInternalGameController(bool isInternal);
 
 private slots:

@@ -77,7 +77,7 @@ void StrategyGameControllerMediator::handleInternalGCPortsUpdated(const GameCont
     m_internalGameControllerConnection.setPort(m_isAutoref ? ports.autoref : ports.team);
 }
 
-void StrategyGameControllerMediator::handleRefereeHost(QString host)
+void StrategyGameControllerMediator::handleExternalRefereeHost(QString host)
 {
     m_externalGameControllerConnection.setRefereeHost(host);
 }
