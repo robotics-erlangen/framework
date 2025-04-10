@@ -121,6 +121,9 @@ void LogWidget::handleStatus(const Status &status)
             case amun::GameController:
                 prefix = "GC";
                 break;
+            case amun::NetworkTransceiver:
+                prefix = "NT";
+                break;
             }
             logAppend += fromTime(log.timestamp(), prefix) + QString::fromStdString(log.text()) + "</div>\n";
         }
