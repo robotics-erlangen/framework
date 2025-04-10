@@ -21,6 +21,11 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+/*! \brief The team name. Should be exactly as in the game controller config
+ * file.
+ */
+static const char* const TEAM_NAME = "Replace with your own team name!";
+
 #ifdef RELATIVE_DATA_DIRS
 static const char* const ERFORCE_DATADIR = "./data/";
 static const char* const ERFORCE_CONFDIR = "./config/";

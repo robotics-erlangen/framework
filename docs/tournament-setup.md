@@ -5,7 +5,7 @@ These checks should be done during setup days.
 
 ## Team name
 Ra uses the team name for deciding which team we are for the tournament mode.
-Check ra/mainwindow.h `TEAM_NAME` to be exactly your team name (as used by the game controller)
+Check `config/include/config/config.h.in` `TEAM_NAME` to be exactly your team name (as used by the game controller)
 
 ## Ball modell
 To import the ball model and damping parameters that are broadcasted by the vision, use the "Field Parameters" widget in Ra.
