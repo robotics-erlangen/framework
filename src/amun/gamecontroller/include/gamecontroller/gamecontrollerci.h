@@ -35,6 +35,10 @@ struct GameControllerPorts
 {
     /*! \brief The port allocated for the CI protocol. */
     int ci;
+    /*! \brief The port allocated for the Autoref -> GC RCON protocol. */
+    int autoref;
+    /*! \brief The port allocated for the Team -> Autoref RCON protocol. */
+    int team;
 };
 
 /*! \brief Connection to a local game controller instance using the CI
@@ -65,6 +69,10 @@ public:
 
 signals:
     void sendStatus(const Status &status);
+    /*! \brief Signal emitted when the game controller is started and new ports
+     * are allocated.
+     */
+    void internalGCPortsUpdated(const GameControllerPorts &ports);
 
 private:
     bool doSend(const gameController::CiInput &input);
@@ -91,6 +99,9 @@ private:
     amun::StatusGameController::GameControllerState m_currentState = amun::StatusGameController::STOPPED;
     bool m_deliberatlyStopped = false;
 
+    static constexpr int NUMBER_OF_TRIED_PORTS = 10;
     // the first port that will be chosen for the connection if it is available
     static constexpr int GC_CI_PORT_START = 10209;
+    static constexpr int GC_AUTOREF_PORT_START = GC_CI_PORT_START + NUMBER_OF_TRIED_PORTS;
+    static constexpr int GC_TEAM_PORT_START = GC_AUTOREF_PORT_START + NUMBER_OF_TRIED_PORTS;
 };

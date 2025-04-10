@@ -39,6 +39,7 @@ InternalGameController::InternalGameController(const Timer *timer, QObject *pare
     m_humanInterventionSimulator(timer, this)
 {
     connect(&m_gcCIProcess, &GameControllerCI::sendStatus, this, &InternalGameController::sendStatus);
+    connect(&m_gcCIProcess, &GameControllerCI::internalGCPortsUpdated, this, &InternalGameController::internalGCPortsUpdated);
 
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendStatus, this, &InternalGameController::sendStatus);
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendCommand, this, &InternalGameController::sendCommand);

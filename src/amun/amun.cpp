@@ -25,6 +25,7 @@
 #include "core/timer.h"
 #include "core/protobuffilesaver.h"
 #include "core/sslprotocols.h"
+#include "gamecontroller/gamecontrollerci.h"
 #include "gamecontroller/internalgamecontroller.h"
 #include "processor/processor.h"
 #include "processor/trackingreplay.h"
@@ -103,6 +104,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType<amun::CommandReferee>("amun::CommandReferee");
     qRegisterMetaType<SSL_GeometryCameraCalibration>("SSL_GeometryCameraCalibration");
     qRegisterMetaType<world::BallModel>("world::BallModel");
+    qRegisterMetaType<GameControllerPorts>("GameControllerPorts");
 
     for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;

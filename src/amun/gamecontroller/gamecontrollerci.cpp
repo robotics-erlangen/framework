@@ -56,6 +56,7 @@ void GameControllerCI::start()
         updateCurrentStatus(amun::StatusGameController::CRASHED);
         return;
     }
+    emit internalGCPortsUpdated(*ports);
 
     m_gcCIProtocolConnection.setPort(ports->ci);
 
@@ -77,7 +78,11 @@ void GameControllerCI::start()
     QFile::setPermissions(gameControllerExecutable, QFileDevice::ExeUser | QFileDevice::ReadUser | QFileDevice::WriteUser);
 
     QStringList arguments;
-    arguments << "-timeAcquisitionMode" << "ci" << "-ciAddress" << QString("localhost:%1").arg(ports->ci) << "-backendOnly";
+    arguments << "-timeAcquisitionMode" << "ci"
+        << "-backendOnly"
+        << "-ciAddress" << QString("localhost:%1").arg(ports->ci)
+        << "-autorefAddress" << QString("localhost:%1").arg(ports->autoref)
+        << "-teamAddress" << QString("localhost:%1").arg(ports->team);
 
     m_gcProcess = new QProcess(this);
     m_gcProcess->setReadChannel(QProcess::StandardOutput);
@@ -162,7 +167,7 @@ void GameControllerCI::updateCurrentStatus(amun::StatusGameController::GameContr
 
 std::optional<int> GameControllerCI::findFreePort(int startingFrom)
 {
-    for (int i = 0;i<10;i++) {
+    for (int i = 0; i < NUMBER_OF_TRIED_PORTS; ++i) {
         int port = startingFrom + i;
         QTcpServer server;
         bool success = server.listen(QHostAddress::LocalHost, port);
@@ -182,8 +187,20 @@ std::optional<GameControllerPorts> GameControllerCI::allocatePorts()
         return std::nullopt;
     }
 
+    const auto autoref = findFreePort(GC_AUTOREF_PORT_START);
+    if (!autoref) {
+        return std::nullopt;
+    }
+
+    const auto team = findFreePort(GC_TEAM_PORT_START);
+    if (!team) {
+        return std::nullopt;
+    }
+
     return GameControllerPorts {
         .ci = *ci,
+        .autoref = *autoref,
+        .team = *team,
     };
 }
 

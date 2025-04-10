@@ -55,6 +55,8 @@ signals:
     void sendStatus(const Status &status);
     void gotPacketForReferee(const QByteArray &data, QString sender);
     void sendCommand(const Command &command);
+    /*! \copydoc GameControllerCI::internalGCPortsUpdated */
+    void internalGCPortsUpdated(const GameControllerPorts &ports);
 
 public slots:
     void handleStatus(const Status &status);
