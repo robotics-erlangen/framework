@@ -55,6 +55,24 @@ static bool isPerfectMatch(const logfile::Uid& timeline, const logfile::Uid& log
     return true;
 }
 
+/* In `LogFileFinder::findAll()`, we currently discard all entries that are not
+ * a PERFECT_MATCH . This simplifies the user experience, especially when users
+ * are searching for a specific log or directly manipulating the Log-UID.
+ * Navigating inside a FULL_MATCH log can be cumbersome due to frame number
+ * mismatches, making it more practical to focus solely on exact matches.
+ *
+ * Although `compareHash` was designed for more nuanced comparisons (e.g.
+ * PARTIAL_MATCH support), and might be useful for future features like NAS
+ * integration or timeline, it is deliberately unused for now to keep the UX
+ * intuitive and precise.
+ *
+ * Ideally, the UI should be improved to better surface these match qualities,
+ * so that the logic in `findAll()` isn’t tightly coupled to UX shortcuts.
+ * Until such an overhaul happens, we rely on isPerfectMatch() for clarity and
+ * simplicity.
+ */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-function"
 static LogFileFinder::LogFileQuality compareHash(const logfile::Uid& timeline, const logfile::Uid& logfile)
 {
     //check for perfect match
@@ -101,6 +119,7 @@ static LogFileFinder::LogFileQuality compareHash(const logfile::Uid& timeline, c
     }
     return LogFileFinder::LogFileQuality::PARTIAL_MATCH;
 }
+#pragma GCC diagnostic pop
 
 void LogFileFinder::addDirectory(const QString& s, logfile::LogOffer* offers)
 {
