@@ -318,6 +318,17 @@ void InternalGameController::start()
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(true);
 
+            // Set team names to own
+            {
+                auto* updateBlueTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
+                updateBlueTeam->set_for_team(gameController::Team::BLUE);
+                updateBlueTeam->mutable_team_name()->set_value(TEAM_NAME);
+
+                auto* updateYellowTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
+                updateYellowTeam->set_for_team(gameController::Team::YELLOW);
+                updateYellowTeam->mutable_team_name()->set_value(TEAM_NAME);
+            }
+
             m_gcCIProcess.enqueueInput(ciInput);
         }
 

@@ -53,7 +53,7 @@ private slots:
 
 private:
     GameControllerSocket& getCurrentConnection() {
-        return m_isAutoref && m_useInternalGameController
+        return m_useInternalGameController
             ? m_internalGameControllerConnection : m_externalGameControllerConnection;
     }
 
@@ -68,6 +68,5 @@ private:
     std::optional<GameControllerPorts> m_internalPorts;
 
     GameControllerSocket m_externalGameControllerConnection;
-    // Currently only used for the Autoref
     GameControllerSocket m_internalGameControllerConnection;
 };
