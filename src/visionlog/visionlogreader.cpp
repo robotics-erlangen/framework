@@ -98,9 +98,10 @@ std::pair<qint64, VisionLog::MessageType> VisionLogReader::readPacket(long fileO
         dataHeader.messageType = (VisionLog::MessageType) qFromBigEndian((int32_t) dataHeader.messageType);
         dataHeader.messageSize = qFromBigEndian(dataHeader.messageSize);
 
-        char buffer[dataHeader.messageSize];
-        in_stream->read(buffer, dataHeader.messageSize);
-        data = QByteArray(buffer, dataHeader.messageSize);
+        data = QByteArray();
+        data.resize(dataHeader.messageSize);
+
+        in_stream->read(data.data(), data.size());
         return std::make_pair(dataHeader.timestamp, dataHeader.messageType);
     }
     in_stream->clear();
