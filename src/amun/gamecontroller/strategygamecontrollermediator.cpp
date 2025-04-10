@@ -31,22 +31,50 @@ static constexpr std::uint16_t getExternalPort(bool isAutoref) {
 
 StrategyGameControllerMediator::StrategyGameControllerMediator(InternalGameController *internalGameController, bool isAutoref) :
     m_isAutoref(isAutoref),
-    m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
+    m_externalGameControllerConnection(getExternalPort(isAutoref), this),
+    m_internalGameControllerConnection(-1, this)
 {
-    connect(this, &StrategyGameControllerMediator::gotMessageForInternalGameController, internalGameController, &InternalGameController::handleGameEvent);
+    connect(internalGameController, &InternalGameController::internalGCPortsUpdated, this, &StrategyGameControllerMediator::handleInternalGCPortsUpdated);
+
+    // Has to be a numeric IP (not "localhost")
+    m_internalGameControllerConnection.setRefereeHost("127.0.0.1");
 }
 
 StrategyGameControllerMediator::StrategyGameControllerMediator(bool isAutoref) :
     m_isAutoref(isAutoref),
-    m_externalGameControllerConnection(getExternalPort(m_isAutoref), this)
+    m_externalGameControllerConnection(getExternalPort(isAutoref), this),
+    m_internalGameControllerConnection(-1, this)
 { }
 
 void StrategyGameControllerMediator::switchInternalGameController(bool isInternal)
 {
-    if (isInternal && !m_useInternalGameController) {
+    if (isInternal != m_useInternalGameController) {
+        // TODO Check if this is necessary - the line has just always been
+        // there
         closeConnection();
     }
+    if (!isInternal) {
+        // Reset the internal ports, so in case the internal game controller is
+        // reactivated, we don't accidentally reuse the old ports - the new
+        // internal game controller may have chosen a different set
+        m_internalPorts.reset();
+    }
+
     m_useInternalGameController = isInternal;
+}
+
+void StrategyGameControllerMediator::handleInternalGCPortsUpdated(const GameControllerPorts &ports)
+{
+    m_internalPorts = ports;
+
+    if (m_useInternalGameController) {
+        // Unlikely that this is relevant often (i.e. already being connected
+        // to the internal game controller but now changing the port), but
+        // still robust to catch this.
+        m_internalGameControllerConnection.closeConnection();
+    }
+
+    m_internalGameControllerConnection.setPort(ports.autoref);
 }
 
 void StrategyGameControllerMediator::handleRefereeHost(QString host)
@@ -56,48 +84,30 @@ void StrategyGameControllerMediator::handleRefereeHost(QString host)
 
 bool StrategyGameControllerMediator::connectGameController()
 {
-    if (m_isAutoref && m_useInternalGameController) {
-        return true;
-    } else {
-        return m_externalGameControllerConnection.connectGameController();
+    if (m_useInternalGameController && !m_internalPorts) {
+        return false;
     }
+    return getCurrentConnection().connectGameController();
 }
 
 void StrategyGameControllerMediator::closeConnection()
 {
-    m_internalGameControllerReplies.clear();
+    m_internalGameControllerConnection.closeConnection();
     m_externalGameControllerConnection.closeConnection();
 }
 
 bool StrategyGameControllerMediator::receiveGameControllerMessage(google::protobuf::Message *type)
 {
-    if (m_isAutoref && m_useInternalGameController) {
-        if (m_internalGameControllerReplies.size() > 0) {
-            type->CopyFrom(m_internalGameControllerReplies.front());
-            m_internalGameControllerReplies.pop_front();
-            return true;
-        }
+    if (m_useInternalGameController && !m_internalPorts) {
         return false;
-    } else {
-        return m_externalGameControllerConnection.receiveGameControllerMessage(type);
     }
+    return getCurrentConnection().receiveGameControllerMessage(type);
 }
 
 bool StrategyGameControllerMediator::sendGameControllerMessage(const google::protobuf::Message *message, const QString &messageType)
 {
-    if (m_isAutoref && m_useInternalGameController) {
-        // registration messages are not handled by the game controller
-        if (messageType == "AutoRefRegistration") {
-            gameController::ControllerReply reply;
-            reply.set_status_code(gameController::ControllerReply::OK);
-            m_internalGameControllerReplies.append(reply);
-            return true;
-        }
-        std::shared_ptr<gameController::AutoRefToController> messageCopy(new gameController::AutoRefToController);
-        messageCopy->CopyFrom(*static_cast<const gameController::AutoRefToController*>(message));
-        emit gotMessageForInternalGameController(messageCopy);
-        return true;
-    } else {
-        return m_externalGameControllerConnection.sendGameControllerMessage(message);
+    if (m_useInternalGameController && !m_internalPorts) {
+        return false;
     }
+    return getCurrentConnection().sendGameControllerMessage(message);
 }

@@ -20,6 +20,7 @@
 
 #pragma once
 
+#include "gamecontrollerci.h"
 #include "gamecontrollersocket.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
@@ -27,6 +28,7 @@
 #include <QObject>
 #include <QList>
 #include <memory>
+#include <optional>
 
 class InternalGameController;
 
@@ -46,13 +48,26 @@ public slots:
     void handleRefereeHost(QString host);
     void switchInternalGameController(bool isInternal);
 
-signals:
-    void gotMessageForInternalGameController(std::shared_ptr<gameController::AutoRefToController> message);
+private slots:
+    void handleInternalGCPortsUpdated(const GameControllerPorts &ports);
+
+private:
+    GameControllerSocket& getCurrentConnection() {
+        return m_isAutoref && m_useInternalGameController
+            ? m_internalGameControllerConnection : m_externalGameControllerConnection;
+    }
 
 private:
     bool m_useInternalGameController = true;
     bool m_isAutoref;
+    /*! \brief Ports used for the internal game controller.
+     *
+     * Empty if the internal game controller has not yet told us about its
+     * ports.
+     */
+    std::optional<GameControllerPorts> m_internalPorts;
 
-    QList<gameController::ControllerReply> m_internalGameControllerReplies;
     GameControllerSocket m_externalGameControllerConnection;
+    // Currently only used for the Autoref
+    GameControllerSocket m_internalGameControllerConnection;
 };

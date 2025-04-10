@@ -41,8 +41,6 @@ public:
     InternalGameController(const Timer *timer, QObject *parent = nullptr);
     ~InternalGameController();
 
-    void handleGameEvent(std::shared_ptr<gameController::AutoRefToController> message);
-
 private:
     void start();
     void stop();
