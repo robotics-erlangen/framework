@@ -294,7 +294,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
     const Vector minPos = minTimePos(start, target.speed, acc, slowDownTime);
     const float minTimeDistance = target.pos.distance(minPos);
 
-    const bool useMinTimePosForCenterPos = minTimeDistance < PARAMETER(AlphaTimeTrajectory, 0, 0.007f, 0.05);
+    const bool useMinTimePosForCenterPos = minTimeDistance < PARAMETER(AlphaTimeTrajectory, 0, 0.0025f, 0.05);
 
     // estimate rough time from distance
     // TODO: improve this estimate?
@@ -325,18 +325,16 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
 
     const int ITERATIONS = highPrecision ? HIGH_PRECISION_ITERATIONS : MAX_SEARCH_ITERATIONS;
     for (int i = 0;i<ITERATIONS;i++) {
-        const float currentPositiveTime = std::max(currentTime, 0.0f);
-
         Vector endPos;
         float assumedSpeed;
         Trajectory result;
         if (slowDownTime > 0) {
-            result = calculateTrajectory(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
+            result = calculateTrajectory(start, target.speed, currentTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
             endPos = result.endPosition();
             const Vector continuationSpeed = result.continuationSpeed();
             assumedSpeed = std::max(std::abs(continuationSpeed.x), std::abs(continuationSpeed.y));
         } else {
-            const auto trajectoryInfo = calculatePosition(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, endSpeedType, minTime);
+            const auto trajectoryInfo = calculatePosition(start, target.speed, currentTime, currentAngle, acc, vMax, endSpeedType, minTime);
             endPos = trajectoryInfo.endPos;
             assumedSpeed = std::max(std::abs(trajectoryInfo.increaseAtSpeed.x), std::abs(trajectoryInfo.increaseAtSpeed.y));
         }
@@ -344,7 +342,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         const float targetDistance = target.pos.distance(endPos);
         if (targetDistance < (highPrecision ? HIGH_QUALITY_TARGET_PRECISION : REGULAR_TARGET_PRECISION)) {
             if (slowDownTime <= 0) {
-                result = calculateTrajectory(start, target.speed, currentPositiveTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
+                result = calculateTrajectory(start, target.speed, currentTime, currentAngle, acc, vMax, slowDownTime, endSpeedType, minTime);
             }
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
             searchIterationCounter += i;
@@ -354,8 +352,13 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         }
 
         // update time
-        const Vector centerPos = centerTimePos(start, target.speed, currentPositiveTime + minTime, endSpeedType);
-        const Vector currentCenterTimePos = useMinTimePosForCenterPos ? minPos : centerPos;
+        const Vector centerPos = centerTimePos(start, target.speed, currentTime + minTime, endSpeedType);
+        // use minPos if the time is small enough to avoid a situation similar to gimbal locking
+        // since the angle has little to no effect with a very small time and the time may be further
+        // decreased if centerPos is used
+        const float forceMinPos = currentTime < PARAMETER(AlphaTimeTrajectory, 0.0, 0.007f, 0.5);
+        const bool useMinPos = useMinTimePosForCenterPos || forceMinPos;
+        const Vector currentCenterTimePos = useMinPos ? minPos : centerPos;
         const float newDistance = endPos.distance(currentCenterTimePos);
         const float targetCenterDistance = currentCenterTimePos.distance(target.pos);
         const float currentCenterDistanceDiff = targetCenterDistance - newDistance;
@@ -366,6 +369,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
         currentTime += currentCenterDistanceDiff * distanceFactor / std::max(PARAMETER(AlphaTimeTrajectory, 0.3, 0.82f, 1.5), assumedSpeed);
+        currentTime = std::max(currentTime, 0.0f);
 
         // update angle
         const float newAngle = (endPos - currentCenterTimePos).angle();
