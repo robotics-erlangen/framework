@@ -413,7 +413,7 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
     SlowdownAcceleration acceleration(profile.back().t, slowDownTime);
 
     std::vector<TrajectoryPoint> result;
-    result.reserve(profile.size() + 2);
+    result.reserve(profile.size() + 3);
 
     result.emplace_back(RobotState{s0, profile[0].v}, t0);
 
@@ -421,8 +421,18 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
     float time = 0;
     for (unsigned int i = 0;i<profile.size()-1;i++) {
         const auto precomputation = acceleration.precomputeSegment(profile[i], profile[i+1]);
+        const float segmentTime = acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
+
+        const float slowdownStartTime = acceleration.slowDownStartTime;
+        if (profile[i].t < slowdownStartTime && profile[i+1].t > slowdownStartTime) {
+            // insert additional segment at the start point of the quadratic slowdown
+            // to ensure that the acceleration for all non-slowdown segments stays correct
+            const auto inf = acceleration.partialSegmentOffsetAndSpeed(profile[i], profile[i+1], precomputation, time, slowdownStartTime);
+            result.emplace_back(RobotState{offset + correctionSpeed * time + inf.first, inf.second}, slowdownStartTime + t0);
+        }
+
         offset += acceleration.segmentOffset(profile[i], profile[i+1], precomputation);
-        time += acceleration.timeForSegment(profile[i], profile[i+1], precomputation);
+        time += segmentTime;
 
         result.emplace_back(RobotState{offset + correctionSpeed * time, profile[i+1].v}, time + t0);
     }
