@@ -50,6 +50,13 @@ void GameControllerCI::start()
 
     // Delete game controller data to ensure stale state-stores and configs by
     // previous runs (or GC versions) are removed
+    //
+    // Note that this removes the directory itself as well, not just its
+    // contents. This is an important aspect to allowing multiple game
+    // controllers to run in parallel - new instances will create a new
+    // directory, while old instances keep open file handles to the contents of
+    // the old directory. This way, the two instances don't share the same
+    // state store.
     QDir gameControllerData { QString("%1/gamecontroller/data").arg(ERFORCE_CONFDIR) };
     gameControllerData.removeRecursively();
 
