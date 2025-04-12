@@ -42,6 +42,7 @@ add_executable(cpptests
     amun/processor/tracking/ballgroundcollisionfilter.cpp
     amun/processor/tracking/visionframetime.cpp
     amun/processor/tracking/visionprocessingtime.cpp
+    amun/processor/tracking/worldparameters.cpp
 )
 
 target_compile_definitions(cpptests PRIVATE AMUNCLI_DIR="${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
