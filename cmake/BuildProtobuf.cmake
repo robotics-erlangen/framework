@@ -67,7 +67,7 @@ set(PROTOBUF_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 # this variable is necessary for cmake to wait until protobuf is built,
 # before trying to use protoc to generate the cpp and header files
-set(protobuf_generate_DEPENDENCIES project_protobuf CACHE TARGET "" FORCE)
+set(protobuf_generate_DEPENDENCIES project_protobuf CACHE INTERNAL "")
 # compatibility with cmake 3.10
 if(NOT TARGET protobuf::protoc)
     # avoid error if target was already created for an older version
