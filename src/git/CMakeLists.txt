@@ -101,12 +101,18 @@ else()
     )
 endif()
 
+if (MINGW)
+    set(REQUIRES_ESCAPE TRUE)
+else()
+    set(REQUIRES_ESCAPE FALSE)
+endif()
+
 add_custom_command(
     OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp"
     MAIN_DEPENDENCY gitconfig.cpp.in
     DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/stamp
     DEPENDS ${CMAKE_SOURCE_DIR}/cmake/checkGit.cmake
-    COMMAND ${CMAKE_COMMAND} -D TARGET=${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp -D GIT_BASE_DIR=${CMAKE_SOURCE_DIR} -D SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/gitconfig.cpp.in -D STAMP=${CMAKE_CURRENT_BINARY_DIR}/stamp -D ESCAPE=${MINGW} -P ${CMAKE_SOURCE_DIR}/cmake/checkGit.cmake
+    COMMAND ${CMAKE_COMMAND} -D TARGET=${CMAKE_CURRENT_BINARY_DIR}/gitconfig.cpp -D GIT_BASE_DIR=${CMAKE_SOURCE_DIR} -D SOURCE=${CMAKE_CURRENT_SOURCE_DIR}/gitconfig.cpp.in -D STAMP=${CMAKE_CURRENT_BINARY_DIR}/stamp -D ESCAPE=${REQUIRES_ESCAPE} -P ${CMAKE_SOURCE_DIR}/cmake/checkGit.cmake
     COMMENT "Checking git"
 )
 

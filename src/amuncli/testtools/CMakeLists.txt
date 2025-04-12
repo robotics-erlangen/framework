@@ -26,9 +26,6 @@ add_library(testtools STATIC
     connector.cpp
 )
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-target_sources(testtools PRIVATE ${UIC_SOURCES})
-
 target_link_libraries(testtools
     PUBLIC Qt5::Core
     PUBLIC shared::protobuf

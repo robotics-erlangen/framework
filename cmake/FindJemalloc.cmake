@@ -32,9 +32,15 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+# Check environment variable for hint
+set(JEMALLOC_DIR_HINT)
+if (DEFINED ENV{JEMALLOC_DIR})
+  set(JEMALLOC_DIR_HINT $ENV{JEMALLOC_DIR})
+endif()
+
 find_path(JEMALLOC_INCLUDE_DIR
   NAMES jemalloc.h
-  HINTS $ENV{JEMALLOC_DIR}
+  HINTS ${JEMALLOC_DIR_HINT}
   PATH_SUFFIXES include/jemalloc
   PATHS
     ~/Library/Frameworks
@@ -49,7 +55,7 @@ find_path(JEMALLOC_INCLUDE_DIR
 
 find_library(JEMALLOC_LIBRARY
   NAMES jemalloc
-  HINTS $ENV{JEMALLOC_DIR}
+  HINTS ${JEMALLOC_DIR_HINT}
   PATH_SUFFIXES lib64 lib
   PATHS
     ~/Library/Frameworks

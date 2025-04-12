@@ -33,9 +33,20 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+# Check environment variable for hints
+set(V8_INCLUDE_DIR_HINT)
+if (DEFINED ENV{V8_INCLUDE_DIR})
+    set(V8_INCLUDE_DIR_HINT $ENV{V8_INCLUDE_DIR})
+endif()
+
+set(V8_OUTPUT_DIR_HINT)
+if (DEFINED ENV{V8_OUTPUT_DIR})
+    set(V8_OUTPUT_DIR_HINT $ENV{V8_OUTPUT_DIR})
+endif()
+
 find_path(V8_INCLUDE_DIR
     NAMES v8.h
-    HINTS $ENV{V8_INCLUDE_DIR}
+    HINTS ${V8_INCLUDE_DIR_HINT}
     PATH_SUFFIXES include
     NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
@@ -57,7 +68,7 @@ endif()
 
 find_path(V8_OUTPUT_DIR_DYNAMIC
     NAMES ${CMAKE_SHARED_LIBRARY_PREFIX}v8${CMAKE_SHARED_LIBRARY_SUFFIX}
-    HINTS $ENV{V8_OUTPUT_DIR}
+    HINTS ${V8_OUTPUT_DIR_HINT}
     NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
     PATHS
@@ -65,7 +76,7 @@ find_path(V8_OUTPUT_DIR_DYNAMIC
 )
 find_path(V8_OUTPUT_DIR_STATIC
     NAMES obj/${CMAKE_STATIC_LIBRARY_PREFIX}v8_monolith${CMAKE_STATIC_LIBRARY_SUFFIX}
-    HINTS $ENV{V8_OUTPUT_DIR}
+    HINTS ${V8_OUTPUT_DIR_HINT}
     NO_DEFAULT_PATH
     NO_CMAKE_FIND_ROOT_PATH
     PATHS
@@ -80,7 +91,7 @@ if (NOT V8_OUTPUT_DIR)
     set(V8_IS_DYNAMIC FALSE)
 endif()
 
-if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT ${V8_VERSION} MATCHES ${V8_FIND_VERSION}) AND DOWNLOAD_V8)
+if((NOT V8_OUTPUT_DIR OR NOT V8_INCLUDE_DIR OR NOT V8_VERSION MATCHES V8_FIND_VERSION) AND DOWNLOAD_V8)
     if(MINGW32)
         set(V8_PRECOMPILED_DOWNLOAD "http://downloads.robotics-erlangen.de/software-precompiled/v8-version2-windows-x86.zip")
         set(V8_PRECOMPILED_HASH "b211960171de4aa26835a8d719973ef030b26e1112a1df901882479309de643b")

@@ -36,9 +36,15 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+# Check environment variable for hint
+set(SDL2_DIR_HINT)
+if (DEFINED ENV{SDL2_DIR})
+  set(SDL2_DIR_HINT $ENV{SDL2_DIR})
+endif()
+
 find_path(SDL2_INCLUDE_DIR
   NAMES SDL.h
-  HINTS $ENV{SDL2_DIR}
+  HINTS ${SDL2_DIR_HINT}
   PATH_SUFFIXES include/SDL2
   PATHS
     ~/Library/Frameworks
@@ -53,7 +59,7 @@ find_path(SDL2_INCLUDE_DIR
 
 find_library(SDL2_LIBRARY
   NAMES SDL2
-  HINTS $ENV{SDL2_DIR}
+  HINTS ${SDL2_DIR_HINT}
   PATH_SUFFIXES lib64 lib
   PATHS
     ~/Library/Frameworks
@@ -66,11 +72,12 @@ find_library(SDL2_LIBRARY
     /opt
 )
 
+set(SDL2_LIB_EXTRA)
 if (MINGW)
 	sanitize_env()
 	find_program(SDL2_LIBRARY_DLL
 	  NAMES SDL2.dll
-	  HINTS $ENV{SDL2_DIR}
+	  HINTS ${SDL2_DIR_HINT}
 	  PATH_SUFFIXES bin
 	  PATHS
 		~/Library/Frameworks
@@ -84,8 +91,6 @@ if (MINGW)
 	)
 	restore_env()
 	set(SDL2_LIB_EXTRA SDL2_LIBRARY_DLL)
-elseif()
-	set(SDL2_LIB_EXTRA)
 endif()
 
 if(SDL2_INCLUDE_DIR AND EXISTS "${SDL2_INCLUDE_DIR}/SDL_version.h")

@@ -87,6 +87,6 @@ target_include_directories(path_parameter_optimization
 add_library(amun::path_parameter_optimization ALIAS path_parameter_optimization)
 target_compile_definitions(path_parameter_optimization PUBLIC ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION)
 
-if("${PATHFINDING_DEBUG}" OR ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+if(PATHFINDING_DEBUG OR CMAKE_BUILD_TYPE STREQUAL "Debug")
     target_compile_definitions(path PRIVATE PATHFINDING_DEBUG)
 endif()

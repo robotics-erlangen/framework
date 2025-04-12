@@ -22,9 +22,6 @@ add_executable(logplayer WIN32 MACOSX_BUNDLE
     logplayer.cpp
 )
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-target_sources(logplayer PRIVATE ${UIC_SOURCES})
-
 if(MINGW)
     list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/data/pkg/logplayer.rc)
 endif(MINGW)

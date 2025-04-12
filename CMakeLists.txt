@@ -30,6 +30,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 option(BUILD_FIRMWARE "Whether to build the firmware. Downloads GCC and ChibiOS" OFF)
 option(DOWNLOAD_V8    "Whether to download a prebuilt V8 version. If disabled, V8 must be built locally to enable Typescript support" OFF)
 option(TRACKING_DEBUG "Whether to enable tracking debug mode (extra data written to plotter and debug tree)" OFF)
+option(PATHFINDING_DEBUG "Whether to enable pathfinding debug mode (extra data written to plotter and debug tree)" OFF)
 option(EASY_MODE      "Whether to enable easy mode (changes to Ra for first time users)" OFF)
 
 #
@@ -89,6 +90,15 @@ SET(CMAKE_CXX_EXTENSIONS ON)
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to Release")
     set(CMAKE_BUILD_TYPE "Release")
+endif()
+
+if (NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+    message(STATUS "No toolchain file specified, using system compiler")
+
+    # We pass the CMAKE_TOOLCHAIN_FILE to ExternalProjects. If we did not set
+    # it manually (because we use the system compiler), we get warnings due to
+    # undefined variables.
+    set(CMAKE_TOOLCHAIN_FILE)
 endif()
 
 if(MINGW)

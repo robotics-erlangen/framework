@@ -32,9 +32,15 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+# Check environment variable for hint
+set(USB_DIR_HINT)
+if (DEFINED ENV{USB_DIR})
+  set(USB_DIR_HINT $ENV{USB_DIR})
+endif()
+
 find_path(USB_INCLUDE_DIR
   NAMES libusb.h
-  HINTS $ENV{USB_DIR}
+  HINTS ${USB_DIR_HINT}
   PATH_SUFFIXES include/libusb-1.0
   PATHS
     ~/Library/Frameworks
@@ -49,7 +55,7 @@ find_path(USB_INCLUDE_DIR
 
 find_library(USB_LIBRARY
   NAMES usb-1.0
-  HINTS $ENV{USB_DIR}
+  HINTS ${USB_DIR_HINT}
   PATH_SUFFIXES lib64 lib
   PATHS
     ~/Library/Frameworks
@@ -62,11 +68,12 @@ find_library(USB_LIBRARY
     /opt
 )
 
+set(USB_LIB_EXTRA)
 if (MINGW)
 	sanitize_env()
 	find_program(USB_LIBRARY_DLL
 	  NAMES libusb-1.0.dll
-	  HINTS $ENV{USB_DIR}
+	  HINTS ${USB_DIR_HINT}
 	  PATH_SUFFIXES bin
 	  PATHS
 		~/Library/Frameworks
@@ -80,8 +87,6 @@ if (MINGW)
 	)
 	set(USB_LIB_EXTRA USB_LIBRARY_DLL)
 	restore_env()
-elseif()
-	set(USB_LIB_EXTRA)
 endif()
 
 include(FindPackageHandleStandardArgs)
