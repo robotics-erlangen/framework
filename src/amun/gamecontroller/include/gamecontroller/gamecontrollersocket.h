@@ -18,8 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef EXTERNALGAMECONTROLLER_H
-#define EXTERNALGAMECONTROLLER_H
+#pragma once
 
 #include <memory>
 #include <QByteArray>
@@ -49,5 +48,3 @@ private:
 
     quint16 m_port;
 };
-
-#endif // EXTERNALGAMECONTROLLER_H

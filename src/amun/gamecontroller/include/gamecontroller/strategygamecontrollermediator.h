@@ -18,8 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef GAMECONTROLLERCONNECTION_H
-#define GAMECONTROLLERCONNECTION_H
+#pragma once
 
 #include "gamecontrollersocket.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon.pb.h"
@@ -57,5 +56,3 @@ private:
     QList<gameController::ControllerReply> m_internalGameControllerReplies;
     GameControllerSocket m_externalGameControllerConnection;
 };
-
-#endif // GAMECONTROLLERCONNECTION_H
