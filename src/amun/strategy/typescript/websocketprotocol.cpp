@@ -51,7 +51,7 @@ const size_t kMaskingKeyWidthInBytes = 4;
 // The inspector feature is unused and noone currently maintains it, so we
 // disable the warning
 #pragma GCC diagnostic push
-#if !defined(__has_warning) || __has_warning("-Wstringop-overflow")
+#ifndef __clang__
 #pragma GCC diagnostic ignored "-Wstringop-overflow"
 #endif
 #pragma GCC diagnostic ignored "-Warray-bounds"
