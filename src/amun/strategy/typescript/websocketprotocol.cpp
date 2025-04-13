@@ -48,6 +48,14 @@ const size_t kTwoBytePayloadLengthField = 126;
 const size_t kEightBytePayloadLengthField = 127;
 const size_t kMaskingKeyWidthInBytes = 4;
 
+// The inspector feature is unused and noone currently maintains it, so we
+// disable the warning
+#pragma GCC diagnostic push
+#if !defined(__has_warning) || __has_warning("-Wstringop-overflow")
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+#pragma GCC diagnostic ignored "-Warray-bounds"
+
 std::vector<char> encode_frame_hybi17(const std::vector<char>& message) {
   std::vector<char> frame;
   OpCode op_code = kOpCodeText;
@@ -74,6 +82,8 @@ std::vector<char> encode_frame_hybi17(const std::vector<char>& message) {
   frame.insert(frame.end(), message.begin(), message.end());
   return frame;
 }
+
+#pragma GCC diagnostic pop
 
 ws_decode_result decode_frame_hybi17(const std::vector<char>& buffer,
                                             bool client_frame,
