@@ -37,12 +37,6 @@ QString stringViewToQString(StringView view)
     return QString::fromUtf16(reinterpret_cast<const unsigned short*>(view.characters16()), view.length());
 }
 
-StringView qStringToStringView(const QString &s)
-{
-    QByteArray d = s.toUtf8();
-    return StringView((uint8_t*)d.data(), d.length());
-}
-
 // InspectorHolder
 InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context) :
     m_client(isolate, context),
@@ -53,7 +47,8 @@ InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Persistent<v8::
     HandleScope handleScope(isolate);
     Local<Context> c = Local<Context>::New(isolate, context);
     V8ContextInfo info(c, 1, StringView());
-    info.auxData = qStringToStringView("{\"isDefault\":true}");
+    QByteArray auxData = QString("{\"isDefault\":true}").toUtf8();
+    info.auxData = StringView(reinterpret_cast<const uint8_t*>(auxData.data()), auxData.length());
     m_inspector->contextCreated(info);
 }
 
