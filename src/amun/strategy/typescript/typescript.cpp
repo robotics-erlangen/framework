@@ -93,7 +93,6 @@ Typescript::~Typescript()
         m_inspectorHolder.reset();
     }
     m_internalDebugger.release();
-    qDeleteAll(m_scriptOrigins);
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
     m_timeoutCheckerThread->wait();
@@ -472,8 +471,6 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     // clean up old variables and prepare new execution environment
     // this is for the case that the strategy is reloaded in place
     clearRequireCache();
-    qDeleteAll(m_scriptOrigins);
-    m_scriptOrigins.clear();
     m_scriptIdCounter = 0;
     m_entryPoints.clear();
     createGlobalScope();
@@ -487,7 +484,8 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     // Compile the source code.
     Local<Script> script;
     TryCatch tryCatch(m_isolate);
-    if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
+    auto scriptOrigin = scriptOriginFromFileName(filename);
+    if (!Script::Compile(context, source, &scriptOrigin).ToLocal(&script)) {
         String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
         return false;
@@ -682,9 +680,9 @@ void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
     m_requireTemplate.Reset(m_isolate, requireTemplate);
 }
 
-ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
+ScriptOrigin Typescript::scriptOriginFromFileName(QString name)
 {
-    ScriptOrigin *origin = new ScriptOrigin {
+    ScriptOrigin origin {
         m_isolate,
         v8string(m_isolate, name),
         0,
@@ -693,7 +691,6 @@ ScriptOrigin *Typescript::scriptOriginFromFileName(QString name)
         m_scriptIdCounter
     };
     m_scriptIdCounter++;
-    m_scriptOrigins.push_back(origin);
     return origin;
 }
 
@@ -722,7 +719,8 @@ bool Typescript::loadModule(QString name)
         // Compile the source code.
         Local<Script> script;
         TryCatch tryCatch(m_isolate);
-        if (!Script::Compile(context, source, scriptOriginFromFileName(filename)).ToLocal(&script)) {
+        auto scriptOrigin = scriptOriginFromFileName(filename);
+        if (!Script::Compile(context, source, &scriptOrigin).ToLocal(&script)) {
             tryCatch.ReThrow();
             return false;
         }

@@ -82,7 +82,7 @@ private:
     static void defineModule(const v8::FunctionCallbackInfo<v8::Value> &args);
     void registerDefineFunction(v8::Local<v8::ObjectTemplate> global);
     bool loadModule(QString name);
-    v8::ScriptOrigin *scriptOriginFromFileName(QString name);
+    v8::ScriptOrigin scriptOriginFromFileName(QString name);
     static void saveNode(QTextStream &file, const v8::CpuProfileNode *node, QString functionStack);
     void clearRequireCache();
     void createGlobalScope();
@@ -128,7 +128,6 @@ private:
     v8::CpuProfiler *m_profiler;
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
-    QList<v8::ScriptOrigin*> m_scriptOrigins;
     std::unique_ptr<InspectorHolder> m_inspectorHolder;
     std::unique_ptr<InternalDebugger> m_internalDebugger;
 
