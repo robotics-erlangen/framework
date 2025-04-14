@@ -38,7 +38,7 @@ QString stringViewToQString(StringView view)
 }
 
 // InspectorHolder
-InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context) :
+InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Global<v8::Context> &context) :
     m_client(isolate, context),
     m_inspector(V8Inspector::create(isolate, &m_client)),
     m_session(m_inspector->connect(1, &m_channel, StringView())),
@@ -94,7 +94,7 @@ void InspectorHolder::DefaultChannel::flushProtocolNotifications()
 
 
 // DefaultInspectorClient
-InspectorHolder::DefaultInspectorClient::DefaultInspectorClient(Isolate *isolate, const Persistent<Context> &context) :
+InspectorHolder::DefaultInspectorClient::DefaultInspectorClient(Isolate *isolate, const Global<Context> &context) :
     m_isolate(isolate)
 {
     m_context.Reset(isolate, context);

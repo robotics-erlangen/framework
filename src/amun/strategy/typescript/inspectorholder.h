@@ -55,7 +55,7 @@ private:
 class InspectorHolder
 {
 public:
-    InspectorHolder(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context);
+    InspectorHolder(v8::Isolate *isolate, const v8::Global<v8::Context> &context);
     void setInspectorHandler(AbstractInspectorHandler *handler);
     bool hasInspectorHandler() { return m_inspectorHandler != nullptr; }
     AbstractInspectorHandler *getInspectorHandler() { return m_inspectorHandler; }
@@ -85,7 +85,7 @@ private:
 
     class DefaultInspectorClient : public v8_inspector::V8InspectorClient {
     public:
-        explicit DefaultInspectorClient(v8::Isolate *isolate, const v8::Persistent<v8::Context> &context);
+        explicit DefaultInspectorClient(v8::Isolate *isolate, const v8::Global<v8::Context> &context);
         void setInspectorHandler(AbstractInspectorHandler *handler) { m_inspectorHandler = handler; }
         virtual void runMessageLoopOnPause(int) override;
         virtual void quitMessageLoopOnPause() override;
@@ -94,7 +94,7 @@ private:
     private:
         bool m_runMessageLoop;
         v8::Isolate *m_isolate;
-        v8::Persistent<v8::Context> m_context;
+        v8::Global<v8::Context> m_context;
         AbstractInspectorHandler *m_inspectorHandler;
     };
 
