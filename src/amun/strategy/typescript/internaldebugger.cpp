@@ -42,14 +42,6 @@ void InternalDebugger::setFunctions(v8::Local<v8::Function> &responseCallback, v
     m_hasFunctions = true;
 }
 
-void InternalDebugger::clearFunctions()
-{
-    m_hasFunctions = false;
-    m_responseCallback.Reset();
-    m_notificationCallback.Reset();
-    m_messageLoop.Reset();
-}
-
 void InternalDebugger::messageLoop()
 {
     if (!m_hasFunctions) {
@@ -71,7 +63,7 @@ void InternalDebugger::inspectorNotification(QString content)
     handleStringContent(content, m_notificationCallback);
 }
 
-void InternalDebugger::handleStringContent(QString content, v8::Persistent<v8::Function> &function)
+void InternalDebugger::handleStringContent(QString content, v8::Global<v8::Function> &function)
 {
     if (!m_hasFunctions) {
         return;
