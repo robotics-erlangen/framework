@@ -24,12 +24,13 @@
 #include "strategy/script/abstractstrategyscript.h"
 
 #include <QString>
-#include <QMap>
 #include <QTextStream>
 #include <QAtomicInt>
 #include <v8.h>
 #include <v8-profiler.h>
+#include <map>
 #include <memory>
+#include <vector>
 
 #include "strategy/script/compiler.h"
 
@@ -119,7 +120,7 @@ private:
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;
 
-    QList<QMap<QString, v8::Global<v8::Value>*>> m_requireCache;
+    std::vector<std::map<QString, std::unique_ptr<v8::Global<v8::Value>>>> m_requireCache;
     v8::Persistent<v8::FunctionTemplate> m_requireTemplate;
     QString m_currentExecutingModule;
     QAtomicInt m_timeoutCounter; // used for script timeout

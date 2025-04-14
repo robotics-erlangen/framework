@@ -49,12 +49,13 @@ template <typename T> inline void USE(T&&) {}
 
 Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry) :
     AbstractStrategyScript (timer, type, scriptState, registry),
-    m_requireCache({{}}),
     m_executionCounter(0),
     m_profiler (nullptr),
     m_scriptIdCounter(0),
     m_luaState(nullptr)
 {
+    m_requireCache.push_back({});
+
     Isolate::CreateParams create_params;
     m_arrayAllocator.reset(ArrayBuffer::Allocator::NewDefaultAllocator());
     create_params.array_buffer_allocator = m_arrayAllocator.get();
@@ -113,14 +114,8 @@ Typescript::~Typescript()
 
 void Typescript::clearRequireCache()
 {
-    for (auto &cache : m_requireCache) {
-        for (auto element : cache.values()) {
-            // TODO: When applying tsc's memory Modell, where JS-Objects may delete C++ Objects when GC collectes them,
-            // Reset element first and delete it afterwards (Or does JS / v8 handle that itself?)
-            delete element;
-        }
-    }
-    m_requireCache = {{}};
+    m_requireCache.clear();
+    m_requireCache.push_back({});
 }
 
 static void scriptTimeoutCallback(v8::Isolate*, void* data) {
@@ -647,11 +642,7 @@ void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
 
     Local<Object> exports = Object::New(isolate);
     parameters.push_back(exports);
-    if (t->m_requireCache.back().contains(t->m_currentExecutingModule)) {
-        // TODO: See destructor
-        delete t->m_requireCache.back()[t->m_currentExecutingModule];
-    }
-    t->m_requireCache.back()[t->m_currentExecutingModule] = new Global<Value>(isolate, exports);
+    t->m_requireCache.back().insert_or_assign(t->m_currentExecutingModule, std::make_unique<Global<Value>>(isolate, exports));
 
 
     for (unsigned int i = 2;i<imports->Length();i++) {
@@ -731,7 +722,7 @@ bool Typescript::loadModule(QString name)
 
         // insert a default module content in case no define function is called in the module
         Local<Object> defaultEmptyModule = Object::New(m_isolate);
-        m_requireCache.back()[name] = new Global<Value>(m_isolate, defaultEmptyModule);
+        m_requireCache.back().insert_or_assign(name, std::make_unique<Global<Value>>(m_isolate, defaultEmptyModule));
 
         USE(script->Run(context));
         if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
@@ -766,7 +757,7 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
             Local<Value> value = overlays->Get(context, key).ToLocalChecked();
 
             QString keyString(*String::Utf8Value(isolate, key));
-            t->m_requireCache.back()[keyString] = new Global<Value>(args.GetIsolate(), value);
+            t->m_requireCache.back().insert_or_assign(keyString, std::make_unique<Global<Value>>(args.GetIsolate(), value));
         }
     }
 
@@ -796,9 +787,6 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
 
     // remove new require module stack layer
     if (cleanRequire) {
-        for (auto element : t->m_requireCache.back().values()) {
-            delete element;
-        }
         t->m_requireCache.pop_back();
     }
 }
