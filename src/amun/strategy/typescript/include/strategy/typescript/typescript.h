@@ -111,12 +111,12 @@ private:
     IsolateHolder m_isolateHolder;
     v8::Isolate* m_isolate = nullptr;
 
-    v8::Persistent<v8::Context> m_context;
-    v8::Persistent<v8::Function> m_function;
+    v8::Global<v8::Context> m_context;
+    v8::Global<v8::Function> m_function;
     double m_totalPathTime;
 
     std::vector<std::map<QString, std::unique_ptr<v8::Global<v8::Value>>>> m_requireCache;
-    v8::Persistent<v8::FunctionTemplate> m_requireTemplate;
+    v8::Global<v8::FunctionTemplate> m_requireTemplate;
     QString m_currentExecutingModule;
     QAtomicInt m_timeoutCounter; // used for script timeout
     int m_executionCounter;

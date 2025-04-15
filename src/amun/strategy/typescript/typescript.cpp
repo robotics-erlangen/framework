@@ -92,10 +92,6 @@ Typescript::~Typescript()
         m_profiler = nullptr;
     }
 
-    m_function.Reset();
-    m_requireTemplate.Reset();
-    m_context.Reset();
-
     if (m_luaState) {
         lua_close(m_luaState);
     }
@@ -140,7 +136,7 @@ void Typescript::setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> h
 {
     if (m_inspectorHolder->hasInspectorHandler()) {
         m_inspectorHolder.reset();
-        m_inspectorHolder.reset(new InspectorHolder(m_isolate, v8::Global<v8::Context>(m_isolate, m_context)));
+        m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
         m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     }
     m_inspectorHolder->setInspectorHandler(std::move(handler));
@@ -149,7 +145,7 @@ void Typescript::setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> h
 void Typescript::removeInspectorHandler()
 {
     m_inspectorHolder.reset();
-    m_inspectorHolder.reset(new InspectorHolder(m_isolate, v8::Global<v8::Context>(m_isolate, m_context)));
+    m_inspectorHolder.reset(new InspectorHolder(m_isolate, m_context));
     m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
 
     auto internalDebugger = std::make_unique<InternalDebugger>(m_isolate, this);
