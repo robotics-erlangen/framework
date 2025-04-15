@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 add_library(typescript STATIC
+    include/strategy/typescript/isolateholder.h
     include/strategy/typescript/typescript.h
 
     checkforscripttimeout.h
@@ -30,6 +31,7 @@ add_library(typescript STATIC
     inspectorserver.h
     internaldebugger.cpp
     internaldebugger.h
+    isolateholder.cpp
     js_amun.cpp
     js_amun.h
     js_path.cpp

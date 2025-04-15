@@ -49,19 +49,13 @@ template <typename T> inline void USE(T&&) {}
 
 Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scriptState, CompilerRegistry* registry) :
     AbstractStrategyScript (timer, type, scriptState, registry),
+    m_isolate(m_isolateHolder.get()),
     m_executionCounter(0),
     m_profiler (nullptr),
     m_scriptIdCounter(0),
     m_luaState(nullptr)
 {
     m_requireCache.push_back({});
-
-    Isolate::CreateParams create_params;
-    m_arrayAllocator.reset(ArrayBuffer::Allocator::NewDefaultAllocator());
-    create_params.array_buffer_allocator = m_arrayAllocator.get();
-    m_isolate = Isolate::New(create_params);
-    m_isolate->SetRAILMode(PERFORMANCE_LOAD);
-    m_isolate->Enter();
 
     // creates its own QThread and moves to it
     m_checkForScriptTimeout = new CheckForScriptTimeout(m_isolate, m_timeoutCounter);
@@ -89,7 +83,6 @@ Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scrip
 Typescript::~Typescript()
 {
     m_internalDebugger = nullptr;
-    m_inspectorHolder.reset();
 
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
@@ -98,12 +91,11 @@ Typescript::~Typescript()
         m_profiler->Dispose();
         m_profiler = nullptr;
     }
-    clearRequireCache();
+
     m_function.Reset();
     m_requireTemplate.Reset();
     m_context.Reset();
-    m_isolate->Exit();
-    m_isolate->Dispose();
+
     if (m_luaState) {
         lua_close(m_luaState);
     }

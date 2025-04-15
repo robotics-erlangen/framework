@@ -32,6 +32,7 @@
 #include <memory>
 #include <vector>
 
+#include "isolateholder.h"
 #include "strategy/script/compiler.h"
 
 class CheckForScriptTimeout;
@@ -106,15 +107,10 @@ private slots:
     void handleVisualization(const amun::Visualization &vis);
 
 private:
-    v8::Isolate* m_isolate;
-    // The isolate does not take ownership of the allocator.
-    // Hence it needs to be stored and deleted manually.
-    // Especially this class needs the allocator while the isolate is in use to
-    // allow external debuggers to connect. If it were deleted earlier, this
-    // would rise a use-after-free.
-    // It is uncertain, apart from the above, if the isolate actually needs the
-    // allocator after initialization.
-    std::unique_ptr<v8::ArrayBuffer::Allocator> m_arrayAllocator;
+    // Should be first, since many other members depend on it
+    IsolateHolder m_isolateHolder;
+    v8::Isolate* m_isolate = nullptr;
+
     v8::Persistent<v8::Context> m_context;
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;
