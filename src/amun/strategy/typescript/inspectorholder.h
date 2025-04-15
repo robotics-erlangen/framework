@@ -56,9 +56,9 @@ class InspectorHolder
 {
 public:
     InspectorHolder(v8::Isolate *isolate, const v8::Global<v8::Context> &context);
-    void setInspectorHandler(AbstractInspectorHandler *handler);
+    void setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> handler);
     bool hasInspectorHandler() { return m_inspectorHandler != nullptr; }
-    AbstractInspectorHandler *getInspectorHandler() { return m_inspectorHandler; }
+    AbstractInspectorHandler *getInspectorHandler() { return m_inspectorHandler.get(); }
     void setIsIgnoringMessages(bool ignore) { m_channel.setIsIgnoringMessages(ignore); }
     void breakProgram(QString reason);
 
@@ -99,11 +99,14 @@ private:
     };
 
 private:
+    // Should be ordered before m_channel and m_client as we pass non-owning
+    // pointers to them
+    std::unique_ptr<AbstractInspectorHandler> m_inspectorHandler;
+
     DefaultChannel m_channel;
     DefaultInspectorClient m_client;
     std::unique_ptr<v8_inspector::V8Inspector> m_inspector;
     std::unique_ptr<v8_inspector::V8InspectorSession> m_session;
-    AbstractInspectorHandler *m_inspectorHandler;
 };
 
 #endif // INSPECTORHOLDER_H

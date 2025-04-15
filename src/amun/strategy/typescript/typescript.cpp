@@ -88,12 +88,9 @@ Typescript::Typescript(const Timer *timer, StrategyType type, ScriptState& scrip
 
 Typescript::~Typescript()
 {
-    if (m_inspectorHolder) {
-        // must be destroyed before the isolate
-        delete m_inspectorHolder->getInspectorHandler();
-        m_inspectorHolder.reset();
-    }
-    m_internalDebugger.release();
+    m_internalDebugger = nullptr;
+    m_inspectorHolder.reset();
+
     m_checkForScriptTimeout->deleteLater();
     m_timeoutCheckerThread->quit();
     m_timeoutCheckerThread->wait();
@@ -137,11 +134,7 @@ void Typescript::createGlobalScope()
     global->Set(context, objectName, Object::New(m_isolate)).Check();
     m_context.Reset(m_isolate, context);
 
-    m_inspectorHolder.reset();
-    m_inspectorHolder.reset(new InspectorHolder(m_isolate, v8::Global<v8::Context>(m_isolate, m_context)));
-    m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
-    m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
-    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
+    removeInspectorHandler();
 }
 
 bool Typescript::canHandle(const QString &filename)
@@ -151,14 +144,14 @@ bool Typescript::canHandle(const QString &filename)
     return fname == "init.ts";
 }
 
-void Typescript::setInspectorHandler(AbstractInspectorHandler *handler)
+void Typescript::setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> handler)
 {
     if (m_inspectorHolder->hasInspectorHandler()) {
         m_inspectorHolder.reset();
         m_inspectorHolder.reset(new InspectorHolder(m_isolate, v8::Global<v8::Context>(m_isolate, m_context)));
         m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
     }
-    m_inspectorHolder->setInspectorHandler(handler);
+    m_inspectorHolder->setInspectorHandler(std::move(handler));
 }
 
 void Typescript::removeInspectorHandler()
@@ -166,20 +159,23 @@ void Typescript::removeInspectorHandler()
     m_inspectorHolder.reset();
     m_inspectorHolder.reset(new InspectorHolder(m_isolate, v8::Global<v8::Context>(m_isolate, m_context)));
     m_checkForScriptTimeout->setTimeoutCallback(scriptTimeoutCallback, m_inspectorHolder.get());
-    m_internalDebugger.reset(new InternalDebugger(m_isolate, this));
-    m_inspectorHolder->setInspectorHandler(m_internalDebugger.get());
+
+    auto internalDebugger = std::make_unique<InternalDebugger>(m_isolate, this);
+    m_internalDebugger = internalDebugger.get();
+    m_inspectorHolder->setInspectorHandler(std::move(internalDebugger));
 }
 
 bool Typescript::hasInspectorHandler() const
 {
     // internal debugger doesn't count
-    return m_inspectorHolder->hasInspectorHandler() && m_inspectorHolder->getInspectorHandler() != m_internalDebugger.get();
+    return m_inspectorHolder->hasInspectorHandler() && m_inspectorHolder->getInspectorHandler() != m_internalDebugger;
 }
 
 bool Typescript::canConnectInternalDebugger() const
 {
-    return m_inspectorHolder->hasInspectorHandler() && m_inspectorHolder->getInspectorHandler() == m_internalDebugger.get() &&
-            !m_internalDebugger->isConnected();
+    return m_inspectorHolder->hasInspectorHandler()
+        && m_inspectorHolder->getInspectorHandler() == m_internalDebugger
+        && !m_internalDebugger->isConnected();
 }
 
 static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg, Local<Object>& object, const char* funName, Isolate* isolate, std::vector<Local<Value>>&& parameters = {})

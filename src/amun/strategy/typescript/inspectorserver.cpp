@@ -86,10 +86,11 @@ bool InspectorServer::handleGetRequest(QString request)
                              "Sec-WebSocket-Accept: " + hash.result().toBase64() + "\r\n\r\n");
             m_socket->flush();
             disconnect(m_socket.get(), SIGNAL(readyRead()), this, SLOT(readData()));
-            InspectorHandler *handler = new InspectorHandler(m_strategy, m_socket);
-            connect(handler, SIGNAL(frontendDisconnected()), SLOT(acceptConnections()));
-            m_strategy->setInspectorHandler(handler);
-            handler->readData();
+            auto handler = std::make_unique<InspectorHandler>(m_strategy, m_socket);
+            auto handlerPtr = handler.get();
+            connect(handlerPtr, &InspectorHandler::frontendDisconnected, this, &InspectorServer::acceptConnections);
+            m_strategy->setInspectorHandler(std::move(handler));
+            handlerPtr->readData();
             m_server.close();
             m_socket.reset();
             return true;

@@ -41,8 +41,7 @@ QString stringViewToQString(StringView view)
 InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Global<v8::Context> &context) :
     m_client(isolate, context),
     m_inspector(V8Inspector::create(isolate, &m_client)),
-    m_session(m_inspector->connect(1, &m_channel, StringView())),
-    m_inspectorHandler(nullptr)
+    m_session(m_inspector->connect(1, &m_channel, StringView()))
 {
     HandleScope handleScope(isolate);
     Local<Context> c = Local<Context>::New(isolate, context);
@@ -52,13 +51,15 @@ InspectorHolder::InspectorHolder(v8::Isolate *isolate, const v8::Global<v8::Cont
     m_inspector->contextCreated(info);
 }
 
-void InspectorHolder::setInspectorHandler(AbstractInspectorHandler *handler)
+void InspectorHolder::setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> handler)
 {
     handler->setFunctions([this](uint8_t *message, int length) { m_session->dispatchProtocolMessage(StringView(message, length)); },
         [this]() { m_client.quitMessageLoopOnPause(); });
-    m_inspectorHandler = handler;
-    m_channel.setInspectorHandler(handler);
-    m_client.setInspectorHandler(handler);
+
+
+    m_inspectorHandler = std::move(handler);
+    m_channel.setInspectorHandler(m_inspectorHandler.get());
+    m_client.setInspectorHandler(m_inspectorHandler.get());
 }
 
 void InspectorHolder::breakProgram(QString reason)

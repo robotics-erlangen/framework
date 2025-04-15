@@ -63,11 +63,11 @@ public:
     // functions used for debugging v8
     void disableTimeoutOnce(); // disables script timeout for the currently running strategy frame
     // gives ownership of the handler to this class
-    void setInspectorHandler(AbstractInspectorHandler *handler);
+    void setInspectorHandler(std::unique_ptr<AbstractInspectorHandler> handler);
     void removeInspectorHandler();
     bool hasInspectorHandler() const;
     bool canConnectInternalDebugger() const;
-    InternalDebugger *getInternalDebugger() const { return m_internalDebugger.get(); }
+    InternalDebugger *getInternalDebugger() const { return m_internalDebugger; }
     lua_State*& luaState() { return m_luaState; }
     void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace);
 
@@ -129,7 +129,7 @@ private:
     CheckForScriptTimeout *m_checkForScriptTimeout;
     QThread *m_timeoutCheckerThread;
     std::unique_ptr<InspectorHolder> m_inspectorHolder;
-    std::unique_ptr<InternalDebugger> m_internalDebugger;
+    InternalDebugger* m_internalDebugger = nullptr;
 
     int m_scriptIdCounter;
 
