@@ -31,7 +31,6 @@ import { Ball as BallClass } from "base/ball";
 import { Coordinates } from "base/coordinates";
 import * as debug from "base/debug";
 import * as MathUtil from "base/mathutil";
-// let mixedTeam = require "base/mixedteam"
 import * as pb from "base/protobuf";
 import { FriendlyRobot, Robot } from "base/robot";
 import { AbsTime, RelTime } from "base/timing";
