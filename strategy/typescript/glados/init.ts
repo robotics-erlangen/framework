@@ -31,9 +31,6 @@ import * as Robot from "glados/observer/robot";
 import { lowFPSObserver } from "glados/observer/lowfps";
 
 import "glados/test/observer/index";
-// require "test/situation/index";
-// require "test/task/index";
-// require "test/unit/index";
 import "glados/test/unit/index";
 import "glados/observer/modificationchecker";
 /* eslint-enable import/order */
