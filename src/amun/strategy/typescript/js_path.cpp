@@ -75,12 +75,6 @@ static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
     return true;
 }
 
-static void pathDestroy(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
-{
-    delete wrapper->abstractPath();
-}
-GENERATE_FUNCTIONS(pathDestroy);
-
 static void pathReset(QTPath *wrapper, const FunctionCallbackInfo<Value>&, int)
 {
     wrapper->abstractPath()->reset();
@@ -472,7 +466,6 @@ static void pathAddTreeVisualization(QTPath *wrapper, const FunctionCallbackInfo
 GENERATE_FUNCTIONS(pathAddTreeVisualization);
 
 static QList<CallbackInfo> commonCallbacks = {
-    { "destroy",            pathDestroy_new},
     { "reset",              pathReset_new},
     { "clearObstacles",     pathClearObstacles_new},
     { "setBoundary",        pathSetBoundary_new},
@@ -576,7 +569,6 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "createTrajectoryPath", trajectoryPathCreateNew},
         // legacy functions, kept for backwards compatibility
         { "create",             pathCreateOld},
-        { "destroy",            pathDestroy_legacy},
         { "reset",              pathReset_legacy},
         { "clearObstacles",     pathClearObstacles_legacy},
         { "setBoundary",        pathSetBoundary_legacy},
