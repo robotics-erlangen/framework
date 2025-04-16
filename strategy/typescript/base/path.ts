@@ -72,7 +72,6 @@ export interface TriangleObstacle extends ObstacleCommon {
 export type Obstacle = CircleObstacle | LineObstacle | RectObstacle | TriangleObstacle;
 
 interface PathObjectCommon {
-	destroy(): void;
 	/** Resets path planner object. Clears obstacles and waypoints. Field boundaries won't be changed */
 	reset(): void;
 	clearObstacles(): void;
