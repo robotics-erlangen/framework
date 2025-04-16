@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QDebug>
 #include <QThread>
+#include <optional>
 #include <vector>
 #include <v8.h>
 #include <libplatform/libplatform.h>
@@ -178,16 +179,17 @@ static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg
     return maybeResult;
 }
 
-static std::unique_ptr<QDir> getTsconfigDir(const QString &filename)
+static std::optional<QDir> getTsconfigDir(const QString &filename)
 {
     QDir baseDir = QFileInfo(filename).absoluteDir();
     while (true) {
         if (QFileInfo(baseDir, "tsconfig.json").exists())
             break;
         if (!baseDir.cdUp())
-            return nullptr;
+            return std::nullopt;
     }
-    return std::unique_ptr<QDir>(new QDir(baseDir));
+
+    return { baseDir };
 }
 
 QString Typescript::resolveJsToTs(QString fileQString, uint32_t lineUint, uint32_t columnUint)
@@ -388,7 +390,7 @@ bool Typescript::setupCompiler(const QString &filename, bool compileBlocking)
         disconnect(m_compiler->comp(), nullptr, this, nullptr);
     }
 
-    std::unique_ptr<QDir> baseDir = getTsconfigDir(filename);
+    auto baseDir = getTsconfigDir(filename);
     if (!baseDir) {
         return false;
     }
@@ -683,7 +685,7 @@ bool Typescript::loadModule(QString name)
             return false;
         }
 
-        std::unique_ptr<QDir> baseDir = getTsconfigDir(m_filename);
+        auto baseDir = getTsconfigDir(m_filename);
         QFileInfo jsFile = m_compiler->comp()->mapToResult(QFileInfo(baseDir->absolutePath() + "/" + name + ".ts"));
         QString filename = jsFile.absoluteFilePath();
 
