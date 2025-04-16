@@ -44,6 +44,7 @@ class CompilerRegistry;
 struct lua_State;
 class ScriptState;
 class InspectorServer;
+class QTPath;
 
 class Typescript : public AbstractStrategyScript
 {
@@ -54,6 +55,13 @@ public:
     static bool canHandle(const QString &filename);
     ~Typescript() override;
     void addPathTime(double time);
+
+    /*! \brief Adds a path object to be used during the current reload cycle
+     *
+     * The return value is a non-owning pointer to the passed path object,
+     * valid until the next reload, or until Typescript deconstructs.
+     */
+    QTPath* addPathObjectForCurrentReloadCycle(std::unique_ptr<QTPath> path);
 
     void startProfiling() override;
     void endProfiling(const std::string &filename) override;
@@ -114,6 +122,12 @@ private:
     v8::Global<v8::Context> m_context;
     v8::Global<v8::Function> m_function;
     double m_totalPathTime;
+
+    /*! \brief The Javascript Path objects used for the current strategy run
+     *
+     * Should be cleared if the strategy is reloaded
+     */
+    std::vector<std::unique_ptr<QTPath>> m_currentReloadCyclePaths;
 
     std::vector<std::map<QString, std::unique_ptr<v8::Global<v8::Value>>>> m_requireCache;
     v8::Global<v8::FunctionTemplate> m_requireTemplate;

@@ -450,6 +450,11 @@ bool Typescript::loadJavascript(const QString &filename, const QString &entryPoi
     // clean up old variables and prepare new execution environment
     // this is for the case that the strategy is reloaded in place
     clearRequireCache();
+
+    // Clear old Path objects. Has to be done before the global scope is
+    // created, as it will contain new Path objects
+    m_currentReloadCyclePaths.clear();
+
     m_scriptIdCounter = 0;
     m_entryPoints.clear();
     createGlobalScope();
@@ -778,6 +783,12 @@ void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
 void Typescript::addPathTime(double time)
 {
     m_totalPathTime += time;
+}
+
+QTPath* Typescript::addPathObjectForCurrentReloadCycle(std::unique_ptr<QTPath> path)
+{
+    m_currentReloadCyclePaths.emplace_back(std::move(path));
+    return m_currentReloadCyclePaths.back().get();
 }
 
 void Typescript::saveNode(QTextStream &file, const CpuProfileNode *node, QString functionStack)

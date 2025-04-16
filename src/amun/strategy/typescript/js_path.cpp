@@ -21,7 +21,9 @@
 #include "js_path.h"
 
 #include <QList>
+#include <memory>
 #include <v8.h>
+
 #include "strategy/script/scriptstate.h"
 #include "path/path.h"
 #include "path/trajectorypath.h"
@@ -46,31 +48,18 @@ using namespace v8helper;
     static void X##_legacy(const FunctionCallbackInfo<Value>& args) { X(static_cast<QTPath*>(Local<External>::Cast(args[0])->Value()), args, 1); }
 
 
-class QTPath: public QObject {
-    Q_OBJECT
-public:
-    QTPath(Typescript *t, std::unique_ptr<Path> path, std::unique_ptr<TrajectoryPath> trajectoryPath) :
-        QObject(t),
-        p(std::move(path)),
-        tp(std::move(trajectoryPath)),
-        t(t)
-    {
-        if (tp != nullptr) {
-            connect(tp.get(), SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
-            connect(tp.get(), SIGNAL(gotLog(QString)), t, SLOT(handleLog(QString)));
-            connect(tp.get(), SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
-        }
+QTPath::QTPath(Typescript* t, std::unique_ptr<Path> path, std::unique_ptr<TrajectoryPath> trajectoryPath) :
+    p(std::move(path)),
+    tp(std::move(trajectoryPath)),
+    t(t)
+{
+    if (tp != nullptr) {
+        // Use the old signal/slot syntax since the slots are private...
+        QObject::connect(tp.get(), SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
+        QObject::connect(tp.get(), SIGNAL(gotLog(QString)), t, SLOT(handleLog(QString)));
+        QObject::connect(tp.get(), SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
     }
-    Path *path() const { return p.get(); }
-    AbstractPath *abstractPath() const { return p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
-    TrajectoryPath *trajectoryPath() const { return tp.get(); }
-    Typescript *typescript() const { return t; }
-
-private:
-    std::unique_ptr<Path> p;
-    std::unique_ptr<TrajectoryPath> tp;
-    Typescript *t;
-};
+}
 
 // ensure that we got a valid number
 static bool verifyNumber(Isolate *isolate, Local<Value> value, float &result)
@@ -516,7 +505,9 @@ static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(ts, std::make_unique<Path>(ts->time()), nullptr);
+    QTPath *p = ts->addPathObjectForCurrentReloadCycle(
+        std::make_unique<QTPath>(ts, std::make_unique<Path>(ts->time()), nullptr)
+    );
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
@@ -555,7 +546,9 @@ static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
     if (inputSaver == nullptr) { // not all strategy instances might get one
         sourceType = pathfinding::None;
     }
-    QTPath *p = new QTPath(ts, nullptr, std::make_unique<TrajectoryPath>(ts->time(), inputSaver, sourceType));
+    QTPath *p = ts->addPathObjectForCurrentReloadCycle(
+        std::make_unique<QTPath>(ts, nullptr, std::make_unique<TrajectoryPath>(ts->time(), inputSaver, sourceType))
+    );
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
@@ -568,7 +561,9 @@ static void pathCreateOld(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(ts, std::make_unique<Path>(ts->time()), nullptr);
+    QTPath *p = ts->addPathObjectForCurrentReloadCycle(
+        std::make_unique<QTPath>(ts, std::make_unique<Path>(ts->time()), nullptr)
+    );
     args.GetReturnValue().Set(External::New(isolate, p));
 }
 
@@ -598,10 +593,12 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
 
     Local<Object> pathObject = Object::New(isolate);
     installCallbacks(isolate, pathObject, callbacks, [isolate, t](auto _) {
-        return External::New(isolate, new QTPath(t, nullptr, nullptr));
+        QTPath *p = t->addPathObjectForCurrentReloadCycle(
+            std::make_unique<QTPath>(t, nullptr, nullptr)
+        );
+        return External::New(isolate, p);
     });
 
     Local<String> pathStr = v8string(isolate, "path");
     global->Set(context, pathStr, pathObject).Check();
 }
-#include "js_path.moc"

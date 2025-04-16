@@ -21,10 +21,37 @@
 #ifndef JS_PATH_H
 #define JS_PATH_H
 
+#include <memory>
 #include <v8.h>
+
+#include "path/abstractpath.h"
+#include "path/path.h"
+#include "path/trajectorypath.h"
 
 class Typescript;
 
 void registerPathJsCallbacks(v8::Isolate *isolate, v8::Local<v8::Object> global, Typescript *t);
+
+/*! \brief Wrapper class that holds Path and TrajectoryPath objects (usually
+ * only one of them at a time).
+ *
+ * Used to be a QObject, hence the name QTPath.
+ */
+class QTPath
+{
+public:
+    QTPath(Typescript* t, std::unique_ptr<Path> path, std::unique_ptr<TrajectoryPath> trajectoryPath);
+
+    Path *path() const { return p.get(); }
+    AbstractPath *abstractPath() const { return p ? static_cast<AbstractPath*>(p.get()) : tp.get(); }
+    TrajectoryPath *trajectoryPath() const { return tp.get(); }
+    Typescript *typescript() const { return t; }
+
+private:
+    std::unique_ptr<Path> p;
+    std::unique_ptr<TrajectoryPath> tp;
+    Typescript *t;
+
+};
 
 #endif // JS_PATH_H
