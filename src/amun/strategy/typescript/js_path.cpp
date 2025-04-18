@@ -49,16 +49,16 @@ using namespace v8helper;
 class QTPath: public QObject {
     Q_OBJECT
 public:
-    QTPath(Path *p, TrajectoryPath *tp, Typescript *t):
+    QTPath(Typescript *t, std::unique_ptr<Path> path, std::unique_ptr<TrajectoryPath> trajectoryPath) :
         QObject(t),
-        p(p),
-        tp(tp),
+        p(std::move(path)),
+        tp(std::move(trajectoryPath)),
         t(t)
     {
         if (tp != nullptr) {
-            connect(tp, SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
-            connect(tp, SIGNAL(gotLog(QString)), t, SLOT(handleLog(QString)));
-            connect(tp, SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
+            connect(tp.get(), SIGNAL(gotDebug(amun::DebugValue)), t, SLOT(handleDebug(amun::DebugValue)));
+            connect(tp.get(), SIGNAL(gotLog(QString)), t, SLOT(handleLog(QString)));
+            connect(tp.get(), SIGNAL(gotVisualization(amun::Visualization)), t, SLOT(handleVisualization(amun::Visualization)));
         }
     }
     Path *path() const { return p.get(); }
@@ -516,7 +516,7 @@ static void pathCreateNew(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(new Path(ts->time()), nullptr, ts);
+    QTPath *p = new QTPath(ts, std::make_unique<Path>(ts->time()), nullptr);
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
@@ -555,7 +555,7 @@ static void trajectoryPathCreateNew(const FunctionCallbackInfo<Value>& args)
     if (inputSaver == nullptr) { // not all strategy instances might get one
         sourceType = pathfinding::None;
     }
-    QTPath *p = new QTPath(nullptr, new TrajectoryPath(ts->time(), inputSaver, sourceType), ts);
+    QTPath *p = new QTPath(ts, nullptr, std::make_unique<TrajectoryPath>(ts->time(), inputSaver, sourceType));
 
     Local<Object> pathWrapper = Object::New(isolate);
     Local<External> pathObject = External::New(isolate, p);
@@ -568,7 +568,7 @@ static void pathCreateOld(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
     Typescript *ts = static_cast<QTPath*>(Local<External>::Cast(args.Data())->Value())->typescript();
-    QTPath *p = new QTPath(new Path(ts->time()), nullptr, ts);
+    QTPath *p = new QTPath(ts, std::make_unique<Path>(ts->time()), nullptr);
     args.GetReturnValue().Set(External::New(isolate, p));
 }
 
@@ -598,7 +598,7 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
 
     Local<Object> pathObject = Object::New(isolate);
     installCallbacks(isolate, pathObject, callbacks, [isolate, t](auto _) {
-            return External::New(isolate, new QTPath(nullptr, nullptr, t));
+        return External::New(isolate, new QTPath(t, nullptr, nullptr));
     });
 
     Local<String> pathStr = v8string(isolate, "path");
