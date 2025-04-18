@@ -207,7 +207,9 @@ if(MINGW AND NOT TARGET lib::usb)
 endif()
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
-if (NOT TARGET lib::sdl2)
+if (SDL2_FOUND)
+    add_library(lib::sdl2 ALIAS SDL2::SDL2)
+else()
     include(BuildSDL2)
 endif()
 
