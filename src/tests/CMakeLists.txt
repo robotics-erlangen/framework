@@ -49,6 +49,8 @@ target_compile_definitions(cpptests PRIVATE AMUNCLI_DIR="${CMAKE_RUNTIME_OUTPUT_
 
 target_include_directories(cpptests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 
+target_compile_definitions(cpptests PRIVATE TESTING)
+
 if(V8_FOUND)
     target_compile_definitions(cpptests PRIVATE V8_FOUND)
     v8_copy_deps(cpptests)
