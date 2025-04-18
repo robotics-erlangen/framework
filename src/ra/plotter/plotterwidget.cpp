@@ -28,10 +28,14 @@
 #include <QScrollBar>
 #include <cmath>
 #include <QGuiApplication>
+
 #ifdef Q_OS_MAC
-#include <OpenGL/glu.h>
+    #include <OpenGL/glu.h>
 #else
-#include <GL/glu.h>
+    #ifdef Q_OS_WINDOWS
+        #include <windef.h>
+    #endif
+    #include <GL/glu.h>
 #endif
 
 const QList<QColor> PlotterWidget::m_colors = QList<QColor>()

@@ -1,0 +1,31 @@
+FROM ubuntu:24.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+# apt-key will warn to not parse its output if not set
+ARG APT_KEY_DONT_WARN_ON_DANGEROUS_USAGE=1
+
+ENV LANG=C.UTF-8
+
+RUN set -xe; \
+	apt-get update; \
+	apt-get install  --no-install-recommends -y \
+	    autoconf automake autopoint bash bison bzip2 flex \
+	    g++ g++-multilib gettext git gperf intltool \
+	    libc6-dev-i386 libclang-dev libgdk-pixbuf2.0-dev libltdl-dev \
+			libgl-dev libpcre2-dev libssl-dev libtool-bin libxml-parser-perl lzip \
+	    make openssl p7zip-full patch perl \
+	    python3 python3-mako python3-packaging python3-pkg-resources python3-setuptools python-is-python3 \
+	    ruby sed sqlite3 unzip wget xz-utils;
+
+RUN set -xe; \
+	git clone https://github.com/mxe/mxe.git /mxe; \
+	cd /mxe; \
+	git checkout 8dff0819708293da5bedb5383023926a4b36c50e; \
+	# don't use ccache, because we only build everything once anyway
+	make gcc qt6-qtbase qt6-qtsvg libusb1 sdl2 MXE_TARGETS='x86_64-w64-mingw32.static' MXE_PLUGIN_DIRS='plugins/gcc14' MXE_USE_CCACHE=''; \
+	# remove all unnecessary files to reduce size of containter
+	rm -r .git* pkg/ log/ Makefile src docs/ plugins/ ext/ tools/ mxe.* settings.mk README.md;
+
+ENV MXE_ROOT_DIR=/mxe
+ENV PATH="${MXE_ROOT_DIR}/usr/bin/:${MXE_ROOT_DIR}/usr/x86_64-pc-linux-gnu/bin:/usr/lib/mxe/usr/bin/:/usr/lib/mxe/usr/x86_64-pc-linux-gnu/bin:${PATH}"
+

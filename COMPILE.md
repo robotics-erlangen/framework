@@ -239,3 +239,36 @@ $ make
 
 (If starting `Ra.app` the normal way doesn't work launch it from Qt Creator)
 
+## Cross Compiling Ra from Linux to Windows
+
+The framework can be cross compiled using the [mxe toolkit](https://mxe.cc) as follows:
+First install the required packages (https://mxe.cc/#requirements). This can vary between linux distributions.
+
+### Compile mxe
+```
+git clone https://github.com/mxe/mxe.git
+cd mxe
+git checkout 8dff0819708293da5bedb5383023926a4b36c50e
+make gcc qt6-qtbase qt6-qtsvg libusb1 sdl2 MXE_TARGETS='x86_64-w64-mingw32.static' MXE_PLUGIN_DIRS='plugins/gcc14'
+```
+
+Then, set up the necessary environment variables, adapting it to the location you cloned mxe into:
+
+```
+ENV MXE_ROOT_DIR=/path/where/you/cloned/and/compiled/mxe
+ENV PATH="${MXE_ROOT_DIR}/usr/bin/:${MXE_ROOT_DIR}/usr/x86_64-pc-linux-gnu/bin:${PATH}"
+```
+
+### Compile Ra
+To compile ra or other parts of the framework, run the following from the root of this repository (otherwise adapt the path to the cmake wrapper):
+
+```
+mkdir build
+cd build
+$MXE_ROOT_DIR/usr/bin/x86_64-w64-mingw32.static-cmake -DCMAKE_C_HOST_COMPILER=gcc -DCMAKE_CXX_HOST_COMPILER=g++ -DDOWNLOAD_V8=TRUE ..
+make
+make assemble
+```
+
+Without the call to make assemble, it will not be possible to run ra.
+The host compilers need to be set to be able to compile protoc for the host system and can also be set to clang and clang++.

@@ -55,11 +55,10 @@ else()
 endif()
 
 if(CMAKE_CROSS_COMPILING AND MINGW)
-    set(COPY_GCC_DLL_COMMANDS ${CMAKE_SOURCE_DIR}/data/scripts/copydlldeps.sh -c
-        -f ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/ra.exe
-        --destdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        --srcdir ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-        --srcdir ${CMAKE_PREFIX_PATH}/bin)
+    set(COPY_DIRECT_DLL_DEPENDENCIES ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:project_luajit_import>
+            ${GAMECONTROLLER_FULL_PATH}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 else()
     file(GLOB_RECURSE MINGW_LIB_SSL "$ENV{MINGW_PREFIX}/bin/libssl-*${PACK_SUFFIX}.dll")
     file(GLOB_RECURSE MINGW_LIB_CRYPTO "$ENV{MINGW_PREFIX}/bin/libcrypto-*${PACK_SUFFIX}.dll")
@@ -115,36 +114,50 @@ else()
             ${MINGW_LIB_BZ2}
             ${MINGW_LIB_ZLIB}
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+    set(COPY_DIRECT_DLL_DEPENDENCIES ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_FILE:project_luajit_import>
+            $<TARGET_FILE:lib::sdl2>
+            $<$<BOOL:$<TARGET_NAME_IF_EXISTS:project_usb_import>>:$<TARGET_FILE:project_usb_import>>
+            $<TARGET_FILE:Qt6::Core>
+            $<TARGET_FILE:Qt6::Gui>
+            $<TARGET_FILE:Qt6::Network>
+            $<TARGET_FILE:Qt6::OpenGL>
+            $<TARGET_FILE:Qt6::OpenGLWidgets>
+            $<TARGET_FILE:Qt6::Widgets>
+            $<$<BOOL:$<TARGET_NAME_IF_EXISTS:Qt6::Svg>>:$<TARGET_FILE:Qt6::Svg>>
+            ${V8_DLL}
+            ${GAMECONTROLLER_FULL_PATH}
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
+
+    set(CREATE_PLATFORM_DIR ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms)
+    set(COPY_QT_INTEGRATION ${CMAKE_COMMAND} -E copy_if_different
+        $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms)
 endif()
 
 add_custom_target(assemble
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data/icons ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data/icons
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data/udev ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data/udev
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/libs/tsc ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libs/tsc
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:project_luajit_import>
-        $<TARGET_FILE:lib::sdl2>
-        $<TARGET_FILE:lib::usb>
-        $<TARGET_FILE:Qt6::Core>
-        $<TARGET_FILE:Qt6::Gui>
-        $<TARGET_FILE:Qt6::Network>
-        $<TARGET_FILE:Qt6::OpenGL>
-        $<TARGET_FILE:Qt6::OpenGLWidgets>
-        $<TARGET_FILE:Qt6::Widgets>
-        $<$<BOOL:$<TARGET_NAME_IF_EXISTS:Qt6::Svg>>:$<TARGET_FILE:Qt6::Svg>>
-        ${V8_DLL}
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        $<TARGET_FILE:Qt6::QWindowsIntegrationPlugin>
-            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${GAMECONTROLLER_FULL_PATH} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMAND ${COPY_DIRECT_DLL_DEPENDENCIES}
+    COMMAND ${CREATE_PLATFORM_DIR}
+    COMMAND ${COPY_QT_INTEGRATION}
     COMMAND ${COPY_GCC_DLL_COMMANDS}
 )
 add_dependencies(assemble project_luajit_import)
 
 
 add_custom_target(pack
-    COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX}
+    COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX} ${CMAKE_CROSSCOMPILING}
     WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
     DEPENDS amun-cli logplayer ra visionanalyzer assemble
+)
+
+# trimmed down version of pack with less dependencies for a smaller zip archive
+# primarily meant for usage in the ci job
+add_custom_target(pack-ra
+    COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/pack-windows.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR} ${PACK_SUFFIX} ${CMAKE_CROSSCOMPILING}
+    WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    DEPENDS ra assemble
 )

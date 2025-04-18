@@ -101,7 +101,7 @@ else()
     )
 endif()
 
-if (MINGW)
+if (MINGW AND NOT CMAKE_CROSSCOMPILING)
     set(REQUIRES_ESCAPE TRUE)
 else()
     set(REQUIRES_ESCAPE FALSE)

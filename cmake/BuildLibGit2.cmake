@@ -41,12 +41,25 @@ else()
   set(LIB_GIT_C_FLAGS "${CMAKE_C_FLAGS} -w")
 endif()
 
+# Executing the tests for libgit when cross compiling is more trouble than it's worth,
+# because we would either have to execute the libgit2_clar through wine, which is error prone in itself
+# or compile the tests for the HOST platform, which kind of defeats the purpose as we are no longer
+# testing the library that we are actually linking with.
+if(CMAKE_CROSSCOMPILING)
+  set(GIT_TEST_COMMAND "")
+  set(BUILD_TESTS OFF)
+else()
+  set(GIT_TEST_COMMAND "<BINARY_DIR>/libgit2_clar" "-xclone::nonetwork" "-xremote::httpproxy::env" "-xrefs::revparse::date" "-xstream::registration::tls")
+  set(BUILD_TESTS ON)
+endif()
+
 ExternalProject_Add(project_libgit2
     URL https://downloads.robotics-erlangen.de/libgitv1.3.0.zip
     URL_HASH SHA256=26bc8d7d04cdc10941a3c0c9dfa1b5b248a2b108154f1b6b4b5054a5bab2646e
     DOWNLOAD_NO_PROGRESS true
     PATCH_COMMAND cat ${CMAKE_CURRENT_LIST_DIR}/libgit.patch | patch -p1
     CMAKE_ARGS
+        -DCMAKE_TOOLCHAIN_FILE:PATH=${CMAKE_TOOLCHAIN_FILE}
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DBUILD_SHARED_LIBS:STRING=OFF
         -DUSE_BUNDLED_ZLIB:STRING=ON
@@ -56,10 +69,11 @@ ExternalProject_Add(project_libgit2
         -DCMAKE_BUILD_TYPE:STRING=Release
         -DCMAKE_C_FLAGS:STRING=${LIB_GIT_C_FLAGS}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
+        -DBUILD_CLAR:STRING=${BUILD_TESTS}
     BUILD_BYPRODUCTS
             "<INSTALL_DIR>/${LIBGIT_SUBPATH}"
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
-    TEST_COMMAND "<BINARY_DIR>/libgit2_clar" "-xclone::nonetwork" "-xremote::httpproxy::env" "-xrefs::revparse::date" "-xstream::registration::tls"
+    TEST_COMMAND ${GIT_TEST_COMMAND}
 )
 
 EPHelper_Mark_For_Download(project_libgit2)

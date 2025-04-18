@@ -37,6 +37,7 @@ cmake="$1"
 repo="$2"
 shortrev=""
 suffix="$3"
+crosscompiling="$4"
 
 if [[ ! -e "$cmake" ]] ; then
 	echo "Usage: pack-windows.sh /path/to/cmake [/path/to/software/repository]"
@@ -53,6 +54,12 @@ if [[ -n "$repo" ]]; then
 	fi
 fi
 
+archive_files="*.dll ssl-game-controller*.exe ra.exe icudtl.dat config data libs"
+# when cross compiling is no platform directory, because we link the QWindowsIntegrationPlugin statically
+if [[ -z "$crosscompiling" ]]; then
+	archive_files="platforms ${archive_files}"
+fi
+
 outfile="ra-win${shortrev}${suffix}.zip"
-"${cmake}" -E tar cf "${outfile}" --format=zip -- *.dll ra.exe icudtl.dat config data platforms libs ssl-game-controller*.exe
+"${cmake}" -E tar cf "${outfile}" --format=zip -- $archive_files
 echo "Packed ra as $outfile"

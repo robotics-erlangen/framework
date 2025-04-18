@@ -194,6 +194,12 @@ if (NOT TARGET Qt6::Svg)
     message(STATUS "Qt svg component not found. Svg screenshots will not be supported.")
 endif()
 
+# Qt6 depends on Freetype which depends on bzip2 and for some reason, when cross compiling bzip is not added to the link arguments
+if(CMAKE_CROSSCOMPILING)
+    find_package(BZip2 REQUIRED)
+    target_link_libraries(Qt6::Core INTERFACE BZip2::BZip2)
+endif()
+
 if(UNIX AND NOT APPLE)
     # file open dialogs crash on mac
     # memory corruption with crash on windows
@@ -209,7 +215,11 @@ endif()
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
 if (SDL2_FOUND)
-    add_library(lib::sdl2 ALIAS SDL2::SDL2)
+    if (CMAKE_CROSS_COMPILING)
+        add_library(lib::sdl2 ALIAS SDL2::SDL2-static)
+    else()
+        add_library(lib::sdl2 ALIAS SDL2::SDL2)
+    endif()
 else()
     include(BuildSDL2)
 endif()
