@@ -45,6 +45,8 @@ add_library(typescript STATIC
     typescript.cpp
     typescriptcompiler.cpp
     typescriptcompiler.h
+    typescriptsource.cpp
+    typescriptsource.h
     v8utility.cpp
     v8utility.h
     websocketprotocol.cpp

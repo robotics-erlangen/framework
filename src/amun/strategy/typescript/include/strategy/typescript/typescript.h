@@ -80,8 +80,6 @@ public:
     lua_State*& luaState() { return m_luaState; }
     void tryCatch(v8::Local<v8::Function> tryBlock, v8::Local<v8::Function> thenBlock, v8::Local<v8::Function> catchBlock, v8::Local<v8::Object> element, bool printStackTrace);
 
-    QString resolveJsToTs(QString fileQString, uint32_t lineUint, uint32_t columnUint);
-
 protected:
     void loadScript(const QString &filename, const QString &entryPoint) override;
     bool process(double &pathPlanning) override;

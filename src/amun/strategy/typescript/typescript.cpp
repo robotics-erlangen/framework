@@ -28,8 +28,6 @@
 #include <v8.h>
 #include <libplatform/libplatform.h>
 #include <lua.hpp>
-#include <SourceMap/RevisionThree.h>
-#include <SourceMap/Extension/Interpolation.h>
 
 #include "js_amun.h"
 #include "js_path.h"
@@ -38,6 +36,7 @@
 #include "internaldebugger.h"
 #include "inspectorserver.h"
 #include "tsc_internal.h"
+#include "typescriptsource.h"
 #include "strategy/script/compilerregistry.h"
 #include "strategy/script/scriptstate.h"
 #include "v8utility.h"
@@ -177,68 +176,6 @@ static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg
         errorMsg = errorMsg + "Calling " + funName + " did not result in a castable result! <br>";
     }
     return maybeResult;
-}
-
-static std::optional<QDir> getTsconfigDir(const QString &filename)
-{
-    QDir baseDir = QFileInfo(filename).absoluteDir();
-    while (true) {
-        if (QFileInfo(baseDir, "tsconfig.json").exists())
-            break;
-        if (!baseDir.cdUp())
-            return std::nullopt;
-    }
-
-    return { baseDir };
-}
-
-QString Typescript::resolveJsToTs(QString fileQString, uint32_t lineUint, uint32_t columnUint)
-{
-    QFile jsfile(fileQString);
-    QString tsSourcemapQString;
-    QFileInfo jsInfo(jsfile);
-    QDir absJSDir = jsInfo.absoluteDir();
-    if (jsfile.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QList<QByteArray> jsLineList = QByteArray(jsfile.readAll()).split('\n');
-#if QT_VERSION >= QT_VERSION_CHECK(5,6,0)
-        for (auto revIt = jsLineList.rbegin(); revIt != jsLineList.rend(); ++revIt) {
-#else
-        for (auto revIt = jsLineList.begin(); revIt != jsLineList.end(); ++revIt) {
-#endif
-            QString line = QString::fromUtf8(*revIt);
-            if (line.startsWith("//# ")) {
-                QStringList entries = line.right(line.size()-4).split("=");
-                if (entries[0] == "sourceMappingURL") {
-                    tsSourcemapQString = absJSDir.canonicalPath() + "/" + entries[1];
-                    break;
-                }
-            }
-        }
-    }
-    if (!tsSourcemapQString.isEmpty()) {
-        QFile tsSourcemap(tsSourcemapQString);
-        if (tsSourcemap.open(QIODevice::ReadOnly | QIODevice::Text)) {
-            QByteArray arr(tsSourcemap.readAll());
-            SourceMap::RevisionThree sourceMap = SourceMap::RevisionThree::fromJson(arr);
-            const QStringList sources = sourceMap.sources();
-            QString tsFileName = absJSDir.canonicalPath() + "/" + sources.first(); // assume that there is only one sourceFile for any js file
-            SourceMap::Position jsPos(lineUint, columnUint);
-            auto decodedMapping = sourceMap.decodedMappings<SourceMap::Data<SourceMap::Extension::Interpolation>>();
-            SourceMap::Mapping<SourceMap::Extension::Interpolation> mapping(decodedMapping);
-            const SourceMap::Entry<SourceMap::Extension::Interpolation>* entry(mapping.findEntryByGenerated(jsPos));
-            if (entry) {
-                fileQString = QFileInfo(tsFileName).absoluteFilePath();
-                lineUint = entry->original.line;
-                columnUint = entry->original.column;
-            }
-        }
-    }
-    auto basePath = getTsconfigDir(fileQString);
-    if (basePath) {
-        fileQString = fileQString.replace(basePath->absolutePath() + "/", "");
-    }
-
-    return fileQString + ":" + QString::number(lineUint) + ":" + QString::number(columnUint);
 }
 
 void Typescript::evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local<Object> callSite)

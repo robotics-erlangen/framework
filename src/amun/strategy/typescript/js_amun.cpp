@@ -29,6 +29,7 @@
 
 #include "js_protobuf.h"
 #include "typescript.h"
+#include "typescriptsource.h"
 #include "internaldebugger.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_team.pb.h"
 #include "protobuf/ssl_gc/rcon/ssl_gc_rcon_autoref.pb.h"
@@ -739,8 +740,7 @@ static void amunResolveJsToTs(const FunctionCallbackInfo<Value>& args)
     if (!toUintChecked(isolate, args[1], line) || !toUintChecked(isolate, args[2], column)) {
         return;
     }
-    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    QString result = t->resolveJsToTs(file, line, column);
+    QString result = resolveJsToTs(file, line, column);
     args.GetReturnValue().Set(v8string(isolate, result));
 }
 
