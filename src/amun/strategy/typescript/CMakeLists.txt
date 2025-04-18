@@ -40,6 +40,8 @@ add_library(typescript STATIC
     js_protobuf.h
     protobuftypings.cpp
     protobuftypings.h
+    stacktrace.cpp
+    stacktrace.h
     tsc_internal.cpp
     tsc_internal.h
     typescript.cpp

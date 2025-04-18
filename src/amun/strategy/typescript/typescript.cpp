@@ -35,6 +35,7 @@
 #include "inspectorholder.h"
 #include "internaldebugger.h"
 #include "inspectorserver.h"
+#include "stacktrace.h"
 #include "tsc_internal.h"
 #include "typescriptsource.h"
 #include "strategy/script/compilerregistry.h"
@@ -166,68 +167,6 @@ bool Typescript::canConnectInternalDebugger() const
         && !m_internalDebugger->isConnected();
 }
 
-static MaybeLocal<Value> callFunction(const Local<Context>& c, QString& errorMsg, Local<Object>& object, const char* funName, Isolate* isolate, std::vector<Local<Value>>&& parameters = {})
-{
-    Local<String> funNameString = v8string(isolate, funName);
-    Local<Value> functionValue = object->Get(c, funNameString).ToLocalChecked();
-    Local<Function> fun = Local<Function>::Cast(functionValue);
-    MaybeLocal<Value> maybeResult = fun->Call(c, object, parameters.size(), parameters.data());
-    if (maybeResult.IsEmpty()) {
-        errorMsg = errorMsg + "Calling " + funName + " did not result in a castable result! <br>";
-    }
-    return maybeResult;
-}
-
-void Typescript::evaluateStackFrame(const Local<Context>& c, QString& errorMsg, Local<Object> callSite)
-{
-    errorMsg += "at ";
-    MaybeLocal<Value> funName = callFunction(c, errorMsg, callSite, "getFunctionName", m_isolate);
-    String::Utf8Value funString(m_isolate, funName.ToLocalChecked());
-    QString funQString(*funString);
-    if (!callFunction(c, errorMsg, callSite, "isConstructor", m_isolate)
-            .ToLocalChecked()
-            ->BooleanValue(m_isolate)) {
-        MaybeLocal<Value> toplevelOpt = callFunction(c, errorMsg, callSite, "isToplevel", m_isolate);
-        if (!toplevelOpt.ToLocalChecked()->BooleanValue(m_isolate)) {
-            //Find Typename
-            MaybeLocal<Value> typeName = callFunction(c, errorMsg, callSite, "getTypeName", m_isolate);
-            String::Utf8Value nameString(m_isolate, typeName.ToLocalChecked());
-            errorMsg += QString(*nameString) + ".";
-        }
-        errorMsg += funQString;
-        MaybeLocal<Value> methodName = callFunction(c, errorMsg, callSite, "getMethodName", m_isolate);
-
-        Local<Value> methName = methodName.ToLocalChecked();
-        if (!methName->IsNull()) {
-            String::Utf8Value methString(m_isolate, methName);
-            QString methQString(*methString);
-            if (methQString != funQString) {
-                errorMsg = errorMsg + " [as " + methQString + "]";
-            }
-        }
-    } else {
-        errorMsg += "new "+funQString;
-    }
-
-    MaybeLocal<Value> isEval = callFunction(c, errorMsg, callSite, "isEval", m_isolate);
-    if (isEval.ToLocalChecked()->BooleanValue(m_isolate)) {
-        MaybeLocal<Value> evalOrig = callFunction(c, errorMsg, callSite, "getEvalOrigin", m_isolate);
-        String::Utf8Value evalOrigString(m_isolate, evalOrig.ToLocalChecked());
-        errorMsg = errorMsg + " (" + QString(*evalOrigString) + ")<br>";
-        return;
-    }
-    // No eval
-    MaybeLocal<Value> fileName = callFunction(c, errorMsg, callSite, "getFileName", m_isolate);
-    MaybeLocal<Value> lineNumber = callFunction(c, errorMsg, callSite, "getLineNumber", m_isolate);
-    uint32_t lineUint = lineNumber.ToLocalChecked()->Uint32Value(c).ToChecked();
-    MaybeLocal<Value> columnNumber = callFunction(c, errorMsg, callSite, "getColumnNumber", m_isolate);
-    uint32_t columnUint = columnNumber.ToLocalChecked()->Uint32Value(c).ToChecked();
-    String::Utf8Value fileString(m_isolate, fileName.ToLocalChecked());
-    QString fileQString(*fileString);
-
-    errorMsg += " (" + resolveJsToTs(fileQString, lineUint, columnUint) + ")<br>";
-}
-
 void Typescript::handleDebug(const amun::DebugValue &debug)
 {
     addDebug()->CopyFrom(debug);
@@ -241,62 +180,6 @@ void Typescript::handleLog(const QString &text)
 void Typescript::handleVisualization(const amun::Visualization &vis)
 {
     addVisualization()->CopyFrom(vis);
-}
-
-bool Typescript::buildStackTrace(const Local<Context>& context, QString& errorMsg, const TryCatch& tryCatch)
-{
-    if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        errorMsg = "<font color=\"red\">";
-        Local<Message> checkMessage = tryCatch.Message();
-        Local<Value> message = tryCatch.Exception();
-        // When the strategy is beeing terminated by Script timeout,
-        // there is no JS representation for this exception.
-        // However, there is an exception so message.IsEmpty returns false.
-        // To check that this is happening, we use checkMessage.
-        // As .Message() returns the associated message to the exception,
-        // which is not present if the exception does not have a JS representation,
-        // this handle will be empty.
-        if (!checkMessage.IsEmpty() || !message.IsEmpty()) {
-            String::Utf8Value exception(m_isolate, message);
-            QString exceptionString(*exception);
-            exceptionString.replace("\n", "<br>");
-            errorMsg += exceptionString + "<br>";
-        } else {
-            errorMsg += "has no message <br>";
-        }
-        Local<Value> stackTrace;
-        if (tryCatch.StackTrace(context).ToLocal(&stackTrace)) {
-            if (stackTrace->IsArray()) {
-                Local<Array> stackArray = Local<Array>::Cast(stackTrace);
-                for (uint32_t i = 0; i < stackArray->Length(); ++i) {
-                    Local<Object> callSite = stackArray->Get(context, i).ToLocalChecked().As<Object>();
-                    evaluateStackFrame(context, errorMsg, callSite);
-                }
-                errorMsg += "</font>";
-            } else {
-                // this will hapen when a strategy does not set Error.prepareStackTrace
-                // this disables the option to use sourcemaps
-                // we support it to avoid crashes when used with legacy strategy
-                String::Utf8Value stringStack(m_isolate, stackTrace);
-                QString exceptionString(*stringStack);
-                exceptionString.replace("\n", "<br>");
-                errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
-            }
-        } else {
-            // this will happen when an exception is created without an error object, i.e. throw "some error"
-            if (!checkMessage.IsEmpty()) {
-                String::Utf8Value exception(m_isolate, message);
-                QString exceptionString(*exception);
-                exceptionString.replace("\n", "<br>");
-                errorMsg = "<font color=\"red\">" + exceptionString + "</font>";
-            } else {
-                // this will only happen if the script was terminated by CheckForScriptTimeout
-                errorMsg = "<font color=\"red\">Script timeout</font>";
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 void Typescript::loadScript(const QString &fname, const QString &entryPoint)

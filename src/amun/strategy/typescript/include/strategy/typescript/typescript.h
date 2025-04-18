@@ -94,10 +94,6 @@ private:
     void clearRequireCache();
     void createGlobalScope();
 
-    // returns true if a script timeout occured
-    bool buildStackTrace(const v8::Local<v8::Context>& context, QString& errorMsg, const v8::TryCatch& tryCatch);
-    void evaluateStackFrame(const v8::Local<v8::Context>& c, QString& errorMsg, v8::Local<v8::Object> callSite);
-
     bool setupCompiler(const QString &filename, bool compileBlocking);
     bool loadTypescript(const QString &filename, const QString &entryPoint);
     bool loadJavascript(const QString &filename, const QString &entryPoint);
