@@ -262,9 +262,9 @@ int main(int argc, char* argv[])
             if (parser.isSet(profileFile) && i == startPosition) {
                 Command command(new amun::Command);
                 if (asBlue) {
-                    command->mutable_strategy_blue()->set_start_profiling(true);
+                    command->mutable_replay()->mutable_blue_strategy()->set_start_profiling(true);
                 } else {
-                    command->mutable_strategy_yellow()->set_start_profiling(true);
+                    command->mutable_replay()->mutable_yellow_strategy()->set_start_profiling(true);
                 }
                 strategy->handleCommand(command);
             }
@@ -283,9 +283,9 @@ int main(int argc, char* argv[])
             if (parser.isSet(profileFile) && i == endPosition) {
                 Command command(new amun::Command);
                 if (asBlue) {
-                    command->mutable_strategy_blue()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
+                    command->mutable_replay()->mutable_blue_strategy()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
                 } else {
-                    command->mutable_strategy_yellow()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
+                    command->mutable_replay()->mutable_yellow_strategy()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
                 }
                 strategy->handleCommand(command);
             }
