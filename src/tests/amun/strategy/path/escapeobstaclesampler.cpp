@@ -110,7 +110,7 @@ TEST(EscapeObstacleSampler, WholeSampling) {
             world.addRect(1, 2, 2, -2, "box right", 100, 0);
         };
 
-        Vector direction = optimizeEscape(addObst, input);
+        /*Vector direction = */optimizeEscape(addObst, input);
 
         // TODO: fix and enable again
 //        ASSERT_LE(direction.y, -4); // exits on the bottom of the obstacle
@@ -131,7 +131,7 @@ TEST(EscapeObstacleSampler, WholeSampling) {
         };
 
         // TODO: fix and enable again
-        Vector direction = optimizeEscape(addObst, input);
+        /*Vector direction = */optimizeEscape(addObst, input);
 //        ASSERT_LE(direction.distance(Vector(1, 1)), 0.1);
         // TODO: check max intersecting obstacle prio??
     }
@@ -161,7 +161,7 @@ TEST(EscapeObstacleSampler, WholeSampling) {
             world.addRect(-20, -20, 20, 20, "field wide rect", 50, 0);
         };
 
-        Vector direction = optimizeEscape(addObst, input);
+        /*Vector direction = */optimizeEscape(addObst, input);
 
         // TODO: fix and enable again
 //        ASSERT_LE(direction.distance(s1), 0.3);
