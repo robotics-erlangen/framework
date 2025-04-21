@@ -38,10 +38,15 @@ message CommandSimulator {
 }
 
 message CommandReferee {
+    // Activation
     optional bool active = 1;
-    optional bytes command = 2;
-    optional bool use_internal_autoref = 3;
-    optional bool use_automatic_robot_exchange = 4;
+    optional bool use_internal_autoref = 2;
+
+    // Configuration
+    optional bool use_automatic_robot_exchange = 10;
+
+    // Referee Commands
+    optional bytes command = 20;
 }
 
 message CommandStrategyAutomaticEntrypoints {
