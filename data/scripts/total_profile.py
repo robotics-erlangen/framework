@@ -1,11 +1,11 @@
 import sys
 
 if len(sys.argv) != 2:
-	print "Usage: python total_profile.py <filename>"
+	print("Usage: python total_profile.py <filename>")
 	exit(0)
 
 with open(sys.argv[1]) as f:
-    content = f.readlines()
+	content = f.readlines()
 
 totalCount = 0
 collectlines = []
@@ -24,7 +24,7 @@ for line in content:
 	else:
 		collectlines.append(line)
 
-asTupel = [ (v,k) for k,v in timeMap.iteritems() ]
+asTupel = [ (v,k) for k,v in timeMap.items() ]
 asTupel.sort(reverse=True)
 for (count, name) in asTupel:
-	print name.ljust(70), count / float(totalCount)
+	print(name.ljust(70), count / float(totalCount))
