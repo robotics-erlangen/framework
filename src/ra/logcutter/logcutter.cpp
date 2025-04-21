@@ -23,6 +23,7 @@
 #include "logprocessor.h"
 
 #include <QFileDialog>
+#include <QSettings>
 
 LogCutter::LogCutter(QWidget *parent) :
     QWidget(parent, Qt::Window),
@@ -46,7 +47,18 @@ LogCutter::~LogCutter()
 
 void LogCutter::addSourceFile()
 {
-    QString path = QFileDialog::getOpenFileName(this, tr("Source logfile"), QString(), tr("Log file (*.log)"));
+    QString defaultDir;
+    QSettings s;
+    s.beginGroup("LogLocation");
+    int size = s.beginReadArray("locations");
+    if (size > 0) {
+        s.setArrayIndex(0);
+        defaultDir = s.value("path").toString();
+    }
+    s.endArray();
+    s.endGroup();
+
+    QString path = QFileDialog::getOpenFileName(this, tr("Source logfile"), defaultDir, tr("Log file (*.log)"));
     ui->inputList->addItem(path);
 }
 
