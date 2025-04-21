@@ -248,30 +248,46 @@ void LogProcessor::changeTimestamps(Status& status, qint64 timeRemoved, bool& is
         state->set_time(state->time() - timeRemoved);
 
         if (state->has_ball()) {
-            world::Ball *ball = state->mutable_ball();
-            for (auto it = ball->mutable_raw()->begin(); it != ball->mutable_raw()->end(); ++it) {
-                it->set_time(it->time() - timeRemoved);
+            for (auto& rawBall : *state->mutable_ball()->mutable_raw()) {
+                rawBall.set_time(rawBall.time() - timeRemoved);
             }
         }
 
-        for (auto it = state->mutable_blue()->begin(); it != state->mutable_blue()->end(); ++it) {
-            for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
-                it2->set_time(it2->time() - timeRemoved);
+        for (auto& blue : *state->mutable_blue()) {
+            for (auto& raw : *blue.mutable_raw()) {
+                raw.set_time(raw.time() - timeRemoved);
             }
         }
 
-        for (auto it = state->mutable_yellow()->begin(); it != state->mutable_yellow()->end(); ++it) {
-            for (auto it2 = it->mutable_raw()->begin(); it2 != it->mutable_raw()->end(); ++it2) {
-                it2->set_time(it2->time() - timeRemoved);
+        for (auto& yellow : *state->mutable_yellow()) {
+            for (auto& raw : *yellow.mutable_raw()) {
+                raw.set_time(raw.time() - timeRemoved);
             }
         }
 
-        for (auto it = state->mutable_radio_response()->begin(); it != state->mutable_radio_response()->end(); ++it) {
-            it->set_time(it->time() - timeRemoved);
+        for (auto& response : *state->mutable_radio_response()) {
+            response.set_time(response.time() - timeRemoved);
         }
 
         if (state->has_is_simulated()) {
             isSimulated = state->is_simulated();
+        }
+
+        const auto NS_PER_SEC = 1000000000.0;
+        const auto removeTimeSeconds = timeRemoved / NS_PER_SEC;
+        for (auto& packet : *state->mutable_vision_frames()) {
+            if (packet.has_detection()) {
+                auto* detection = packet.mutable_detection();
+                detection->set_t_capture(detection->t_capture() - removeTimeSeconds);
+                detection->set_t_sent(detection->t_sent() - removeTimeSeconds);
+                if (detection->has_t_capture_camera()) {
+                    detection->set_t_capture_camera(detection->t_capture_camera() - removeTimeSeconds);
+                }
+            }
+        }
+
+        for (auto& frameTime : *state->mutable_vision_frame_times()) {
+            frameTime -= timeRemoved;
         }
     }
     for (amun::DebugValues& debug : *status->mutable_debug()) {
