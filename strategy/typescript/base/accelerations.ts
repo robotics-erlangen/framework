@@ -17,7 +17,14 @@
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
-import { RobotAccelerationProfile } from "base/trajectory";
+export interface RobotAccelerationProfile {
+	aSpeedupFMax: number;
+	aSpeedupSMax: number;
+	aSpeedupPhiMax: number;
+	aBrakeFMax: number;
+	aBrakeSMax: number;
+	aBrakePhiMax: number;
+}
 
 /** Interface describing basic movement information of a team. */
 export interface RobotSpecs {
