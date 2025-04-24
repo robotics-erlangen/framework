@@ -159,12 +159,18 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		// same thing if no trajectory was found (to prevent driving further into obstacles)
 		if ((robotSpeed.length() > 1 && this._robot.path.maxIntersectingObstaclePrio() === PathHelper.PRIORITIES.ROBOT) ||
 				trajectory.length === 0) {
-			let spline = [{ t_start: 0, t_end: Infinity,
+			const spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: 0, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: 0, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: 0, a2: 0, a3: 0 }
 			}];
-			return [{ spline: spline }, Coordinates.toLocal(targetPos), this._robot.pos, TrajectoryPath._trajectoryTime(trajectory)];
+			const trajectoryCommand = { spline };
+			return {
+				trajectoryCommand,
+				target: Coordinates.toLocal(targetPos),
+				dest: this._robot.pos,
+				timeToDest: TrajectoryPath._trajectoryTime(trajectory),
+			};
 		}
 
 		const endPos = TrajectoryPath._endPos(robotPos, trajectory);
@@ -245,13 +251,17 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 			vis.addPathRaw("Position Control", [robotPos, robotPos + posDiff + speedDiff], vis.colors.red);
 		}
 
-		let spline = [{ t_start: 0, t_end: Infinity,
+		const spline = [{ t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speed.x, a2: acc.x / 2, a3: 0 },
 			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
-
-		return [{ spline: spline }, Coordinates.toLocal(targetPos), Coordinates.toLocal(reachesTarget ? targetPos : endPos), timeToEnd];
+		return {
+			trajectoryCommand: { spline },
+			target: Coordinates.toLocal(targetPos),
+			dest: Coordinates.toLocal(reachesTarget ? targetPos : endPos),
+			timeToDest: timeToEnd,
+		};
 	}
 
 	private static _trajectoryTime(trajectory: Trajectory) {

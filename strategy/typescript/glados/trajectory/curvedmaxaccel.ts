@@ -560,12 +560,17 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 			targetDir = Coordinates.toGlobal(targetDir);
 			let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir, this._robot.angularSpeed, targetDir,
 				rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
-			let spline = [{ t_start: 0, t_end: Infinity,
+			const spline = [{ t_start: 0, t_end: Infinity,
 				x: { a0: robotPos.x, a1: endSpeed.x, a2: 0, a3: 0 },
 				y: { a0: robotPos.y, a1: endSpeed.y, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 			}];
-			return [{ spline: spline }, targetPos, targetPos, 0];
+			return {
+				trajectoryCommand: { spline },
+				target: targetPos,
+				dest: targetPos,
+				timeToDest: 0,
+			};
 		}
 
 
@@ -650,6 +655,11 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 		}];
 
 		let endTime = speedProfile[speedProfile.length - 1][1];
-		return [{ spline: spline }, targetPos, reachesTarget ? targetPos : endPos, endTime];
+		return {
+			trajectoryCommand: { spline: spline },
+			target: targetPos,
+			dest: reachesTarget ? targetPos : endPos,
+			timeToDest: endTime,
+		};
 	}
 }

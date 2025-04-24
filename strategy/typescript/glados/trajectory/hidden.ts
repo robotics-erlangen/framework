@@ -9,6 +9,13 @@ export class Hidden extends TrajectoryHandler<[number, number, number]> {
 		if (speedForward == undefined || speedSide == undefined || omega == undefined) {
 			throw new Error("missing parameters!");
 		}
-		return [{ v_f: speedForward, v_s: speedSide, omega: omega }, this._robot.pos, this._robot.pos, 0];
+
+		const trajectoryCommand = { v_f: speedForward, v_s: speedSide, omega: omega };
+		return {
+			trajectoryCommand,
+			target: this._robot.pos,
+			dest: this._robot.pos,
+			timeToDest: 0,
+		};
 	}
 }
