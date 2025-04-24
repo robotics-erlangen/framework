@@ -54,13 +54,6 @@ export abstract class TrajectoryHandler {
 	}
 
 	/**
-	 * checks whether trajectory handler is currently able to handle the new data
-	 * or should be reseted
-	 * canHandle is guaranteed to be called only after update was called at least once
-	 */
-	public abstract canHandle(...args: any[]): boolean;
-
-	/**
 	 * Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
 	 * between strategy and global coordinates!
 	 * New data to use for updating, returns controllerInput, moveDest and moveTime
@@ -95,7 +88,7 @@ export class Trajectory {
 	 * @returns move destination and time as returned by the trajectory handler
 	 */
 	public update<T extends any[]>(handlerType: new (...a: any[]) => TrajH<T>, ...args: T): [Position, number] {
-		if (this._handler == undefined || !(this._handler instanceof handlerType) || !this._handler.canHandle(...args)) {
+		if (this._handler == undefined || !(this._handler instanceof handlerType)) {
 			this._handler = new (handlerType as any)(this._robot);
 			// mostly for the typechecker
 			if (!this._handler) {
