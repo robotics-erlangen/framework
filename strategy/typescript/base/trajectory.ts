@@ -23,7 +23,6 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import { Coordinates } from "base/coordinates";
 import type { FriendlyRobot, TrajectoryCommand } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
@@ -37,13 +36,19 @@ export type RobotLike = Pick<FriendlyRobot,
 	| "acceleration" | "moveTo" | "setControllerInput" | "path"
 >;
 
-/** A tuple consisting of
- *    - splines (controller tnput)
- *    - the desired target position
- *    - end position of the trajectory without violating any obstacles
- *    - time to reach that end position
+/**
+ * The result of a trajectory handler.
  */
-export type TrajectoryResult = [TrajectoryCommand, Position, Position, number];
+export interface TrajectoryResult {
+	/** The controller input to be passed back to Amun. */
+	trajectoryCommand: TrajectoryCommand;
+	/** The desired target that was requested. */
+	target: Position;
+	/** The end position of the actual trajectory without violating any obstacles. */
+	dest: Position;
+	/** The time to reach that end position. */
+	timeToDest: number;
+}
 
 /** Base class for trajectory planning */
 export abstract class TrajectoryHandler<T extends any[]> {
@@ -88,11 +93,9 @@ export class Trajectory {
 			this._handler = new handlerType(this._robot);
 		}
 
-		// target is the desired target position,
-		// dest the position reached by path planning without violating any obstacles
-		let [controllerInput, target, dest, timeToDest] = this._handler.update(...args);
+		const { trajectoryCommand, target, dest, timeToDest } = this._handler.update(...args);
 		this._robot.moveTo = dest;
-		this._robot.setControllerInput(controllerInput);
+		this._robot.setControllerInput(trajectoryCommand);
 
 		if (this._robot.pos) {
 			vis.addPath("MoveTo", [this._robot.pos, dest], vis.colors.whiteHalf);
