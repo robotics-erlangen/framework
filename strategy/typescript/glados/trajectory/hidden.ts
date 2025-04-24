@@ -1,7 +1,7 @@
 import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 
 // only works for hidden robots
-export class Hidden extends TrajectoryHandler {
+export class Hidden extends TrajectoryHandler<[number, number, number]> {
 	public update(speedForward: number, speedSide: number, omega: number): TrajectoryResult {
 		if (this._robot.isVisible) {
 			throw new Error("can only control invisible robots");

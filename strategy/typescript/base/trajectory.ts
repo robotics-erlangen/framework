@@ -46,7 +46,7 @@ export type RobotLike = Pick<FriendlyRobot,
 export type TrajectoryResult = [TrajectoryCommand, Position, Position, number];
 
 /** Base class for trajectory planning */
-export abstract class TrajectoryHandler {
+export abstract class TrajectoryHandler<T extends any[]> {
 	protected readonly _robot: RobotLike;
 
 	public constructor(robot: RobotLike) {
@@ -58,16 +58,12 @@ export abstract class TrajectoryHandler {
 	 * between strategy and global coordinates!
 	 * New data to use for updating, returns controllerInput, moveDest and moveTime
 	 */
-	public abstract update(...args: any[]): TrajectoryResult;
+	public abstract update(...args: T): TrajectoryResult;
 }
 
-
-interface TrajH<T extends any[]> {
-	update(...args: T): TrajectoryResult;
-}
 export class Trajectory {
-	private readonly _robot: any;
-	private _handler: TrajectoryHandler | undefined;
+	private readonly _robot: RobotLike;
+	private _handler: TrajectoryHandler<any[]> | undefined;
 
 	/**
 	 * Initialises trajectory manager.
@@ -87,13 +83,9 @@ export class Trajectory {
 	 * @param args - passed on to trajectory handler
 	 * @returns move destination and time as returned by the trajectory handler
 	 */
-	public update<T extends any[]>(handlerType: new (...a: any[]) => TrajH<T>, ...args: T): [Position, number] {
+	public update<T extends any[]>(handlerType: new (robot: RobotLike) => TrajectoryHandler<T>, ...args: T): [Position, number] {
 		if (this._handler == undefined || !(this._handler instanceof handlerType)) {
-			this._handler = new (handlerType as any)(this._robot);
-			// mostly for the typechecker
-			if (!this._handler) {
-				throw new Error("Malformed trajectory handler constructor!");
-			}
+			this._handler = new handlerType(this._robot);
 		}
 
 		// target is the desired target position,

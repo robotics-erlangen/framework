@@ -474,7 +474,7 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 	return [speedVector, accelVector];
 }
 
-export class CurvedMaxAccel extends TrajectoryHandler {
+export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number, Speed, number, boolean]> {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
 
 	private _getPath(targetPos: Position): Position[] {

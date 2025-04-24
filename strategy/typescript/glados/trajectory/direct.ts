@@ -10,7 +10,7 @@ import { Speed, Vector } from "base/vector";
  * This class allows for specifying velocities directly, rather than target positions.
  * It can handle either a target direction or a rotational speed, but not both simultaneously.
  */
-export class Direct extends TrajectoryHandler {
+export class Direct extends TrajectoryHandler<[Speed, number, number, Vector]> {
 
 	/**
 	 * Updates the trajectory based on the given parameters.

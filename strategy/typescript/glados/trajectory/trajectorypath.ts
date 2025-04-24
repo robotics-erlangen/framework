@@ -78,7 +78,7 @@ class PID {
 // useful visualization for trajectories
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
-export class TrajectoryPath extends TrajectoryHandler {
+export class TrajectoryPath extends TrajectoryHandler<[Position, number, number, Speed, number, boolean]> {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
 	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0, "speed", this._robot);
 	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1, "position", this._robot);
