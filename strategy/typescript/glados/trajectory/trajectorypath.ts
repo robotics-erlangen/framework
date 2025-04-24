@@ -87,10 +87,6 @@ export class TrajectoryPath extends TrajectoryHandler {
 
 	private _lastTrajectory: Trajectory = [];
 
-	public canHandle(...args: any[]): boolean {
-		return true;
-	}
-
 	public update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
 			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
 

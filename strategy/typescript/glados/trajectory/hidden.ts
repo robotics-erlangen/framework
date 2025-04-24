@@ -11,8 +11,4 @@ export class Hidden extends TrajectoryHandler {
 		}
 		return [{ v_f: speedForward, v_s: speedSide, omega: omega }, this._robot.pos, this._robot.pos, 0];
 	}
-
-	public canHandle(): boolean {
-		return true;
-	}
 }

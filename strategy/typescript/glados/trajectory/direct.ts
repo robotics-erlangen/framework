@@ -59,8 +59,4 @@ export class Direct extends TrajectoryHandler {
 
 		return [{ spline: spline }, this._robot.pos, this._robot.pos, 0];
 	}
-
-	public canHandle(...args: any[]): boolean {
-		return true;
-	}
 }
