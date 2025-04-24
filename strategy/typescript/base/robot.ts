@@ -31,7 +31,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as pb from "base/protobuf";
-import { Trajectory } from "base/trajectory";
+import { TrajectoryManager } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
@@ -325,7 +325,7 @@ export class FriendlyRobot extends Robot {
 	/** current path planning target position */
 	public moveTo: Position | undefined;
 	public path: Path;
-	public trajectory: Trajectory;
+	public trajectory: TrajectoryManager;
 	/** response from the robot, only set if there is a current response */
 	public radioResponse: pb.robot.RadioResponse | undefined;
 	/** command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) */
@@ -390,7 +390,7 @@ export class FriendlyRobot extends Robot {
 		}
 
 		this.isFriendly = true;
-		this.trajectory = new Trajectory(this);
+		this.trajectory = new TrajectoryManager(this);
 		this.path = new Path(this.id);
 
 		if (specs.angle != undefined) {

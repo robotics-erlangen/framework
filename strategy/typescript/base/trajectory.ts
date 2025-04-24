@@ -65,7 +65,10 @@ export abstract class TrajectoryHandler<T extends any[]> {
 	public abstract update(...args: T): TrajectoryResult;
 }
 
-export class Trajectory {
+/**
+ * Manages different trajectory handlers and reconstructs them if necessary.
+ */
+export class TrajectoryManager {
 	private readonly _robot: RobotLike;
 	private _handler: TrajectoryHandler<any[]> | undefined;
 
