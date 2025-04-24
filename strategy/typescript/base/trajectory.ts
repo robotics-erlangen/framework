@@ -28,15 +28,6 @@ import type { FriendlyRobot, TrajectoryCommand } from "base/robot";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 
-export interface RobotAccelerationProfile {
-	aSpeedupFMax: number;
-	aSpeedupSMax: number;
-	aSpeedupPhiMax: number;
-	aBrakeFMax: number;
-	aBrakeSMax: number;
-	aBrakePhiMax: number;
-}
-
 export type RobotLike = Pick<FriendlyRobot,
 	"pos" | "dir"
 	| "speed" | "maxSpeed"

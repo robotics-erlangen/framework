@@ -23,7 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import { accelerationsByTeam, RobotSpecs } from "base/accelerations";
+import { RobotAccelerationProfile, accelerationsByTeam, RobotSpecs } from "base/accelerations";
 import { throwInDebug } from "base/amun";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
@@ -31,7 +31,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import { Path } from "base/path";
 import * as pb from "base/protobuf";
-import { RobotAccelerationProfile, Trajectory } from "base/trajectory";
+import { Trajectory } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 
