@@ -53,13 +53,7 @@ interface BallLike {
 	posZ: number;
 }
 
-export const REUSE_LAST_TRAJECTORY = Symbol("REUSE_LAST_TRAJECTORY");
 export const HALT = Symbol("HALT");
-
-export type ControllerInput =
-	typeof REUSE_LAST_TRAJECTORY
-	| typeof HALT
-	| TrajectoryCommand;
 
 export type TrajectoryCommand = {
 	spline: pb.robot.Spline[];
@@ -72,6 +66,8 @@ export type TrajectoryCommand = {
 	v_s: number;
 	omega: number;
 };
+
+export type ControllerInput = typeof HALT | TrajectoryCommand;
 
 /* eslint-disable @typescript-eslint/naming-convention */
 interface GeomType {
@@ -349,7 +345,7 @@ export class FriendlyRobot extends Robot {
 	private _dribblerSpeed: number = 0;
 	private _standbyTimer: number = -1;
 	private _standbyTick: boolean = false;
-	private _controllerInput: ControllerInput = REUSE_LAST_TRAJECTORY;
+	private _controllerInput: ControllerInput = HALT;
 
 	private _dribblerSpeedVisualized = false;
 
@@ -457,7 +453,7 @@ export class FriendlyRobot extends Robot {
 
 		if (this._controllerInput === HALT) {
 			result.controller = {};
-		} else if (this._controllerInput !== REUSE_LAST_TRAJECTORY) {
+		} else {
 			result.controller = {
 				spline: this._controllerInput.spline,
 			};
@@ -495,10 +491,9 @@ export class FriendlyRobot extends Robot {
 
 	/**
 	 * Set output from trajectory planing on robot. The robot is halted by
-	 * default if no command is set for it. To tell a robot to follow its old
-	 * trajectory, call
-	 *   setControllerInput(REUSE_LAST_TRAJECTORY)
-	 * @param input - Target points for the controller, in global coordinates!
+	 * default if no command is set for it.
+	 *
+	 * @param input - input for the controller, in global coordinates!
 	 */
 	public setControllerInput(input: ControllerInput) {
 		// Forbid overriding controller input except with halt
