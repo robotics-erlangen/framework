@@ -24,7 +24,7 @@
 **************************************************************************/
 
 import type { FriendlyRobot, TrajectoryCommand } from "base/robot";
-import { Position, Vector } from "base/vector";
+import { Position } from "base/vector";
 import * as vis from "base/vis";
 
 export type RobotLike = Pick<FriendlyRobot,
@@ -36,13 +36,11 @@ export type RobotLike = Pick<FriendlyRobot,
 	| "acceleration" | "moveTo" | "setControllerInput" | "path"
 >;
 
-/**
- * The result of a trajectory handler.
- */
+/* The result of a trajectory handler. */
 export interface TrajectoryResult {
 	/** The controller input to be passed back to Amun. */
 	trajectoryCommand: TrajectoryCommand;
-	/** The desired target that was requested. */
+	/** The desired target that was requested (might not be reachable because of obstacles for example). */
 	target: Position;
 	/** The end position of the actual trajectory without violating any obstacles. */
 	dest: Position;
@@ -50,7 +48,9 @@ export interface TrajectoryResult {
 	timeToDest: number;
 }
 
-/** Base class for trajectory planning */
+/**
+ * Base class for trajectory handlers.
+ */
 export abstract class TrajectoryHandler<T extends any[]> {
 	protected readonly _robot: RobotLike;
 
@@ -59,9 +59,8 @@ export abstract class TrajectoryHandler<T extends any[]> {
 	}
 
 	/**
-	 * Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
-	 * between strategy and global coordinates!
-	 * New data to use for updating, returns controllerInput, moveDest and moveTime
+	 * Data has to be in strategy coordinates. The trajectory handler is responsible for the conversion
+	 * between from strategy to global coordinates and back.
 	 */
 	public abstract update(...args: T): TrajectoryResult;
 }
@@ -72,7 +71,8 @@ export class Trajectory {
 
 	/**
 	 * Initialises trajectory manager.
-	 * Must only be called by robot class!;
+	 * Must only be called by robot class!
+	 *
 	 * @param robot - robot to handle
 	 */
 	public constructor(robot: RobotLike) {
@@ -81,12 +81,10 @@ export class Trajectory {
 
 	/**
 	 * Update trajectory.
-	 * Resets handler if the trajectory type changes.
-	 * Values passed to and returned from the trajectory handler <strong>must</strong> use strategy coordinates. The handler is responsible for doing any neccessary conversions!
-	 * The handler has to return a protobuf.robot.Spline, Vector, number (controllerInput, moveDest, moveTime).
-	 * @param handlerType - must be a subclass of Trajectory.Base
-	 * @param args - passed on to trajectory handler
-	 * @returns move destination and time as returned by the trajectory handler
+	 *
+	 * @param handlerType - must be a subclass of TrajectoryHandler
+	 * @param args - passed on to the update method of the trajectory handler
+	 * @returns destination and time as returned by the trajectory handler
 	 */
 	public update<T extends any[]>(handlerType: new (robot: RobotLike) => TrajectoryHandler<T>, ...args: T): [Position, number] {
 		if (this._handler == undefined || !(this._handler instanceof handlerType)) {
