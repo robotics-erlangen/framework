@@ -326,7 +326,8 @@ export class PlaceBall extends Task {
 					let offset = (this._robotStartPos - this._ballStartPos).withLength(this._OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
-				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, this._robot.dir, BACK_UP_SPEED);
+				const angle = (this._ballStartPos - this._robotStartPos).angle();
+				this._robot.trajectory.update(CurvedMaxAccel, this._currentTargetPos!, angle, BACK_UP_SPEED);
 
 				break;
 			}
