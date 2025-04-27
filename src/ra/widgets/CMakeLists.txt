@@ -31,6 +31,7 @@ add_library(widgets STATIC
     include/widgets/visualizationwidget.h
     include/widgets/teamwidget.h
     include/widgets/replayteamwidget.h
+    include/widgets/gameeventswidget.h
 
     automaticentrypointdialog.h
     automaticentrypointdialog.cpp
@@ -58,6 +59,7 @@ add_library(widgets STATIC
     visualizationwidget.cpp
     teamwidget.cpp
     replayteamwidget.cpp
+    gameeventswidget.cpp
 )
 
 set(UI_SOURCES
@@ -69,6 +71,7 @@ set(UI_SOURCES
     virtualfieldsetupdialog.ui
     visualizationwidget.ui
     replayteamwidget.ui
+    gameeventswidget.ui
 )
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 target_sources(widgets PRIVATE ${UIC_SOURCES})

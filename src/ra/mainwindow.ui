@@ -382,6 +382,15 @@
    </attribute>
    <widget class="ReplayTeamWidget" name="replay"/>
   </widget>
+  <widget class="QDockWidget" name="dockGameEvents">
+   <property name="windowTitle">
+    <string>Game Events</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="GameEventsWidget" name="game-events"/>
+  </widget>
   <widget class="QDockWidget" name="dockSimConfig">
    <property name="enabled">
     <bool>false</bool>
@@ -953,6 +962,12 @@ toggled again (disables the backlog when active)</string>
    <header>fieldparameters.h</header>
    <container>1</container>
   </customwidget>
+  <customwidget>
+   <class>GameEventsWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/gameeventswidget.h</header>
+   <container>1</container>
+ </customwidget>
  </customwidgets>
  <resources/>
  <connections>
