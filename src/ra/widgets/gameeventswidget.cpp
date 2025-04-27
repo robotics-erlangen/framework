@@ -21,6 +21,8 @@
 #include "gameeventswidget.h"
 #include "ui_gameeventswidget.h"
 
+#include <QPainter>
+
 GameEventsWidget::GameEventsWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GameEventsWidget)
@@ -35,5 +37,85 @@ GameEventsWidget::~GameEventsWidget()
 
 void GameEventsWidget::handleStatus(const Status &status)
 {
+    if (status->has_game_state()) {
+        const amun::GameState &game_state = status->game_state();
+        for (const auto &event : game_state.game_event_2019()) {
+            const auto& id = event.id();
+            if (m_lastEventId != id) {
+                m_lastEventId = id;
+                addEntry(0, event);
+            }
+        }
+    }
+}
+
+gameController::Team GameEventsWidget::teamForEvent(const gameController::GameEvent& event)
+{
+    const google::protobuf::Reflection *refl = event.GetReflection();
+    const google::protobuf::Descriptor *desc = gameController::GameEvent::descriptor();
+    // extract fields using reflection
+    for (int i = 0; i < desc->field_count(); i++) {
+        const google::protobuf::FieldDescriptor *field = desc->field(i);
+
+        // This must be updated whenever a new field is added to the game event
+        if (field->name() == "type"
+                || field->name() == "origin"
+                || field->name() == "id"
+                || field->name() == "created_timestamp") {
+            // ignore them as they are not events
+            continue;
+        }
+        if (refl->HasField(event, field)) {
+            const google::protobuf::Message &eventMessage = refl->GetMessage(event, field);
+            const google::protobuf::Reflection *messageRefl = eventMessage.GetReflection();
+            const google::protobuf::Descriptor *messageDesc = eventMessage.GetDescriptor();
+
+            for (int b = 0;b < messageDesc->field_count(); b++) {
+                const google::protobuf::FieldDescriptor *field = messageDesc->field(b);
+                std::string fieldName = field->name();
+                if (fieldName == "by_team") {
+                    const auto enumValue = messageRefl->GetEnumValue(eventMessage, field);
+                    return static_cast<gameController::Team>(enumValue);
+                }
+            }
+        }
+    }
+    return gameController::Team::UNKNOWN;
+}
+
+
+void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent& event)
+{
+    const auto row = ui->eventTable->rowCount();
+    ui->eventTable->insertRow(row);
+    ui->eventTable->setItem(row, 0, new QTableWidgetItem(QString("%1").arg(frame)));
+    ui->eventTable->setItem(row, 1, new QTableWidgetItem("X"));
+    
+    const auto byTeam = teamForEvent(event);
+    auto* teamItem = new QTableWidgetItem();
+    QPixmap pixmap(10, 10);
+    pixmap.fill(Qt::transparent);
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    if (byTeam == gameController::Team::YELLOW) {
+        painter.setBrush(Qt::yellow);
+    } else if (byTeam == gameController::Team::BLUE) {
+        painter.setBrush(Qt::blue);
+    } else {
+        painter.setBrush(Qt::gray); // Default color for unknown team
+    }
+    painter.setPen(Qt::NoPen);
+    painter.drawEllipse(0, 0, 10, 10);
+    painter.end();
+    teamItem->setData(Qt::DecorationRole, pixmap);
+    teamItem->setTextAlignment(Qt::AlignCenter);
+    ui->eventTable->setItem(row, 2, teamItem);
+
+    ui->eventTable->setItem(row, 3, new QTableWidgetItem("test"));
+}
+
+void GameEventsWidget::scanLogClicked()
+{
 
 }
+

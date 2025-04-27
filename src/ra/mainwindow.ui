@@ -389,7 +389,7 @@
    <attribute name="dockWidgetArea">
     <number>2</number>
    </attribute>
-   <widget class="GameEventsWidget" name="game-events"/>
+   <widget class="GameEventsWidget" name="gameEvents"/>
   </widget>
   <widget class="QDockWidget" name="dockSimConfig">
    <property name="enabled">

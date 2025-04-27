@@ -40,8 +40,16 @@ public:
 public slots:
     void handleStatus(const Status &status);
 
+private slots:
+    void scanLogClicked();
+
+private:
+    void addEntry(uint64_t frame, const gameController::GameEvent& event);
+    gameController::Team teamForEvent(const gameController::GameEvent& event);
+
 private:
     Ui::GameEventsWidget *ui;
+    std::string m_lastEventId;
 };
 
 #endif // GAMEEVENTSWIDGET_H

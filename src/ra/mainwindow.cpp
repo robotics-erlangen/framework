@@ -229,6 +229,7 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     connect(this, SIGNAL(gotStatus(Status)), m_logTimeLabel, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->logManager, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->gameEvents, SLOT(handleStatus(Status)));
     connect(this, &MainWindow::gotStatus, m_logTimeLabel, &LogLabel::handleStatus);
     connect(this, &MainWindow::gotStatus, m_gitInfo, &GitInfoDialog::handleStatus);
     connect(this, &MainWindow::gotStatus, ui->fieldParameters, &FieldParameters::handleStatus);
@@ -617,6 +618,7 @@ void MainWindow::loadConfig(bool doRestoreGeometry, uint configId)
             // horus config
             ui->dockVisualization->show();
             ui->dockReplay->show();
+            ui->dockGameEvents->show();
         }
 
         const auto width = ui->splitterH->size().width();
