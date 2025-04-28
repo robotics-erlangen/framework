@@ -7,6 +7,7 @@ import "protobuf/robot.proto";
 import "protobuf/world.proto";
 import "protobuf/userinput.proto";
 import "protobuf/logfile.proto";
+import "protobuf/ssl_gc/state/ssl_gc_game_event.proto";
 
 package amun;
 
@@ -159,6 +160,7 @@ message UiResponse {
     optional logfile.LogOffer log_offers = 12;
     optional string log_uid_parser_error = 13;
     optional string log_open_error = 14;
+    optional GameEventScanProgress game_events_progress = 15;
 }
 
 message LoggingInfo {
@@ -175,4 +177,10 @@ message LogPlaybackInfo {
 message LogfileOpenInfo {
     required bool success = 1;
     required string filename = 2; // filename if success = true, error-message if success = false
+}
+
+message GameEventScanProgress {
+    required int32 current_packet = 1;
+    required int32 total_packets = 2;
+    repeated gameController.GameEvent game_events = 3;
 }

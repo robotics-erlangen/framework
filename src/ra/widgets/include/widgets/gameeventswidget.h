@@ -22,7 +22,9 @@
 #define GAMEEVENTSWIDGET_H
 
 #include <QDockWidget>
+#include <unordered_set>
 
+#include "protobuf/command.h"
 #include "protobuf/status.h"
 
 namespace Ui {
@@ -40,6 +42,9 @@ public:
 public slots:
     void handleStatus(const Status &status);
 
+signals:
+    void sendCommand(const Command &command);
+
 private slots:
     void scanLogClicked();
 
@@ -49,7 +54,6 @@ private:
 
 private:
     Ui::GameEventsWidget *ui;
-    std::string m_lastEventId;
 };
 
 #endif // GAMEEVENTSWIDGET_H

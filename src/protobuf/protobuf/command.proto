@@ -210,6 +210,7 @@ message CommandPlayback {
     optional Flag get_uid = 10;
     optional string find_logfile = 11;
     optional int32 playback_limit = 12;
+    optional Flag collect_game_events = 13;
 }
 
 message CommandRecord {

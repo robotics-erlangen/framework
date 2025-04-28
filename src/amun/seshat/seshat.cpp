@@ -199,6 +199,10 @@ void Seshat::handleCommand(const Command& command)
         if (playback.has_find_logfile()) {
             handleLogFindRequest(playback.find_logfile());
         }
+
+        if (playback.has_collect_game_events()) {
+            collectGameEvents();
+        }
     }
 
     if (m_isPlayback && m_statusSource) {
@@ -279,4 +283,47 @@ void Seshat::sendLogfileInfo(const std::string& message, bool error)
     logOpen->set_success(!error);
     logOpen->set_filename(message);
     emit sendUi(s);
+}
+
+void Seshat::collectGameEvents()
+{
+    auto& statusSource = *m_statusSource->getStatusSource();
+    const auto numPackets = statusSource.packetCount();
+
+    std::vector<gameController::GameEvent> events;
+    const auto sendProgress = [&, this](int currentPacket) {
+        auto s = Status::createArena();
+        auto* response = s->mutable_pure_ui_response();
+        auto* progressReport = response->mutable_game_events_progress();
+        progressReport->set_current_packet(currentPacket);
+        progressReport->set_total_packets(numPackets);
+        progressReport->mutable_game_events()->Reserve(events.size());
+        for (const auto& event : events) {
+            *progressReport->add_game_events() = event;
+        }
+        emit sendUi(s);
+
+        events.clear();
+    };
+
+    std::unordered_set<std::string> eventIds;
+    for (int i = 0; i < numPackets; i++) {
+        const auto status = statusSource.readStatus(i);
+        if (!status->has_game_state()) {
+            continue;
+        }
+        const amun::GameState &game_state = status->game_state();
+        for (const auto &event : game_state.game_event_2019()) {
+            const auto& id = event.id();
+            if (!eventIds.contains(id)) {
+                eventIds.insert(id);
+                events.push_back(event);
+            }
+        }
+        if (i % 1000 == 0) {
+            sendProgress(i);
+        }
+    }
+
+    sendProgress(numPackets);
 }

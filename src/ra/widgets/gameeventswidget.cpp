@@ -28,6 +28,8 @@ GameEventsWidget::GameEventsWidget(QWidget *parent)
     , ui(new Ui::GameEventsWidget)
 {
     ui->setupUi(this);
+
+    connect(ui->scanLog, &QPushButton::clicked, this, &GameEventsWidget::scanLogClicked);
 }
 
 GameEventsWidget::~GameEventsWidget()
@@ -37,15 +39,16 @@ GameEventsWidget::~GameEventsWidget()
 
 void GameEventsWidget::handleStatus(const Status &status)
 {
-    if (status->has_game_state()) {
-        const amun::GameState &game_state = status->game_state();
-        for (const auto &event : game_state.game_event_2019()) {
-            const auto& id = event.id();
-            if (m_lastEventId != id) {
-                m_lastEventId = id;
-                addEntry(0, event);
-            }
-        }
+    if (!status->has_pure_ui_response()) {
+        return;
+    }
+    const auto& response = status->pure_ui_response();
+    if (!response.has_game_events_progress()) {
+        return;
+    }
+    const auto& gameEventsProgress = response.game_events_progress();
+    for (const auto& event : gameEventsProgress.game_events()) {
+        addEntry(gameEventsProgress.current_packet(), event);
     }
 }
 
@@ -116,6 +119,8 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
 
 void GameEventsWidget::scanLogClicked()
 {
-
+    Command command{new amun::Command};
+    command->mutable_playback()->mutable_collect_game_events();
+    emit sendCommand(command);
 }
 

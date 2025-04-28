@@ -64,6 +64,7 @@ private:
     void handleUIDRequest();
     void handleLogFindRequest(const std::string& logHash);
     void sendBufferedStatus();
+    void collectGameEvents();
 
 private:
 

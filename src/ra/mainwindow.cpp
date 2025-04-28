@@ -155,6 +155,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     ui->yellowDebugger->setStrategy(amun::DebugSource::StrategyYellow);
     connect(ui->yellowDebugger, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
+    connect(ui->gameEvents, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+
     m_robotDoubleClickAction = new RobotUIAction(this);
     m_robotCtrlClickAction = new RobotUIAction(this);
 
