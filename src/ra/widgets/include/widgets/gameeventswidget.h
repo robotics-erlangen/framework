@@ -47,6 +47,7 @@ signals:
 
 private slots:
     void scanLogClicked();
+    void cellDoubleClicked(int row, int column);
 
 private:
     void addEntry(uint64_t frame, const gameController::GameEvent& event);

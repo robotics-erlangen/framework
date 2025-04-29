@@ -290,7 +290,7 @@ void Seshat::collectGameEvents()
     auto& statusSource = *m_statusSource->getStatusSource();
     const auto numPackets = statusSource.packetCount();
 
-    std::vector<gameController::GameEvent> events;
+    std::vector<std::pair<uint32_t, gameController::GameEvent>> events;
     const auto sendProgress = [&, this](int currentPacket) {
         auto s = Status::createArena();
         auto* response = s->mutable_pure_ui_response();
@@ -298,8 +298,10 @@ void Seshat::collectGameEvents()
         progressReport->set_current_packet(currentPacket);
         progressReport->set_total_packets(numPackets);
         progressReport->mutable_game_events()->Reserve(events.size());
-        for (const auto& event : events) {
-            *progressReport->add_game_events() = event;
+        for (const auto& [packet, event] : events) {
+            auto* logEvent = progressReport->add_game_events();
+            logEvent->set_packet(packet);
+            *logEvent->mutable_game_event() = event;
         }
         emit sendUi(s);
 
@@ -317,7 +319,7 @@ void Seshat::collectGameEvents()
             const auto& id = event.id();
             if (!eventIds.contains(id)) {
                 eventIds.insert(id);
-                events.push_back(event);
+                events.emplace_back(i, event);
             }
         }
         if (i % 1000 == 0) {

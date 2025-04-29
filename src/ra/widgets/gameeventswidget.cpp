@@ -30,6 +30,7 @@ GameEventsWidget::GameEventsWidget(QWidget *parent)
     ui->setupUi(this);
 
     connect(ui->scanLog, &QPushButton::clicked, this, &GameEventsWidget::scanLogClicked);
+    connect(ui->eventTable, &QTableWidget::cellDoubleClicked, this, &GameEventsWidget::cellDoubleClicked);
 }
 
 GameEventsWidget::~GameEventsWidget()
@@ -60,7 +61,7 @@ void GameEventsWidget::handleStatus(const Status &status)
     ui->scanLog->setStyleSheet(progressBarStyle);
 
     for (const auto& event : gameEventsProgress.game_events()) {
-        addEntry(gameEventsProgress.current_packet(), event);
+        addEntry(event.packet(), event.game_event());
     }
 
     if (gameEventsProgress.current_packet() == gameEventsProgress.total_packets()) {
@@ -146,3 +147,15 @@ void GameEventsWidget::scanLogClicked()
     emit sendCommand(command);
 }
 
+void GameEventsWidget::cellDoubleClicked(int row, int /*column*/)
+{
+    auto* packetItem = ui->eventTable->item(row, 0);
+    bool ok = false;
+    const auto packetNum = packetItem->text().toULongLong(&ok);
+
+    if (ok) {
+        Command command{new amun::Command};
+        command->mutable_playback()->set_seek_packet(packetNum);
+        emit sendCommand(command);
+    }
+}

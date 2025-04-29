@@ -179,8 +179,13 @@ message LogfileOpenInfo {
     required string filename = 2; // filename if success = true, error-message if success = false
 }
 
+message LogGameEvent {
+    required int32 packet = 1;
+    required gameController.GameEvent game_event = 2;
+}
+
 message GameEventScanProgress {
     required int32 current_packet = 1;
     required int32 total_packets = 2;
-    repeated gameController.GameEvent game_events = 3;
+    repeated LogGameEvent game_events = 3;
 }
