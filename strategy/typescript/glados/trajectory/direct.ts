@@ -1,8 +1,31 @@
 import { Coordinates } from "base/coordinates";
+import * as debug from "base/debug";
 import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
-import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
+import { TrajectoryCommand } from "base/robot";
+import { RobotLike, TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Speed, Vector } from "base/vector";
+import * as vis from "base/vis";
+
+export class DirectTrajectoryResult extends TrajectoryResult {
+	public readonly dest: undefined = undefined;
+	public readonly speed: Speed;
+
+	public constructor(robot: RobotLike, speed: Speed) {
+		super(robot);
+		this.speed = speed;
+	}
+
+	public vis() {
+		super.vis();
+		vis.addPath("MoveTo", [this._robot.pos, this._robot.pos + this.speed], vis.colors.whiteHalf);
+	}
+
+	public debug() {
+		super.debug();
+		debug.set("speed", this.speed);
+	}
+}
 
 /**
  * The Direct class extends the TrajectoryHandler to provide direct trajectory updates.
@@ -10,8 +33,7 @@ import { Speed, Vector } from "base/vector";
  * This class allows for specifying velocities directly, rather than target positions.
  * It can handle either a target direction or a rotational speed, but not both simultaneously.
  */
-export class Direct extends TrajectoryHandler<[Speed, number, number, Vector]> {
-
+export class Direct extends TrajectoryHandler<[Speed, number, number, Vector], DirectTrajectoryResult> {
 	/**
 	 * Updates the trajectory based on the given parameters.
 	 * Only targetDir or rotateSpeed may be passed. accel is optional.
@@ -23,7 +45,7 @@ export class Direct extends TrajectoryHandler<[Speed, number, number, Vector]> {
 	 * @returns The result of the trajectory update including the spline, robot position, and a zero value.
 	 * @throws Error if both targetDir and rotateSpeed are passed or if neither are provided.
 	 */
-	public update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): TrajectoryResult {
+	public update(speed: Speed, targetDir?: number, rotateSpeed?: number, accel: Vector = new Vector(0, 0)): [TrajectoryCommand, DirectTrajectoryResult] {
 		speed = Coordinates.toGlobal(speed);
 		accel = Coordinates.toGlobal(accel);
 		// play motion controller
@@ -56,11 +78,6 @@ export class Direct extends TrajectoryHandler<[Speed, number, number, Vector]> {
 			y: { a0: robotPos.y, a1: speed.y, a2: accel.y / 2, a3: 0 },
 			phi: { a0: robotDir, a1: rotateSpeed, a2: 0, a3: 0 }
 		}];
-		return {
-			trajectoryCommand: { spline },
-			target: this._robot.pos,
-			dest: this._robot.pos,
-			timeToDest: 0,
-		};
+		return [{ spline }, new DirectTrajectoryResult(this._robot, Coordinates.toLocal(speed))];
 	}
 }

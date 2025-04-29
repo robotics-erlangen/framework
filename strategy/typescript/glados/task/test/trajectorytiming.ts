@@ -51,7 +51,7 @@ export class TrajectoryTiming extends Task {
 			this._startingDistance = this._robot.pos.distanceTo(this._currentTarget);
 		}
 
-		let time = this._robot.trajectory.update(TrajectoryPath, this._currentTarget, 0)[1];
+		let time = this._robot.trajectory.update(TrajectoryPath, this._currentTarget, 0).timeToDest;
 		if (positionChanged) {
 			this._trajectoryPredictedTime = time;
 		}

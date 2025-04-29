@@ -6,8 +6,8 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
-import { FriendlyRobot } from "base/robot";
-import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
+import { FriendlyRobot, TrajectoryCommand } from "base/robot";
+import { RobotLike, ToTargetResult, TrajectoryHandler, TrajectoryResult } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -474,7 +474,28 @@ function _calculateSpeed(robotId: number, waypoints: Position[], maxSpeedProfile
 	return [speedVector, accelVector];
 }
 
-export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number, Speed, number, boolean]> {
+export class CurvedMaxAccelResult extends ToTargetResult {
+	public readonly target: Position;
+	public readonly dest: Position;
+	public readonly timeToDest: number;
+	public readonly path: Position[];
+
+	public constructor(
+			robot: RobotLike,
+			target: Position,
+			dest: Position,
+			timeToDest: number,
+			path: Position[],
+	) {
+		super(robot);
+		this.target = target;
+		this.dest = dest;
+		this.timeToDest = timeToDest;
+		this.path = path;
+	}
+}
+
+export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number, Speed, number, boolean], CurvedMaxAccelResult> {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
 
 	private _getPath(targetPos: Position): Position[] {
@@ -517,7 +538,7 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 	}
 
 	public update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
-			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
+			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): [TrajectoryCommand, CurvedMaxAccelResult] {
 
 		let directionVector = Vector.fromPolar(targetDir, 0.09);
 		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
@@ -565,12 +586,14 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 				y: { a0: robotPos.y, a1: endSpeed.y, a2: 0, a3: 0 },
 				phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 			}];
-			return {
-				trajectoryCommand: { spline },
-				target: targetPos,
-				dest: targetPos,
-				timeToDest: 0,
-			};
+			const result = new CurvedMaxAccelResult(
+				this._robot,
+				targetPos,
+				targetPos,
+				0,
+				waypoints.map((v) => Coordinates.toLocal(v)),
+			);
+			return [{ spline }, result];
 		}
 
 
@@ -654,12 +677,14 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
 
-		let endTime = speedProfile[speedProfile.length - 1][1];
-		return {
-			trajectoryCommand: { spline: spline },
-			target: targetPos,
-			dest: reachesTarget ? targetPos : endPos,
-			timeToDest: endTime,
-		};
+		const endTime = speedProfile[speedProfile.length - 1][1];
+		const result = new CurvedMaxAccelResult(
+			this._robot,
+			targetPos,
+			endPos,
+			endTime,
+			waypoints.map((v) => Coordinates.toLocal(v)),
+		);
+		return [{ spline }, result];
 	}
 }

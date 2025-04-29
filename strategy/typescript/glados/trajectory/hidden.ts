@@ -1,8 +1,9 @@
-import { TrajectoryHandler, TrajectoryResult } from "base/trajectory";
+import { TrajectoryCommand } from "base/robot";
+import { NoTrajectoryResult, TrajectoryHandler } from "base/trajectory";
 
 // only works for hidden robots
-export class Hidden extends TrajectoryHandler<[number, number, number]> {
-	public update(speedForward: number, speedSide: number, omega: number): TrajectoryResult {
+export class Hidden extends TrajectoryHandler<[number, number, number], NoTrajectoryResult> {
+	public update(speedForward: number, speedSide: number, omega: number): [TrajectoryCommand, NoTrajectoryResult] {
 		if (this._robot.isVisible) {
 			throw new Error("can only control invisible robots");
 		}
@@ -11,11 +12,6 @@ export class Hidden extends TrajectoryHandler<[number, number, number]> {
 		}
 
 		const trajectoryCommand = { v_f: speedForward, v_s: speedSide, omega: omega };
-		return {
-			trajectoryCommand,
-			target: this._robot.pos,
-			dest: this._robot.pos,
-			timeToDest: 0,
-		};
+		return [trajectoryCommand, new NoTrajectoryResult(this._robot)];
 	}
 }

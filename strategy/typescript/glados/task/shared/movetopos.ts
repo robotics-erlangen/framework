@@ -77,9 +77,9 @@ export class MoveToPos extends Task {
 		let endSpeed = (this._pos - this._robot.pos).withLength(this._endSpeedLength);
 		let time;
 		if (this._useCMA) {
-			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, this._maxSpeed, endSpeed)[1];
+			time = this._robot.trajectory.update(CurvedMaxAccel, this._pos, this._dir, this._maxSpeed, endSpeed).timeToDest;
 		} else {
-			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, this._maxSpeed, endSpeed)[1];
+			time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, this._maxSpeed, endSpeed).timeToDest;
 		}
 
 		if (this._suggestPass != undefined) {

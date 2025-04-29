@@ -78,7 +78,7 @@ export class AcceptPass extends Task {
 
 		let dir = attackPosition ? (attackPosition - ballPos).angle() : (World.Ball.pos - ballPos).angle();
 		let robotPos = ballPos - Vector.fromPolar(dir, this._robot.shootRadius + World.Ball.radius);
-		let moveTime = this._robot.trajectory.update(ToTarget, robotPos, dir)[1];
+		let moveTime = this._robot.trajectory.update(ToTarget, robotPos, dir).timeToDest;
 		if (this._runCounter < 5) {
 			// in the first 5 runs, the time from trajectory/update is unreliable. Just pretend we will be just in time
 			moveTime = passInfo.time - World.Time;

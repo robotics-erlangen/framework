@@ -4,8 +4,8 @@ import * as Field from "base/field";
 import * as Option from "base/option";
 import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
-import { FriendlyRobot } from "base/robot";
-import { TrajectoryHandler, TrajectoryResult, RobotLike } from "base/trajectory";
+import { FriendlyRobot, TrajectoryCommand } from "base/robot";
+import { TrajectoryHandler, RobotLike, ToTargetResult } from "base/trajectory";
 import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -13,8 +13,6 @@ import * as World from "base/world";
 import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as Rating from "glados/util/rating";
-
-type Trajectory = { pos: Position; speed: Speed; time: number }[];
 
 // enables several visualizations for the state of the PID controller
 const VISUALIZE_PID_STATE = Option.addOption("Visualize PID controller state in strategy", false);
@@ -78,27 +76,135 @@ class PID {
 // useful visualization for trajectories
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
-export class TrajectoryPath extends TrajectoryHandler<[Position, number, number, Speed, number, boolean]> {
+type Trajectory = { pos: Position; speed: Speed; time: number }[];
+
+export class TrajectoryPathResult extends ToTargetResult {
+	/** The desired target position in local coordinates */
+	public readonly target: Position;
+	/** The desired end speed in local coordinates */
+	public readonly targetSpeed: Speed;
+	/** The desired orientation at the target in local coordinates */
+	public readonly targetDir: number;
+	/**  Only the values **in this struct** are in global coordinates */
+	private _trajectory: Trajectory;
+
+	public constructor(
+			robot: RobotLike,
+			target: Position,
+			targetSpeed: Speed,
+			targetDir: number,
+			trajectory: Trajectory
+	) {
+		super(robot);
+		this.target = target;
+		this.targetSpeed = targetSpeed;
+		this.targetDir = targetDir;
+		this._trajectory = trajectory;
+	}
+
+	public get timeToDest(): number {
+		return this._trajectory[this._trajectory.length - 1].time;
+	}
+
+	public get dest(): Position {
+		return Coordinates.toLocal(this._trajectory[this._trajectory.length - 1].pos);
+	}
+
+	public get path(): Position[] {
+		const MIN_POINT_DISTANCE = DETAILED_TRAJECTORY ? 0.005 : 0.1; // minimum distance between points to draw both
+		const SAMPLES = DETAILED_TRAJECTORY ? 40 : 20;
+
+		if (this._trajectory.length === 0) {
+			return [];
+		}
+
+		const positions: Position[] = [];
+		const totalTime = this.timeToDest;
+		let lastDrawn = this._trajectory[0].pos;
+		for (let i = 0; i < SAMPLES; i++) {
+			const time = i * totalTime / (SAMPLES - 1);
+			const pos = this.posAtTime(time);
+			if (i === 0 || i === SAMPLES - 1 || pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
+				positions.push(pos);
+				lastDrawn = pos;
+			}
+		}
+		return positions;
+	}
+
+	public posAtTime(time: number): Position {
+		if (this._trajectory.length === 0) {
+			return new Vector(0, 0);
+		}
+		for (let i = 0; i < this._trajectory.length - 1; i++) {
+			let next = this._trajectory[i + 1];
+			if (next.time > time) {
+				let current = this._trajectory[i];
+				let tFactor = (time - current.time) / (next.time - current.time);
+				let v = current.speed + tFactor * (next.speed - current.speed);
+
+				return Coordinates.toLocal(current.pos + (current.speed + v) * 0.5 * (time - current.time));
+			}
+		}
+		if (this._trajectory.length > 0) {
+			return Coordinates.toLocal(this._trajectory[this._trajectory.length - 1].pos);
+		}
+		return new Vector(0, 0);
+	}
+
+	public speedAtTime(time: number): Speed {
+		for (let i = 0; i < this._trajectory.length - 1; i++) {
+			let next = this._trajectory[i + 1];
+			if (next.time > time) {
+				let current = this._trajectory[i];
+				let tFactor = (time - current.time) / (next.time - current.time);
+				let v = current.speed + tFactor * (next.speed - current.speed);
+				return Coordinates.toLocal(v);
+			}
+		}
+		if (this._trajectory.length > 0) {
+			return Coordinates.toLocal(this._trajectory[this._trajectory.length - 1].speed);
+		}
+		return new Vector(0, 0);
+	}
+
+	public accAtTime(time: number): Vector {
+		for (let i = 0; i < this._trajectory.length - 1; i++) {
+			let next = this._trajectory[i + 1];
+			if (next.time > time) {
+				let current = this._trajectory[i];
+				let acc = (next.speed - current.speed) / (next.time - current.time);
+				return Coordinates.toLocal(acc);
+			}
+		}
+		return new Vector(0, 0);
+	}
+
+	public vis() {
+		super.vis();
+		let directionVector = Vector.fromPolar(this.targetDir, 0.09);
+		vis.addPath("MoveTo", [this.target, this.target + directionVector], vis.colors.yellowHalf);
+		if (this.targetSpeed.length() > 0.001) {
+			vis.addPath("MoveTo", [this.target, this.target + this.targetSpeed], vis.colors.whiteQuarter);
+		}
+	}
+}
+
+export class TrajectoryPath extends TrajectoryHandler<[Position, number, number, Speed, number, boolean], TrajectoryPathResult> {
 	private _rotationCalculation: DirectRotation = new DirectRotation();
 	private _speedPID: PID = new PID(1.0, 0.3, 0.2, 0, "speed", this._robot);
 	private _positionPID: PID = new PID(2, 4.5, 0.6, 0.1, "position", this._robot);
 	private _dribbleWarning = true;
 	private _slowSpeedHysteresis: boolean = false;
 
-	private _lastTrajectory: Trajectory = [];
+	private _lastResult: TrajectoryPathResult | undefined = undefined;
 
 	public update(targetPos: Position, targetDir: number = 0, maxSpeed: number = this._robot.maxSpeed,
-			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): TrajectoryResult {
+			endSpeed: Speed = new Vector(0, 0), accelScale: number = 1.0, dribble: boolean = false): [TrajectoryCommand, TrajectoryPathResult] {
 
 		if (this._dribbleWarning && dribble) {
 			this._dribbleWarning = false;
 			amun.log("TrajectoryPath does not implement dribble = true right now");
-		}
-
-		let directionVector = Vector.fromPolar(targetDir, 0.09);
-		vis.addPath("MoveTo", [targetPos, targetPos + directionVector], vis.colors.yellowHalf);
-		if (endSpeed != undefined && endSpeed.length() > 0.001) {
-			vis.addPath("MoveTo", [targetPos, targetPos + endSpeed], vis.colors.whiteQuarter);
 		}
 
 		PathHelper.insertObstacles(this._robot as FriendlyRobot, false, targetPos);
@@ -135,15 +241,15 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		let startSpeed = robotSpeed;
 		let futureStartPos = robotPos;
 		let futureStartSpeed = robotSpeed;
-		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2 && this._lastTrajectory.length > 0
+		let usePositionControl = robotPos.distanceTo(targetPos) > 0.2
 			&& World.WorldStateSource() === pb.world.WorldSource.REAL_LIFE;
-		if (usePositionControl) {
-			let [testPos, testSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0);
+		if (usePositionControl && this._lastResult !== undefined) {
+			let [testPos, testSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastResult, 0);
 			vis.addCircle("trajectory-closest", Coordinates.toLocal(testPos), 0.03, vis.colors.red);
 			if (testPos.distanceTo(robotPos) < 0.1 && testSpeed.distanceTo(robotSpeed) < 0.3) {
 				startPos = testPos;
 				startSpeed = testSpeed;
-				[futureStartPos, futureStartSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastTrajectory, 0.01);
+				[futureStartPos, futureStartSpeed] = TrajectoryPath._calculateClosestPoint(robotPos, robotSpeed, this._lastResult, 0.01);
 			}
 		}
 
@@ -154,6 +260,13 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		// call C++ path finding
 		let trajectory = this._robot.path.getTrajectory(startPos, startSpeed, targetPos, endSpeed,
 			maxSpeed, accelerate);
+		const result = new TrajectoryPathResult(
+			this._robot,
+			Coordinates.toLocal(targetPos),
+			Coordinates.toLocal(endSpeed),
+			Coordinates.toLocal(targetDir),
+			trajectory,
+		);
 
 		// if the trajectory intersects a robot obstacle, brake as fast as possible
 		// same thing if no trajectory was found (to prevent driving further into obstacles)
@@ -165,33 +278,23 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 				phi: { a0: robotDir, a1: 0, a2: 0, a3: 0 }
 			}];
 			const trajectoryCommand = { spline };
-			return {
-				trajectoryCommand,
-				target: Coordinates.toLocal(targetPos),
-				dest: this._robot.pos,
-				timeToDest: TrajectoryPath._trajectoryTime(trajectory),
-			};
+			const result = new TrajectoryPathResult(
+				this._robot,
+				Coordinates.toLocal(targetPos),
+				Coordinates.toLocal(endSpeed),
+				Coordinates.toLocal(targetDir),
+				[{ pos: robotPos, speed: new Vector(0, 0), time: 0 }],
+			);
+			return [trajectoryCommand, result];
 		}
 
-		const endPos = TrajectoryPath._endPos(robotPos, trajectory);
-		const reachesTarget = endPos.distanceTo(targetPos) < 0.005;
-		let pathColor = trajectory.length < 50 ? vis.colors.green : vis.colors.yellow;
-		if (!reachesTarget) {
-			// orange path if target can't be reached
-			pathColor = vis.colors.orange;
-		}
-		TrajectoryPath._visualizeTrajectory(trajectory, pathColor);
-		this._lastTrajectory = trajectory;
-
-		let timeToEnd =	TrajectoryPath._trajectoryTime(trajectory);
-
-		// generate trajectory to reach path finding result
+		this._lastResult = result;
 
 		// calculate rotation
 		let rotationExponentialTime = 0.1;
 		let rotationAccelerationFactor = 1;
 
-		const rotationFactor = 0.2 + 0.8 * Rating.valueToRating(timeToEnd, 1.5, 0.5);
+		const rotationFactor = 0.2 + 0.8 * Rating.valueToRating(result.timeToDest, 1.5, 0.5);
 
 		let rotAccelerate = Math.abs(this._robot.acceleration
 			? this._robot.acceleration.aSpeedupPhiMax : 1.0) * rotationAccelerationFactor * rotationFactor;
@@ -205,14 +308,14 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 		let queryTime;
 		let startDriving = false;
 		if (World.WorldStateSource() !== pb.world.WorldSource.REAL_LIFE) {
-			if (timeToEnd < 0.4) {
-				queryTime = Math.min(0.1, (0.4 - timeToEnd) / 4);
+			if (result.timeToDest < 0.4) {
+				queryTime = Math.min(0.1, (0.4 - result.timeToDest) / 4);
 			} else {
 				queryTime = 0;
 			}
 		} else {
 			queryTime = 0.08;
-			let testSpeed = TrajectoryPath._speedAtTime(queryTime, trajectory);
+			let testSpeed = Coordinates.toGlobal(result.speedAtTime(queryTime));
 			if (robotSpeed.length() > testSpeed.length()) {
 				queryTime = 0.03;
 			}
@@ -220,7 +323,7 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 				queryTime = 0.1;
 			} else {
 				const QUERY_OFFSET = 0.3;
-				let nextSpeed = TrajectoryPath._speedAtTime(QUERY_OFFSET, trajectory);
+				let nextSpeed = Coordinates.toGlobal(result.speedAtTime(QUERY_OFFSET));
 
 				let slowSpeedLimit = this._slowSpeedHysteresis ? 0.4 : 0.2;
 				this._slowSpeedHysteresis = false;
@@ -231,8 +334,8 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 				}
 			}
 		}
-		let speed = TrajectoryPath._speedAtTime(queryTime, trajectory);
-		let acc = TrajectoryPath._accAtTime(queryTime, trajectory);
+		let speed = Coordinates.toGlobal(result.speedAtTime(queryTime));
+		let acc = Coordinates.toGlobal(result.accAtTime(queryTime));
 
 		if (startDriving) {
 			speed = speed * 1.5;
@@ -256,120 +359,17 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 			y: { a0: robotPos.y, a1: speed.y, a2: acc.y / 2, a3: 0 },
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
-		return {
-			trajectoryCommand: { spline },
-			target: Coordinates.toLocal(targetPos),
-			dest: Coordinates.toLocal(reachesTarget ? targetPos : endPos),
-			timeToDest: timeToEnd,
-		};
+		return [{ spline }, result];
 	}
 
-	private static _trajectoryTime(trajectory: Trajectory) {
-		if (trajectory.length === 0) {
-			return 0;
-		}
-		return trajectory[trajectory.length - 1].time;
-	}
-
-	private static _endPos(robotPos: Position, trajectory: Trajectory) {
-		if (trajectory.length === 0) {
-			return robotPos;
-		}
-		return trajectory[trajectory.length - 1].pos;
-	}
-
-	private static _plotSpeed(trajectory: Trajectory) {
-		let points = [];
-		for (let i = 0; i < trajectory.length; i++) {
-			let pos = new Vector(trajectory[i].speed.length(), trajectory[i].time);
-			points.push(Coordinates.toLocal(pos));
-		}
-		vis.addPath("trajectory-speeds", points, vis.colors.blue);
-		for (let i = 0; i < 5; i++) {
-			vis.addPath("trajectory-speeds", [Coordinates.toLocal(new Vector(i, 0)),
-				Coordinates.toLocal(new Vector(i, 5))], vis.colors.red);
-		}
-	}
-
-	private static _speedAtTime(time: number, trajectory: Trajectory): Speed {
-		for (let i = 0; i < trajectory.length - 1; i++) {
-			let next = trajectory[i + 1];
-			if (next.time > time) {
-				let current = trajectory[i];
-				let tFactor = (time - current.time) / (next.time - current.time);
-				let v = current.speed + tFactor * (next.speed - current.speed);
-				return v;
-			}
-		}
-		if (trajectory.length > 0) {
-			return trajectory[trajectory.length - 1].speed;
-		}
-		return new Vector(0, 0);
-	}
-
-	private static _posAtTime(time: number, trajectory: Trajectory): Position {
-		if (trajectory.length === 0) {
-			return new Vector(0, 0);
-		}
-		for (let i = 0; i < trajectory.length - 1; i++) {
-			let next = trajectory[i + 1];
-			if (next.time > time) {
-				let current = trajectory[i];
-				let tFactor = (time - current.time) / (next.time - current.time);
-				let v = current.speed + tFactor * (next.speed - current.speed);
-
-				return current.pos + (current.speed + v) * 0.5 * (time - current.time);
-			}
-		}
-		if (trajectory.length > 0) {
-			return trajectory[trajectory.length - 1].pos;
-		}
-		return new Vector(0, 0);
-	}
-
-	private static _accAtTime(time: number, trajectory: Trajectory): Vector {
-		for (let i = 0; i < trajectory.length - 1; i++) {
-			let next = trajectory[i + 1];
-			if (next.time > time) {
-				let current = trajectory[i];
-				let acc = (next.speed - current.speed) / (next.time - current.time);
-				return acc;
-			}
-		}
-		return new Vector(0, 0);
-	}
-
-	private static _visualizeTrajectory(trajectory: Trajectory, color: any) {
-		const MIN_POINT_DISTANCE = DETAILED_TRAJECTORY ? 0.005 : 0.1; // minimum distance between points to draw both
-
-		if (trajectory.length === 0) {
-			return;
-		}
-
-		let positions: Position[] = [];
-		let totalTime = TrajectoryPath._trajectoryTime(trajectory);
-		let lastDrawn = trajectory[0].pos;
-
-		const SAMPLES = DETAILED_TRAJECTORY ? 40 : 20;
-		for (let i = 0; i < SAMPLES; i++) {
-			let time = i * totalTime / (SAMPLES - 1);
-			let pos = TrajectoryPath._posAtTime(time, trajectory);
-			if (i === 0 || i === SAMPLES - 1 || pos.distanceTo(lastDrawn) > MIN_POINT_DISTANCE) {
-				positions.push(Coordinates.toLocal(pos));
-				lastDrawn = pos;
-			}
-		}
-		vis.addPath("trajectory-fromC++", positions, color);
-	}
-
-	private static _calculateClosestPoint(position: Position, speed: Speed, trajectory: Trajectory, offset: number) {
+	private static _calculateClosestPoint(position: Position, speed: Speed, result: TrajectoryPathResult, offset: number) {
 		let bestPos = position, bestSpeed = speed;
 		let bestTime = Infinity;
 		let bestDistance = Infinity;
 		for (let i = 0; i < 50; i++) {
 			let time = i / 1000;
-			let pos = TrajectoryPath._posAtTime(time, trajectory);
-			let speed = TrajectoryPath._speedAtTime(time, trajectory);
+			let pos = Coordinates.toGlobal(result.posAtTime(time));
+			let speed = Coordinates.toGlobal(result.speedAtTime(time));
 
 			if (pos.distanceTo(position) < bestDistance) {
 				bestDistance = pos.distanceTo(position);
@@ -378,13 +378,8 @@ export class TrajectoryPath extends TrajectoryHandler<[Position, number, number,
 				bestTime = time;
 			}
 		}
-		bestPos = TrajectoryPath._posAtTime(bestTime + offset, trajectory);
-		bestSpeed = TrajectoryPath._speedAtTime(bestTime + offset, trajectory);
+		bestPos = Coordinates.toGlobal(result.posAtTime(bestTime + offset));
+		bestSpeed = Coordinates.toGlobal(result.speedAtTime(bestTime + offset));
 		return [bestPos, bestSpeed];
-	}
-
-	private static _polynomialAtOffset(a0: number, a1: number, a2: number, offset: number): [number, number, number] {
-		// TODO: offset polynomial
-		return [a0, a1, a2];
 	}
 }
