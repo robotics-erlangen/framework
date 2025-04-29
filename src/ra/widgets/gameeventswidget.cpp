@@ -47,8 +47,25 @@ void GameEventsWidget::handleStatus(const Status &status)
         return;
     }
     const auto& gameEventsProgress = response.game_events_progress();
+    int progress = static_cast<int>((static_cast<double>(gameEventsProgress.current_packet()) / gameEventsProgress.total_packets()) * 100);
+
+    const auto progressBarStyle = QString(
+        "QPushButton {"
+        "   border: 1px solid palette(mid);"
+        "   border-radius: 6px;"
+        "   background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 palette(highlight), stop: %1 palette(highlight), stop: %1 palette(button));"
+        "   padding: 6px;"
+        "}"
+    ).arg(progress / 100.0);
+    ui->scanLog->setStyleSheet(progressBarStyle);
+
     for (const auto& event : gameEventsProgress.game_events()) {
         addEntry(gameEventsProgress.current_packet(), event);
+    }
+
+    if (gameEventsProgress.current_packet() == gameEventsProgress.total_packets()) {
+        ui->scanLog->setEnabled(true);
+        ui->scanLog->setStyleSheet("QPushButton { border: 1px solid palette(mid); border-radius: 6px; padding: 6px; }");
     }
 }
 
@@ -114,11 +131,16 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
     teamItem->setTextAlignment(Qt::AlignCenter);
     ui->eventTable->setItem(row, 2, teamItem);
 
-    ui->eventTable->setItem(row, 3, new QTableWidgetItem("test"));
+    const auto enumName = gameController::GameEvent_Type_descriptor()->FindValueByNumber(event.type())->name();
+    const auto nameAsQStr = QString::fromStdString(enumName);
+    ui->eventTable->setItem(row, 3, new QTableWidgetItem(nameAsQStr));
 }
 
 void GameEventsWidget::scanLogClicked()
 {
+    ui->scanLog->setEnabled(false);
+    ui->eventTable->clearContents();
+
     Command command{new amun::Command};
     command->mutable_playback()->mutable_collect_game_events();
     emit sendCommand(command);
