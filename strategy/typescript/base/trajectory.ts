@@ -23,6 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import * as debug from "base/debug";
 import type { FriendlyRobot, TrajectoryCommand } from "base/robot";
 import { Position } from "base/vector";
 import * as vis from "base/vis";
@@ -36,22 +37,79 @@ export type RobotLike = Pick<FriendlyRobot,
 	| "acceleration" | "moveTo" | "setControllerInput" | "path"
 >;
 
-/* The result of a trajectory handler. */
-export interface TrajectoryResult {
-	/** The controller input to be passed back to Amun. */
-	trajectoryCommand: TrajectoryCommand;
+/**
+ * The result of a trajectory handler (excluding the trajectory command, which is passed back to Amun).
+ * This will be returned to the caller of {@link TrajectoryManager.update}.
+ */
+export abstract class TrajectoryResult {
 	/** The desired target that was requested (might not be reachable because of obstacles for example). */
-	target: Position;
+	protected readonly _robot: RobotLike;
+	/**
+	 * The end position of the actual trajectory without violating any obstacles,
+	 * if that makes sense for the trajectory handler
+	 */
+	public abstract readonly dest?: Position;
+
+	public constructor(robot: RobotLike) {
+		this._robot = robot;
+	}
+
+	public debug() {}
+	public vis() {}
+}
+
+/**
+ * The result of a trajectory handler that combines information of reaching
+ * a target position.
+ */
+export abstract class ToTargetResult extends TrajectoryResult {
+	/** The desired target that was requested (might not be reachable because of obstacles for example). */
+	public abstract readonly target: Position;
 	/** The end position of the actual trajectory without violating any obstacles. */
-	dest: Position;
+	public abstract readonly dest: Position;
 	/** The time to reach that end position. */
-	timeToDest: number;
+	public abstract readonly timeToDest: number;
+	/** A sequence of points representing the path the robot is planning to take. */
+	public abstract readonly path: Position[];
+
+	/** True if the trajectory is not obstructed by obstacles. */
+	public get reachesTarget(): boolean {
+		/**
+		 * This threshold is the maximum error between dest and target
+		 * for the trajectory to be considered as reaching its target.
+		 */
+		const REACHES_TARGET_THRESHOLD = 0.01;
+		return this.dest.distanceToSq(this.target) < REACHES_TARGET_THRESHOLD * REACHES_TARGET_THRESHOLD;
+	}
+
+	public debug() {
+		debug.set("timeToDest", this.timeToDest);
+		debug.set("reachesTarget", this.reachesTarget);
+	}
+
+	public vis() {
+		if (this._robot.pos) {
+			vis.addPath("MoveTo", this.path ?? [this._robot.pos, this.dest], vis.colors.whiteHalf);
+			vis.addCircle("MoveTo", this.dest, this._robot.radius, vis.colors.yellowHalf, true);
+			if (!this.reachesTarget) {
+				vis.addPath("MoveTo", [this._robot.pos, this.target], vis.colors.orangeHalf);
+				vis.addCircle("MoveTo", this.target, this._robot.radius, vis.colors.redHalf, true);
+			}
+		}
+	}
+}
+
+/**
+ * The result of a trajectory handler that has no return value.
+ */
+export class NoTrajectoryResult extends TrajectoryResult {
+	public readonly dest: undefined = undefined;
 }
 
 /**
  * Base class for trajectory handlers.
  */
-export abstract class TrajectoryHandler<T extends any[]> {
+export abstract class TrajectoryHandler<Args extends any[], Ret extends TrajectoryResult> {
 	protected readonly _robot: RobotLike;
 
 	public constructor(robot: RobotLike) {
@@ -62,7 +120,7 @@ export abstract class TrajectoryHandler<T extends any[]> {
 	 * Data has to be in strategy coordinates. The trajectory handler is responsible for the conversion
 	 * between from strategy to global coordinates and back.
 	 */
-	public abstract update(...args: T): TrajectoryResult;
+	public abstract update(...args: Args): [TrajectoryCommand, Ret];
 }
 
 /**
@@ -70,7 +128,7 @@ export abstract class TrajectoryHandler<T extends any[]> {
  */
 export class TrajectoryManager {
 	private readonly _robot: RobotLike;
-	private _handler: TrajectoryHandler<any[]> | undefined;
+	private _handler: TrajectoryHandler<any[], TrajectoryResult> | undefined = undefined;
 
 	/**
 	 * Initialises trajectory manager.
@@ -89,24 +147,27 @@ export class TrajectoryManager {
 	 * @param args - passed on to the update method of the trajectory handler
 	 * @returns destination and time as returned by the trajectory handler
 	 */
-	public update<T extends any[]>(handlerType: new (robot: RobotLike) => TrajectoryHandler<T>, ...args: T): [Position, number] {
+	public update<Args extends any[], Ret extends TrajectoryResult>(
+			handlerType: new (robot: RobotLike) => TrajectoryHandler<Args, Ret>,
+			...args: Args
+	): Ret {
 		if (this._handler == undefined || !(this._handler instanceof handlerType)) {
 			this._handler = new handlerType(this._robot);
 		}
 
-		const { trajectoryCommand, target, dest, timeToDest } = this._handler.update(...args);
-		this._robot.moveTo = dest;
+		// at this point we can be should of the type of this._handler, but the type checker doesnt know this
+		const handler = this._handler as TrajectoryHandler<Args, Ret>;
+		const [trajectoryCommand, result] = handler.update(...args);
+		this._robot.moveTo = result.dest;
 		this._robot.setControllerInput(trajectoryCommand);
 
-		if (this._robot.pos) {
-			vis.addPath("MoveTo", [this._robot.pos, dest], vis.colors.whiteHalf);
-			vis.addCircle("MoveTo", dest, this._robot.radius, vis.colors.yellowHalf, true);
-			if (dest !== target) {
-				vis.addPath("MoveTo", [this._robot.pos, target], vis.colors.orangeHalf);
-				vis.addCircle("MoveTo", target, this._robot.radius, vis.colors.redHalf, true);
-			}
-		}
-		return [dest, timeToDest];
+		result.vis();
+
+		debug.push("Trajectory", handler.constructor.name);
+		result.debug();
+		debug.pop();
+
+		return result;
 	}
 }
 
