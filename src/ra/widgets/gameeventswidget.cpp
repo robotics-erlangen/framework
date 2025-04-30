@@ -22,12 +22,31 @@
 #include "ui_gameeventswidget.h"
 
 #include <QPainter>
+#include <QProgressBar>
 
 GameEventsWidget::GameEventsWidget(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::GameEventsWidget)
 {
     ui->setupUi(this);
+
+    m_progress = new QProgressBar(ui->scanLog);
+    m_progress->setRange(0, 100);
+    m_progress->setValue(0);
+    m_progress->setTextVisible(false);
+    m_progress->setStyleSheet(
+        "QProgressBar {"
+        " background-color: transparent;"
+        " border: none;"
+        " }"
+        "QProgressBar::chunk {"
+        " background-color: palette(highlight);"
+        " border-radius: 4px;"
+        "}"
+    );
+    m_progress->setGeometry(ui->scanLog->rect());
+    m_progress->setAttribute(Qt::WA_TransparentForMouseEvents);
+    m_progress->show();
 
     connect(ui->scanLog, &QPushButton::clicked, this, &GameEventsWidget::scanLogClicked);
     connect(ui->eventTable, &QTableWidget::cellDoubleClicked, this, &GameEventsWidget::cellDoubleClicked);
@@ -48,17 +67,8 @@ void GameEventsWidget::handleStatus(const Status &status)
         return;
     }
     const auto& gameEventsProgress = response.game_events_progress();
-    int progress = static_cast<int>((static_cast<double>(gameEventsProgress.current_packet()) / gameEventsProgress.total_packets()) * 100);
-
-    const auto progressBarStyle = QString(
-        "QPushButton {"
-        "   border: 1px solid palette(mid);"
-        "   border-radius: 6px;"
-        "   background: qlineargradient(x1: 0, y1: 0, x2: 1, y2: 0, stop: 0 palette(highlight), stop: %1 palette(highlight), stop: %1 palette(button));"
-        "   padding: 6px;"
-        "}"
-    ).arg(progress / 100.0);
-    ui->scanLog->setStyleSheet(progressBarStyle);
+    const auto progress = 100 * gameEventsProgress.current_packet() / gameEventsProgress.total_packets();
+    m_progress->setValue(progress);
 
     for (const auto& event : gameEventsProgress.game_events()) {
         addEntry(event.packet(), event.game_event());
@@ -66,7 +76,7 @@ void GameEventsWidget::handleStatus(const Status &status)
 
     if (gameEventsProgress.current_packet() == gameEventsProgress.total_packets()) {
         ui->scanLog->setEnabled(true);
-        ui->scanLog->setStyleSheet("QPushButton { border: 1px solid palette(mid); border-radius: 6px; padding: 6px; }");
+        m_progress->setValue(0);
     }
 }
 
@@ -110,7 +120,6 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
     const auto row = ui->eventTable->rowCount();
     ui->eventTable->insertRow(row);
     ui->eventTable->setItem(row, 0, new QTableWidgetItem(QString("%1").arg(frame)));
-    ui->eventTable->setItem(row, 1, new QTableWidgetItem("X"));
     
     const auto byTeam = teamForEvent(event);
     auto* teamItem = new QTableWidgetItem();
@@ -130,11 +139,11 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
     painter.end();
     teamItem->setData(Qt::DecorationRole, pixmap);
     teamItem->setTextAlignment(Qt::AlignCenter);
-    ui->eventTable->setItem(row, 2, teamItem);
+    ui->eventTable->setItem(row, 1, teamItem);
 
     const auto enumName = gameController::GameEvent_Type_descriptor()->FindValueByNumber(event.type())->name();
     const auto nameAsQStr = QString::fromStdString(enumName);
-    ui->eventTable->setItem(row, 3, new QTableWidgetItem(nameAsQStr));
+    ui->eventTable->setItem(row, 2, new QTableWidgetItem(nameAsQStr));
 }
 
 void GameEventsWidget::scanLogClicked()
@@ -145,6 +154,11 @@ void GameEventsWidget::scanLogClicked()
     Command command{new amun::Command};
     command->mutable_playback()->mutable_collect_game_events();
     emit sendCommand(command);
+}
+
+void GameEventsWidget::resizeEvent(QResizeEvent* /*event*/)
+{
+    m_progress->setGeometry(ui->scanLog->rect());
 }
 
 void GameEventsWidget::cellDoubleClicked(int row, int /*column*/)

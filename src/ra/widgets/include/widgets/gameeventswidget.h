@@ -27,6 +27,8 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 
+class QProgressBar;
+
 namespace Ui {
 class GameEventsWidget;
 }
@@ -53,8 +55,11 @@ private:
     void addEntry(uint64_t frame, const gameController::GameEvent& event);
     gameController::Team teamForEvent(const gameController::GameEvent& event);
 
+    void resizeEvent(QResizeEvent* event) override;
+
 private:
     Ui::GameEventsWidget *ui;
+    QProgressBar* m_progress;
 };
 
 #endif // GAMEEVENTSWIDGET_H

@@ -1096,6 +1096,7 @@ void MainWindow::toggleHorusModeWidgets(bool enable)
     ui->goToLastPosition->setVisible(enable && m_logOpener->showGoToLastPositionButton());
     ui->exportVision->setVisible(enable);
     ui->getLogUid->setVisible(enable);
+    ui->gameEvents->setEnabled(enable);
 
     if (enable) {
         connect(m_loggingUiHorus, &Logsuite::isLogging, ui->actionFrameBack, &QAction::setDisabled);

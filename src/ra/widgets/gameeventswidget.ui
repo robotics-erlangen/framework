@@ -62,7 +62,7 @@
           <bool>true</bool>
          </property>
          <property name="columnCount">
-          <number>4</number>
+          <number>3</number>
          </property>
          <attribute name="horizontalHeaderCascadingSectionResizes">
           <bool>false</bool>
@@ -85,11 +85,6 @@
          <column>
           <property name="text">
            <string>Frame</string>
-          </property>
-         </column>
-         <column>
-          <property name="text">
-           <string>Cat.</string>
           </property>
          </column>
          <column>
