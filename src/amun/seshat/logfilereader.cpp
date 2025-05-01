@@ -142,9 +142,8 @@ Status LogFileReader::readStatus(int packetNum)
     if (packetNum < 0 || packetNum >= m_packets.size()) {
         return Status();
     }
-    //seek to the requested packetgroup
-    m_reader.applyMemento(m_packets.at(packetNum));
-    return m_reader.readStatus();
+    const auto memento = m_packets.at(packetNum);
+    return m_reader.applyAndReadStatus(memento);
 }
 
 void LogFileReader::readPackets(int startPacket, int count)

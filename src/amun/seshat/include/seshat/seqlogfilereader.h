@@ -58,6 +58,8 @@ public:
     QString fileName() const { return m_file->fileName(); }
     QString errorMsg() const { return m_errorMsg; }
 
+    Status applyAndReadStatus(const Memento& m);
+
     Status readStatus();
     qint64 readTimestamp();
     bool atEnd() const { return m_stream->atEnd() && (m_version != Version2 || m_currentGroupIndex >= m_currentGroupMaxIndex); }

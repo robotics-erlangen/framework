@@ -279,7 +279,16 @@ qint64 SeqLogFileReader::readTimestamp()
     }
 }
 
-void SeqLogFileReader::applyMemento(const Memento& mem){
+Status SeqLogFileReader::applyAndReadStatus(const Memento& m)
+{
+    // lock to prevent race conditions with reads from different threads
+    QMutexLocker locker(m_mutex);
+    applyMemento(m);
+    return readStatus();
+}
+
+void SeqLogFileReader::applyMemento(const Memento& mem)
+{
     // handle old versions
     if (m_version != Version2) {
         m_file->seek(mem.baseOffset);

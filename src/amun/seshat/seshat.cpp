@@ -292,7 +292,7 @@ void Seshat::collectGameEvents()
         return;
     }
 
-    QThread* collectorThread = new QThread;
+    auto* collectorThread = new QThread;
     auto* collector = new GameEventCollector(m_statusSource->getStatusSource());
     collector->moveToThread(collectorThread);
 
