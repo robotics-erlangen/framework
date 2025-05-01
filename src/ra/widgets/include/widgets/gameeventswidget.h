@@ -41,6 +41,8 @@ public:
     explicit GameEventsWidget(QWidget *parent = nullptr);
     ~GameEventsWidget();
 
+    void statusSourceChanged();
+
 public slots:
     void handleStatus(const Status &status);
 
@@ -60,6 +62,7 @@ private:
 private:
     Ui::GameEventsWidget *ui;
     QProgressBar* m_progress;
+    int32_t m_scanId{0};
 };
 
 #endif // GAMEEVENTSWIDGET_H

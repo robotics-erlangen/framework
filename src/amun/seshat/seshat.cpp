@@ -202,7 +202,7 @@ void Seshat::handleCommand(const Command& command)
         }
 
         if (playback.has_collect_game_events()) {
-            collectGameEvents();
+            collectGameEvents(playback.collect_game_events());
         }
     }
 
@@ -286,14 +286,14 @@ void Seshat::sendLogfileInfo(const std::string& message, bool error)
     emit sendUi(s);
 }
 
-void Seshat::collectGameEvents()
+void Seshat::collectGameEvents(int32_t scanId)
 {
     if (!m_statusSource) {
         return;
     }
 
     auto* collectorThread = new QThread;
-    auto* collector = new GameEventCollector(m_statusSource->getStatusSource());
+    auto* collector = new GameEventCollector(m_statusSource->getStatusSource(), scanId);
     collector->moveToThread(collectorThread);
 
     connect(collectorThread, &QThread::started, collector, &GameEventCollector::process);

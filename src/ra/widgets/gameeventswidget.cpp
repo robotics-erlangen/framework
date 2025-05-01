@@ -36,12 +36,12 @@ GameEventsWidget::GameEventsWidget(QWidget *parent)
     m_progress->setTextVisible(false);
     m_progress->setStyleSheet(
         "QProgressBar {"
-        " background-color: transparent;"
-        " border: none;"
-        " }"
+        "  background-color: transparent;"
+        "  border: none;"
+        "}"
         "QProgressBar::chunk {"
-        " background-color: palette(highlight);"
-        " border-radius: 4px;"
+        "  background-color: palette(highlight);"
+        "  border-radius: 4px;"
         "}"
     );
     m_progress->setGeometry(ui->scanLog->rect());
@@ -67,6 +67,9 @@ void GameEventsWidget::handleStatus(const Status &status)
         return;
     }
     const auto& gameEventsProgress = response.game_events_progress();
+    if (gameEventsProgress.scan_id() != m_scanId) {
+        return;
+    }
     const auto progress = 100 * gameEventsProgress.current_packet() / gameEventsProgress.total_packets();
     m_progress->setValue(progress);
 
@@ -76,6 +79,7 @@ void GameEventsWidget::handleStatus(const Status &status)
 
     if (gameEventsProgress.current_packet() == gameEventsProgress.total_packets()) {
         ui->scanLog->setEnabled(true);
+        ui->eventTable->setSortingEnabled(true);
         m_progress->setValue(0);
     }
 }
@@ -122,22 +126,11 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
     ui->eventTable->setItem(row, 0, new QTableWidgetItem(QString("%1").arg(frame)));
     
     const auto byTeam = teamForEvent(event);
-    auto* teamItem = new QTableWidgetItem();
-    QPixmap pixmap(10, 10);
-    pixmap.fill(Qt::transparent);
-    QPainter painter(&pixmap);
-    painter.setRenderHint(QPainter::Antialiasing);
-    if (byTeam == gameController::Team::YELLOW) {
-        painter.setBrush(Qt::yellow);
-    } else if (byTeam == gameController::Team::BLUE) {
-        painter.setBrush(Qt::blue);
-    } else {
-        painter.setBrush(Qt::gray); // Default color for unknown team
-    }
-    painter.setPen(Qt::NoPen);
-    painter.drawEllipse(0, 0, 10, 10);
-    painter.end();
-    teamItem->setData(Qt::DecorationRole, pixmap);
+    const auto isYellow = byTeam == gameController::Team::YELLOW;
+    const auto isBlue = byTeam == gameController::Team::BLUE;
+    const auto* teamStr = isYellow ? "🟡" : isBlue ? "🔵" : "⚪";
+    auto* teamItem = new QTableWidgetItem(teamStr);
+    teamItem->setData(Qt::UserRole, isYellow ? 1 : isBlue ? 2 : 0);
     teamItem->setTextAlignment(Qt::AlignCenter);
     ui->eventTable->setItem(row, 1, teamItem);
 
@@ -148,11 +141,14 @@ void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent&
 
 void GameEventsWidget::scanLogClicked()
 {
+    m_scanId++;
+
     ui->scanLog->setEnabled(false);
-    ui->eventTable->clearContents();
+    ui->eventTable->setRowCount(0);
+    ui->eventTable->setSortingEnabled(false);
 
     Command command{new amun::Command};
-    command->mutable_playback()->mutable_collect_game_events();
+    command->mutable_playback()->set_collect_game_events(m_scanId);
     emit sendCommand(command);
 }
 
@@ -172,4 +168,14 @@ void GameEventsWidget::cellDoubleClicked(int row, int /*column*/)
         command->mutable_playback()->set_seek_packet(packetNum);
         emit sendCommand(command);
     }
+}
+
+void GameEventsWidget::statusSourceChanged()
+{
+    // avoid items from the last status source showing from now on
+    m_scanId++;
+
+    ui->eventTable->setRowCount(0);
+    ui->scanLog->setEnabled(true);
+    m_progress->setValue(0);
 }

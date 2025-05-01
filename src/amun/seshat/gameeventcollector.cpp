@@ -21,9 +21,10 @@
  #include "gameeventcollector.h"
  #include "statussource.h"
 
- GameEventCollector::GameEventCollector(const std::shared_ptr<StatusSource>& source, QObject* parent) :
-    QObject(parent),
-    m_statusSource(source)
+ GameEventCollector::GameEventCollector(const std::shared_ptr<StatusSource>& source, int32_t scanId) :
+    QObject(nullptr),
+    m_statusSource(source),
+    m_scanId(scanId)
 {}
 
 void GameEventCollector::process()
@@ -65,6 +66,7 @@ void GameEventCollector::sendProgress(int currentPacket, const GameEventList& ev
     auto* progressReport = response->mutable_game_events_progress();
     progressReport->set_current_packet(currentPacket);
     progressReport->set_total_packets(numPackets);
+    progressReport->set_scan_id(m_scanId);
     progressReport->mutable_game_events()->Reserve(events.size());
     for (const auto& [packet, event] : events) {
         auto* logEvent = progressReport->add_game_events();

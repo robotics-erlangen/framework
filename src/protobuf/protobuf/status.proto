@@ -187,5 +187,6 @@ message LogGameEvent {
 message GameEventScanProgress {
     required int32 current_packet = 1;
     required int32 total_packets = 2;
-    repeated LogGameEvent game_events = 3;
+    required int32 scan_id = 3;
+    repeated LogGameEvent game_events = 4;
 }

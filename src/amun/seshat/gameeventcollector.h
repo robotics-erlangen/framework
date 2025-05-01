@@ -32,7 +32,7 @@ class GameEventCollector : public QObject
     Q_OBJECT
 
 public:
-    explicit GameEventCollector(const std::shared_ptr<StatusSource>& source, QObject* parent = nullptr);
+    GameEventCollector(const std::shared_ptr<StatusSource>& source, int32_t scanId);
 
 signals:
     void sendUi(const Status& status);
@@ -48,6 +48,7 @@ private:
 
 private:
     std::shared_ptr<StatusSource> m_statusSource;
+    int32_t m_scanId;
 };
 
 #endif // GAMEEVENTCOLLECTOR_H

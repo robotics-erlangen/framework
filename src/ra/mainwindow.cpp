@@ -1022,6 +1022,7 @@ void MainWindow::showBacklogMode() //Instant Replay
         command->mutable_playback()->mutable_instant_replay();
         sendCommand(command);
         ui->logManager->openNextAtEnd();
+        ui->gameEvents->statusSourceChanged();
     }
 }
 
@@ -1151,6 +1152,7 @@ void MainWindow::logOpened(QString name, bool errorOccurred)
         m_horusTitleString = name;
         setWindowTitle("Horus - " + name);
         switchToWidgetConfiguration(static_cast<int>(m_currentWidgetConfiguration + m_currentWidgetConfiguration % 2));
+        ui->gameEvents->statusSourceChanged();
     } else {
         QMessageBox::critical(this, "Logfile error", name);
     }
