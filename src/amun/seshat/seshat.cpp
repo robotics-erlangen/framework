@@ -25,6 +25,7 @@
 #include "logfilereader.h"
 #include "visionconverter.h"
 #include "logfilefinder.h"
+#include "gameeventcollector.h"
 
 #include <QThread>
 #include <QCoreApplication>
@@ -287,45 +288,19 @@ void Seshat::sendLogfileInfo(const std::string& message, bool error)
 
 void Seshat::collectGameEvents()
 {
-    auto& statusSource = *m_statusSource->getStatusSource();
-    const auto numPackets = statusSource.packetCount();
-
-    std::vector<std::pair<uint32_t, gameController::GameEvent>> events;
-    const auto sendProgress = [&, this](int currentPacket) {
-        auto s = Status::createArena();
-        auto* response = s->mutable_pure_ui_response();
-        auto* progressReport = response->mutable_game_events_progress();
-        progressReport->set_current_packet(currentPacket);
-        progressReport->set_total_packets(numPackets);
-        progressReport->mutable_game_events()->Reserve(events.size());
-        for (const auto& [packet, event] : events) {
-            auto* logEvent = progressReport->add_game_events();
-            logEvent->set_packet(packet);
-            *logEvent->mutable_game_event() = event;
-        }
-        emit sendUi(s);
-
-        events.clear();
-    };
-
-    std::unordered_set<std::string> eventIds;
-    for (int i = 0; i < numPackets; i++) {
-        const auto status = statusSource.readStatus(i);
-        if (!status->has_game_state()) {
-            continue;
-        }
-        const amun::GameState &game_state = status->game_state();
-        for (const auto &event : game_state.game_event_2019()) {
-            const auto& id = event.id();
-            if (!eventIds.contains(id)) {
-                eventIds.insert(id);
-                events.emplace_back(i, event);
-            }
-        }
-        if (i % 1000 == 0) {
-            sendProgress(i);
-        }
+    if (!m_statusSource) {
+        return;
     }
 
-    sendProgress(numPackets);
+    QThread* collectorThread = new QThread;
+    auto* collector = new GameEventCollector(m_statusSource->getStatusSource());
+    collector->moveToThread(collectorThread);
+
+    connect(collectorThread, &QThread::started, collector, &GameEventCollector::process);
+    connect(collector, &GameEventCollector::sendUi, this, &Seshat::sendUi);
+    connect(collector, &GameEventCollector::finished, collectorThread, &QThread::quit);
+    connect(collector, &GameEventCollector::finished, collector, &GameEventCollector::deleteLater);
+    connect(collectorThread, &QThread::finished, collectorThread, &QThread::deleteLater);
+
+    collectorThread->start();
 }

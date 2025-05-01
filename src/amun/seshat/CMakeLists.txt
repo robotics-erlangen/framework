@@ -48,6 +48,8 @@ add_library(seshat STATIC
     logfilefinder.h
     longlivingstatuscache.cpp
     longlivingstatuscache.h
+    gameeventcollector.h
+    gameeventcollector.cpp
 )
 
 target_link_libraries(seshat
