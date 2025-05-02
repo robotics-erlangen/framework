@@ -96,6 +96,7 @@ function wrapper(func: () => boolean) {
 			return; // skip processing if no vision data is available yet
 		}
 		debug.set("frame", frameCount);
+		debug.set("time", World.Time);
 		// let time0 = amun.getCurrentTime();
 		Processor.pre();
 		// let time1 = amun.getCurrentTime();
