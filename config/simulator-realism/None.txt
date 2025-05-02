@@ -16,3 +16,4 @@ simulate_dribbling: true
 object_position_offset: 0
 missing_robot_detections: 0
 command_delay: 0
+robot_rotation_error: 0

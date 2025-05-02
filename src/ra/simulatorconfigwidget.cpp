@@ -57,6 +57,7 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingRobotDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinRotationError, SIGNAL(valueChanged(double)), SLOT(sendAll()));
 
     connect(ui->chkSimulateDribbling, &QCheckBox::stateChanged, this, &SimulatorConfigWidget::sendAll);
 
@@ -139,6 +140,7 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinCommandDelay->setValue(config.command_delay() / 1000000LL);
     ui->chkSimulateDribbling->setChecked(config.simulate_dribbling());
     ui->spinMissingRobotDetections->setValue(config.missing_robot_detections() * 100.0f);
+    ui->spinRotationError->setValue(config.robot_rotation_error());
 
     bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
                        ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
@@ -150,22 +152,22 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
 void SimulatorConfigWidget::sendAll()
 {
     Command command(new amun::Command);
+    auto* realism = command->mutable_simulator()->mutable_realism_config();
 
     // robot realism
-    command->mutable_simulator()->mutable_realism_config()->set_robot_command_loss(ui->spinPacketLoss->value() / 100.0f);
-    command->mutable_simulator()->mutable_realism_config()->set_robot_response_loss(ui->spinReplyLoss->value() / 100.0f);
+    realism->set_robot_command_loss(ui->spinPacketLoss->value() / 100.0f);
+    realism->set_robot_response_loss(ui->spinReplyLoss->value() / 100.0f);
 
     // delays
     // from ms to ns
-    command->mutable_simulator()->mutable_realism_config()->set_vision_delay(ui->spinVisionDelay->value() * 1000 * 1000);
-    command->mutable_simulator()->mutable_realism_config()->set_vision_processing_time(ui->spinProcessingTime->value() * 1000 * 1000);
-    command->mutable_simulator()->mutable_realism_config()->set_command_delay(static_cast<uint64_t>(ui->spinCommandDelay->value()) * 1000 * 1000);
+    realism->set_vision_delay(ui->spinVisionDelay->value() * 1000 * 1000);
+    realism->set_vision_processing_time(ui->spinProcessingTime->value() * 1000 * 1000);
+    realism->set_command_delay(static_cast<uint64_t>(ui->spinCommandDelay->value()) * 1000 * 1000);
 
     // simulator noise
     {
         bool isEnabled = ui->chkEnableNoise->checkState() != Qt::Unchecked;
 
-        auto realism = command->mutable_simulator()->mutable_realism_config();
         realism->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
         realism->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
         realism->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
@@ -176,19 +178,22 @@ void SimulatorConfigWidget::sendAll()
         realism->set_missing_robot_detections(isEnabled ? ui->spinMissingRobotDetections->value() / 100.0f : 0);
     }
 
+    // robot driving behavior
+    realism->set_robot_rotation_error(ui->spinRotationError->value());
+
     // invisible ball
     {
         bool isEnabled = ui->chkEnableInvisibleBall->checkState() != Qt::Unchecked;
-        command->mutable_simulator()->mutable_realism_config()->set_enable_invisible_ball(isEnabled);
-        command->mutable_simulator()->mutable_realism_config()->set_ball_visibility_threshold(ui->spinBallVisibilityThreshold->value() / 100.0f);
+        realism->set_enable_invisible_ball(isEnabled);
+        realism->set_ball_visibility_threshold(ui->spinBallVisibilityThreshold->value() / 100.0f);
     }
 
     // camera overlap
-    command->mutable_simulator()->mutable_realism_config()->set_camera_overlap(ui->spinCameraOverlap->value() / 100.0f);
+    realism->set_camera_overlap(ui->spinCameraOverlap->value() / 100.0f);
 
     // position errors
-    command->mutable_simulator()->mutable_realism_config()->set_camera_position_error(ui->spinCameraPositionError->value() / 100.0f);
-    command->mutable_simulator()->mutable_realism_config()->set_object_position_offset(ui->spinPositionOffset->value() / 100.0f);
+    realism->set_camera_position_error(ui->spinCameraPositionError->value() / 100.0f);
+    realism->set_object_position_offset(ui->spinPositionOffset->value() / 100.0f);
 
     // worst case vision
     command->mutable_simulator()->mutable_vision_worst_case()->set_min_ball_detection_time(

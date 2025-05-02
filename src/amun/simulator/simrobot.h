@@ -66,6 +66,7 @@ public:
     qint64 getLastSendTime() const { return m_lastSendTime; }
     void setDribbleMode(bool perfectDribbler);
     void stopDribbling();
+    void setRotationError(float error) { m_rotationError = error; }
 
     const robot::Specs& specs() const { return m_specs; }
 
@@ -112,6 +113,7 @@ private:
     float error_sum_omega;
 
     bool m_perfectDribbler = false;
+    float m_rotationError = 0.0f;
 
     qint64 m_lastSendTime = 0;
 

@@ -50,4 +50,6 @@ message RealismConfigErForce {
     optional float missing_robot_detections = 17;
     // The time it takes for the robot to receive the command, after the simulator receives the command. [ns]
     optional int64 command_delay = 18;
+    // How much the robots rotational acceleration should be influenced by the forward acceleration
+    optional float robot_rotation_error = 19;
 }

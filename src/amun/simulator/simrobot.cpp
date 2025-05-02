@@ -447,14 +447,17 @@ void SimRobot::begin(SimBall *ball, double time)
     const float a_phi = V_phi*omega + K_phi*error_omega + K_I_phi*error_sum_omega;
     const bool useBasicAccelLimit = !m_specs.has_simulation_limits();
 
+    const float a_phi_error = m_rotationError * a_f;
+    const float a_phi_with_error = a_phi + a_phi_error;
+
     float a_phi_bound, a_s_bound, a_f_bound;
     if (useBasicAccelLimit) {
         const float accelScale = 2.0f; // let robot accelerate / brake faster than the accelerator does
         a_f_bound = bound(a_f, v_f, accelScale*m_specs.strategy().a_speedup_f_max(), accelScale*m_specs.strategy().a_brake_f_max());
         a_s_bound = bound(a_s, v_s, accelScale*m_specs.strategy().a_speedup_s_max(), accelScale*m_specs.strategy().a_brake_s_max());
-        a_phi_bound = bound(a_phi, omega, accelScale*m_specs.strategy().a_speedup_phi_max(), accelScale*m_specs.strategy().a_brake_phi_max());
+        a_phi_bound = bound(a_phi_with_error, omega, accelScale*m_specs.strategy().a_speedup_phi_max(), accelScale*m_specs.strategy().a_brake_phi_max());
     } else {
-        const Eigen::Vector3f limited = limitAcceleration(a_f, a_s, a_phi, v_f, v_s, omega);
+        const Eigen::Vector3f limited = limitAcceleration(a_f, a_s, a_phi_with_error, v_f, v_s, omega);
         a_s_bound = limited[0];
         a_f_bound = limited[1];
         a_phi_bound = limited[2];

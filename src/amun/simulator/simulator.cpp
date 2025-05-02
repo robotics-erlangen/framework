@@ -810,6 +810,15 @@ void Simulator::handleCommand(const Command &command)
             if (realism.has_command_delay()) {
                 m_data->commandDelay = realism.command_delay();
             }
+
+            if (realism.has_robot_rotation_error()) {
+                for (const auto& robotList : {m_data->robotsBlue, m_data->robotsYellow}) {
+                    for (const auto& it : robotList) {
+                        auto* robot = it.first;
+                        robot->setRotationError(realism.robot_rotation_error());
+                    }
+                }
+            }
         }
 
         if (sim.has_ssl_control()) {
