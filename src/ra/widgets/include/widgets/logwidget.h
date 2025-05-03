@@ -52,6 +52,7 @@ private:
     bool m_logBlueReplayStrategy;
     bool m_logYellowStrategy;
     bool m_logYellowReplayStrategy;
+    bool m_logGameEvents;
     bool m_logAutoref;
     QList<QString> m_lastAutorefOutput;
 };

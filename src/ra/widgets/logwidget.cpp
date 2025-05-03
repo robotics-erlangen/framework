@@ -33,6 +33,7 @@ LogWidget::LogWidget(QWidget *parent) :
     m_logBlueReplayStrategy(true),
     m_logYellowStrategy(true),
     m_logYellowReplayStrategy(true),
+    m_logGameEvents(true),
     m_logAutoref(true)
 {
     const int MAX_BLOCKS = 1000;
@@ -140,7 +141,9 @@ void LogWidget::handleStatus(const Status &status)
             if (!m_lastAutorefOutput.contains(splittedText)) {
                 m_lastAutorefOutput.append(splittedText);
                 text = fromTime(status->time(), QString("REF")) + text + "</div>";
-                appendHtml(text);
+                if (m_logGameEvents) {
+                    appendHtml(text);
+                }
                 m_lastTimes.append(status->time());
             }
         }
@@ -188,6 +191,12 @@ void LogWidget::contextMenuEvent(QContextMenuEvent *event)
         yellowReplay->setChecked(m_logYellowReplayStrategy);
         yellowReplay->setData(amun::ReplayYellow);
         connect(yellowReplay, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+
+        QAction* gameEvents = menu->addAction("Game Events");
+        gameEvents->setCheckable(true);
+        gameEvents->setChecked(m_logGameEvents);
+        gameEvents->setData(amun::GameController);
+        connect(gameEvents, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
     }
 
     menu->exec(event->globalPos());
@@ -207,5 +216,7 @@ void LogWidget::setLogVisibility(bool visible)
         m_logBlueReplayStrategy = visible;
     } else if (source == amun::ReplayYellow) {
         m_logYellowReplayStrategy = visible;
+    } else if (source == amun::GameController) {
+        m_logGameEvents = visible;
     }
 }
