@@ -39,6 +39,7 @@ const ARRIVED_DISTANCE = 0.25;
 const BALL_STOP_SPEED = 0.2;
 const MAX_BALL_DISTANCE = 0.25;
 const FINE_ADJUST_ZONE = 1.5;
+const FINE_ADJUST_HYST = 0.1;
 const MAX_DRIBBLER_SPEED = 0.9;
 const SETBACK_WAIT_TIME = 1.2;
 const PASS_TARGET_SPEED = 1.2;
@@ -485,10 +486,9 @@ export class BallPlacement extends Move {
 			}
 			case State.FINE_ADJUST: {
 				nextState = State.FINE_ADJUST;
-				if (usedBallPos.distanceTo(this._ballPlacementPos) > FINE_ADJUST_ZONE) {
+				if (usedBallPos.distanceTo(this._ballPlacementPos) > FINE_ADJUST_ZONE + FINE_ADJUST_HYST) {
 					nextState = State.WAIT_FOR_BALL_STOP;
 				}
-
 				break;
 			}
 			case State.SET_BACK_INVISIBLE: {
