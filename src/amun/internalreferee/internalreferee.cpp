@@ -87,8 +87,12 @@ void InternalReferee::handleStatus(const Status &status)
         const amun::GameState &state = status->game_state();
         // update referee information
         m_referee.set_stage(state.stage());
-        m_referee.mutable_yellow()->CopyFrom(state.yellow());
-        m_referee.mutable_blue()->CopyFrom(state.blue());
+        if (state.has_yellow()) {
+            m_referee.mutable_yellow()->CopyFrom(state.yellow());
+        }
+        if (state.has_blue()) {
+            m_referee.mutable_blue()->CopyFrom(state.blue());
+        }
         // don't copy command as it is only updated when changeCommand is used
 
         m_lastStatusTime = status->time();
