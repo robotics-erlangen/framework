@@ -64,15 +64,15 @@ export class BaseCoordinates extends UnitTest {
 			let dir2 = C.Coordinates.toGlobal(dir);
 			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
-				this._assert_eq(dir2, dir + Math.PI);
-				this._assert_eq(dir3, dir + Math.PI);
+				this._assert_eq(dir2, dir - Math.PI);
+				this._assert_eq(dir3, dir - Math.PI);
 			} else {
 				this._assert_eq(dir2, dir);
 				this._assert_eq(dir3, dir);
 			}
 		}
 		{
-			let dir = Math.PI * 5 / 4;
+			let dir = Math.PI * 3 / 4;
 			let dir2 = C.Coordinates.toGlobal(dir);
 			let dir3 = C.Coordinates.toLocal(dir);
 			if (teamIsBlue) {
@@ -90,7 +90,7 @@ export class BaseCoordinates extends UnitTest {
 		let list2 = C.Coordinates.listToGlobal(list as any);
 
 		if (teamIsBlue) {
-			this._assert_deep_eq([-list[0], -list[1], Math.PI * 5 / 4], list2);
+			this._assert_deep_eq([-list[0], -list[1], -Math.PI * 3 / 4], list2);
 		} else {
 			this._assert_deep_eq(list, list2);
 		}

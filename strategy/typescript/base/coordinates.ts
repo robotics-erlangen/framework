@@ -109,7 +109,7 @@ class Invert implements CoordinatesType {
 	public toGlobal(data: any): any {
 		if (typeof(data) === "number") {
 			let num = data as number;
-			if (num > Math.PI) {
+			if (num > 0) {
 				return num - Math.PI;
 			} else {
 				return num + Math.PI;
