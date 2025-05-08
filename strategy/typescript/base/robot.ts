@@ -524,7 +524,7 @@ export class FriendlyRobot extends Robot {
 		speed = MathUtil.bound(0.05, speed, this.maxShotLinear);
 		this._kickStyle = pb.robot.Command.KickStyle.Linear;
 		this._kickPower = speed;
-		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.mediumPurple, undefined, undefined, undefined, 0.03);
+		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.mediumPurple, undefined, true, undefined, 0.03);
 	}
 
 	/**
@@ -537,7 +537,7 @@ export class FriendlyRobot extends Robot {
 		distance = MathUtil.bound(0.05, distance, this.maxShotChip);
 		this._kickStyle = pb.robot.Command.KickStyle.Chip;
 		this._kickPower = distance;
-		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.darkPurple, undefined, undefined, undefined, 0.03);
+		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.darkPurple, undefined, true, undefined, 0.03);
 	}
 
 	/** Force to robot to shoot, even if the IR is not triggered */
