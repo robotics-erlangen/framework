@@ -30,6 +30,11 @@
 #include <QSignalMapper>
 #include <memory>
 
+namespace UseCase {
+    static const QString NORMAL_GAME { "Normal Game" };
+    static const QString ISOLATED_TEST { "Isolated Test" };
+}
+
 RefereeWidget::RefereeWidget(QWidget *parent) :
     QWidget(parent),
     m_yellowKeeperId(0),
@@ -68,7 +73,12 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(ui->sidesFlipped, SIGNAL(toggled(bool)), this, SIGNAL(changeSidesFlipped(bool)));
     connect(ui->restartGC, &QPushButton::clicked, this, &RefereeWidget::handleRestartGameController);
     connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
-    connect(ui->enableAutoContinue, &QCheckBox::toggled, this, &RefereeWidget::enableAutoContinue);
+
+    ui->useCaseBox->addItem(UseCase::NORMAL_GAME);
+    ui->useCaseBox->setItemData(0, "Enable Auto-Continue", Qt::ToolTipRole);
+    ui->useCaseBox->addItem(UseCase::ISOLATED_TEST);
+    ui->useCaseBox->setItemData(1, "Disable Auto-Continue", Qt::ToolTipRole);
+    connect(ui->useCaseBox, &QComboBox::currentTextChanged, this, &RefereeWidget::useCaseChanged);
 
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
 
@@ -98,7 +108,7 @@ void RefereeWidget::saveConfig()
     s.beginGroup("Referee");
     s.setValue("YellowKeeper", ui->keeperIdYellow->value());
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
-    s.setValue("useAutoContinue", ui->enableAutoContinue->isChecked());
+    s.setValue("CurrentUseCase", ui->useCaseBox->currentText());
     s.setValue("SidesFlipped", ui->sidesFlipped->isChecked());
     s.setValue("Division", ui->boxDivision->currentText());
     s.setValue("RobotExchange", ui->enableRobotExchange->isChecked());
@@ -117,17 +127,16 @@ void RefereeWidget::load()
     s.beginGroup("Referee");
 
     {
-        const bool useAutoContinue = s.value("useAutoContinue", false).toBool();
+        const QString useCase = s.value("CurrentUseCase", UseCase::NORMAL_GAME).toString();
 
-        // Same as above
-        if (useAutoContinue != ui->enableAutoContinue->isChecked()) {
-            // This emits since the GUI value changes
-            ui->enableAutoContinue->setChecked(useAutoContinue);
+        if (useCase == ui->useCaseBox->currentText()) {
+            // Call slot manually if the loaded use case happens to be the same as
+            // the UI-default as we want to send out the configuration in either
+            // case
+            useCaseChanged(useCase);
         } else {
-            // Emit regardless of change, so Amun is guaranteed to see the same loaded
-            // value as the GUI, regardless of whether the default value differs from
-            // the loaded one
-            emit enableAutoContinue(useAutoContinue);
+            // This calls the slot via Qt
+            ui->useCaseBox->setCurrentText(useCase);
         }
     }
 
@@ -329,6 +338,22 @@ void RefereeWidget::handleRestartGameController()
 {
     Command command(new amun::Command);
     command->mutable_referee()->set_restart_game_controller(true);
+    emit sendCommand(command);
+}
+
+void RefereeWidget::useCaseChanged(const QString& useCase)
+{
+    Command command(new amun::Command);
+    auto* referee = command->mutable_referee();
+
+    if (useCase == UseCase::NORMAL_GAME) {
+        referee->set_use_auto_continue(true);
+    } else if (useCase == UseCase::ISOLATED_TEST) {
+        referee->set_use_auto_continue(false);
+    } else {
+        return;
+    }
+
     emit sendCommand(command);
 }
 

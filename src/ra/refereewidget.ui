@@ -378,13 +378,6 @@
       </widget>
      </item>
      <item>
-      <widget class="QCheckBox" name="enableAutoContinue">
-       <property name="text">
-        <string>Enable Auto-Continue</string>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QCheckBox" name="enableRobotExchange">
        <property name="text">
         <string>Enable Automatic Robot Exchange</string>
@@ -393,6 +386,23 @@
         <bool>true</bool>
        </property>
       </widget>
+     </item>
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="QLabel" name="useCaseLabel">
+         <property name="toolTip">
+          <string>Configures how game events are processed by the game controller (i.e. whether to handle events and whether to continue automatically)</string>
+         </property>
+         <property name="text">
+          <string>Current Use Case</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QComboBox" name="useCaseBox"/>
+       </item>
+      </layout>
      </item>
     </layout>
    </item>

@@ -68,6 +68,7 @@ private slots:
     void handleYellowKeeper(int id);
     void handleBlueKeeper(int id);
     void handleRestartGameController();
+    void useCaseChanged(const QString& useCase);
     void divisionChanged(QString division);
     void handleAutomaticRobotExchangeChanged(bool enable);
 
