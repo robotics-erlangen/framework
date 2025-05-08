@@ -38,6 +38,14 @@ message CommandSimulator {
 }
 
 message CommandReferee {
+    enum EventsConfig {
+        // Accept events for which a majority is present (in our case formed by
+        // the single autoref)
+        MAJORITY = 0;
+        // Disable events
+        DISABLE = 1;
+    }
+
     // Activation
     optional bool active = 1;
     optional bool restart_game_controller = 2;
@@ -46,6 +54,7 @@ message CommandReferee {
     optional bool use_automatic_robot_exchange = 10;
     optional bool use_auto_continue = 11;
     optional world.Geometry.Division use_division = 12;
+    optional EventsConfig events_config = 13;
 
     // Referee Commands
     optional bytes command = 20;

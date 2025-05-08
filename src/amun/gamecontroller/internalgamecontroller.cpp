@@ -32,6 +32,64 @@
 
 static const QString SENDER_NAME_FOR_REFEREE = "Internal/SSL Game Controller";
 
+namespace {
+    ::gameController::Config forAllGameEvents(gameController::Config_Behavior use_behavior)
+    {
+        // Taken from the old engine.yml which we now regenerate on startup
+        const std::string ALL_EVENTS[] = {
+            "AIMLESS_KICK",
+            "ATTACKER_DOUBLE_TOUCHED_BALL",
+            "ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA",
+            "ATTACKER_TOUCHED_BALL_IN_DEFENSE_AREA",
+            "BALL_LEFT_FIELD_GOAL_LINE",
+            "BALL_LEFT_FIELD_TOUCH_LINE",
+            "BOT_CRASH_DRAWN",
+            "BOT_CRASH_UNIQUE",
+            "BOT_DRIBBLED_BALL_TOO_FAR",
+            "BOT_HELD_BALL_DELIBERATELY",
+            "BOT_INTERFERED_PLACEMENT",
+            "BOT_KICKED_BALL_TOO_FAST",
+            "BOT_PUSHED_BOT",
+            "BOT_TIPPED_OVER",
+            "BOT_TOO_FAST_IN_STOP",
+            "BOUNDARY_CROSSING",
+            "DEFENDER_IN_DEFENSE_AREA",
+            "DEFENDER_TOO_CLOSE_TO_KICK_POINT",
+            "GOAL",
+            "INVALID_GOAL",
+            "KEEPER_HELD_BALL",
+            "NO_PROGRESS_IN_GAME",
+            "PENALTY_KICK_FAILED",
+            "PLACEMENT_SUCCEEDED",
+            "POSSIBLE_GOAL",
+        };
+
+        ::gameController::Config config;
+        auto* behavior = config.mutable_game_event_behavior();
+
+        for (const auto& event : ALL_EVENTS) {
+            (*behavior)[event] = use_behavior;
+        }
+
+        return config;
+    }
+
+    const ::gameController::Config ALL_EVENTS_MAJORITY = forAllGameEvents(::gameController::Config_Behavior_BEHAVIOR_ACCEPT_MAJORITY);
+    const ::gameController::Config ALL_EVENTS_IGNORED = forAllGameEvents(gameController::Config_Behavior_BEHAVIOR_IGNORE);
+
+    void addEventConfiguration(::amun::CommandReferee_EventsConfig eventsConfig, ::gameController::Config* configDelta)
+    {
+        switch (eventsConfig) {
+            case ::amun::CommandReferee_EventsConfig_DISABLE:
+                configDelta->CopyFrom(ALL_EVENTS_IGNORED);
+                break;
+            case ::amun::CommandReferee_EventsConfig_MAJORITY:
+                configDelta->CopyFrom(ALL_EVENTS_MAJORITY);
+                break;
+        }
+    }
+}
+
 InternalGameController::InternalGameController(const Timer *timer, QObject *parent) :
     QObject(parent),
     m_timer(timer),
@@ -276,6 +334,9 @@ void InternalGameController::handleCommand(const amun::CommandReferee &refereeCo
     if (refereeCommand.has_use_division()) {
         handleUseDivision(refereeCommand.use_division());
     }
+    if (refereeCommand.has_events_config()) {
+        handleEventsConfig(refereeCommand.events_config());
+    }
     if (refereeCommand.has_restart_game_controller() && refereeCommand.restart_game_controller()) {
         handleRestartGameController();
     }
@@ -330,6 +391,25 @@ void InternalGameController::handleUseDivision(world::Geometry_Division division
     sendCiInput(ciInput);
 }
 
+void InternalGameController::handleEventsConfig(::amun::CommandReferee_EventsConfig eventsConfig)
+{
+    if (m_eventsConfig == eventsConfig) {
+        return;
+    }
+
+    m_eventsConfig = eventsConfig;
+
+    if (!m_isEnabled) {
+        return;
+    }
+
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+    addEventConfiguration(m_eventsConfig, ciInput.add_api_inputs()->mutable_config_delta());
+
+    sendCiInput(ciInput);
+}
+
 void InternalGameController::setFlip(bool flip)
 {
     if (m_trackedVisionGenerator) {
@@ -368,6 +448,7 @@ void InternalGameController::start()
             ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(mapDivision(m_currentDivision));
             // automatically continue events without needing human input
             ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(m_enableAutoContinue);
+            addEventConfiguration(m_eventsConfig, ciInput.add_api_inputs()->mutable_config_delta());
 
             // Set team names to own
             {

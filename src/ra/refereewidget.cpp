@@ -75,9 +75,9 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
     connect(ui->enableRobotExchange, &QCheckBox::toggled, this, &RefereeWidget::handleAutomaticRobotExchangeChanged);
 
     ui->useCaseBox->addItem(UseCase::NORMAL_GAME);
-    ui->useCaseBox->setItemData(0, "Enable Auto-Continue", Qt::ToolTipRole);
+    ui->useCaseBox->setItemData(0, "Enable Auto-Continue and accept Majority Events", Qt::ToolTipRole);
     ui->useCaseBox->addItem(UseCase::ISOLATED_TEST);
-    ui->useCaseBox->setItemData(1, "Disable Auto-Continue", Qt::ToolTipRole);
+    ui->useCaseBox->setItemData(1, "Disable Auto-Continue and Events", Qt::ToolTipRole);
     connect(ui->useCaseBox, &QComboBox::currentTextChanged, this, &RefereeWidget::useCaseChanged);
 
     connect(ui->autoref, &TeamWidget::sendCommand, this, &RefereeWidget::sendCommand);
@@ -348,8 +348,10 @@ void RefereeWidget::useCaseChanged(const QString& useCase)
 
     if (useCase == UseCase::NORMAL_GAME) {
         referee->set_use_auto_continue(true);
+        referee->set_events_config(amun::CommandReferee_EventsConfig_MAJORITY);
     } else if (useCase == UseCase::ISOLATED_TEST) {
         referee->set_use_auto_continue(false);
+        referee->set_events_config(amun::CommandReferee_EventsConfig_DISABLE);
     } else {
         return;
     }

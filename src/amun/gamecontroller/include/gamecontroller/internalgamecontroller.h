@@ -52,6 +52,7 @@ private:
     void handleRestartGameController();
     void handleUseAutoContinue(bool useAutoContinue);
     void handleUseDivision(world::Geometry_Division division);
+    void handleEventsConfig(::amun::CommandReferee_EventsConfig eventsConfig);
 
 signals:
     void sendStatus(const Status &status);
@@ -70,6 +71,8 @@ private:
     const Timer *m_timer;
     bool m_isEnabled = false;
     bool m_enableAutoContinue = false;
+    ::amun::CommandReferee_EventsConfig  m_eventsConfig = ::amun::CommandReferee_EventsConfig_MAJORITY;
+
     GameControllerCI m_gcCIProcess;
     std::unique_ptr<SSLVisionTracked> m_trackedVisionGenerator;
     SSL_Referee m_lastReferee;
