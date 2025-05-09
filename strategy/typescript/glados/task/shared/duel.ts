@@ -39,6 +39,7 @@ const CLOSE_TO_OPP_HYSTERESIS = 0.09;
 const CLOSE_TO_OPP_DISTANCE = 0.5;
 
 const OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1;
+const OPPONENT_DEFENSE_AREA_MIN_DISTANCE_HYST = 0.1;
 
 
 export class Duel extends Task {
@@ -53,6 +54,7 @@ export class Duel extends Task {
 	private _rotating: boolean = false;
 	private _isMainAttacker: boolean = false;
 	private _lastDefendGoal = false;
+	private _wasCloseToDefenseArea = false;
 
 	public run() {
 		// search for the best duel target (can be nil!)
@@ -74,7 +76,13 @@ export class Duel extends Task {
 			this._messaging.sendBroadcast(MessageType.dueledOpponent, <Robot> this._opposer);
 		}
 
-		if ((this._opposer != undefined) && this._blockingBall && ObserverRobot.hadBall(this._robot, 0.1)) {
+		// Do not contest if we are too close to the opponent defense area, since contest
+		// uses trajectory/direct and may drive into the opponent defense area
+		const isCloseToDefenseArea = this._isCloseToDefenseArea();
+
+		const hasOpposer = this._opposer != undefined;
+		const hasBall = ObserverRobot.hadBall(this._robot, 0.1);
+		if (hasOpposer && this._blockingBall && hasBall && !isCloseToDefenseArea) {
 			this._contest();
 		} else {
 			this._moveToBall();
@@ -304,9 +312,9 @@ export class Duel extends Task {
 				this._lastDefendGoal = false;
 
 				// If we get too close to opponent change to contest to avoid collision
-				let effectiveDistance = this._robot.pos.distanceTo(closestOpponentRobot!.pos) + (this._lastCloseToOpp ? -CLOSE_TO_OPP_HYSTERESIS : CLOSE_TO_OPP_HYSTERESIS);
+				const effectiveDistance = this._robot.pos.distanceTo(closestOpponentRobot!.pos) + (this._lastCloseToOpp ? -CLOSE_TO_OPP_HYSTERESIS : CLOSE_TO_OPP_HYSTERESIS);
 				this._lastCloseToOpp = effectiveDistance < CLOSE_TO_OPP_DISTANCE;
-				if (this._lastCloseToOpp) {
+				if (this._lastCloseToOpp && !this._isCloseToDefenseArea()) {
 					this._contest();
 					return;
 				}
@@ -324,5 +332,14 @@ export class Duel extends Task {
 		if (this._isMainAttacker) {
 			this._messaging.sendBroadcast(MessageType.attackPosition, this._positionOfInterest!);
 		}
+	}
+
+	private _isCloseToDefenseArea(): boolean {
+		const hyst = this._wasCloseToDefenseArea ? OPPONENT_DEFENSE_AREA_MIN_DISTANCE_HYST : 0;
+		const minDefenseDist = this._robot.radius + OPPONENT_DEFENSE_AREA_MIN_DISTANCE + hyst;
+		const isCloseToDefenseArea = Field.isInOpponentDefenseArea(this._robot.pos, minDefenseDist);
+		this._wasCloseToDefenseArea = isCloseToDefenseArea;
+		debug.set("close to defense", isCloseToDefenseArea);
+		return isCloseToDefenseArea;
 	}
 }
