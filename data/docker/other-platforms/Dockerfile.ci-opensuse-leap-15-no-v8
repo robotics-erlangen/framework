@@ -1,0 +1,28 @@
+FROM opensuse/leap:15.6
+
+ENV PATH="/usr/lib/ccache:$PATH"
+ENV CCACHE_DIR="/ccache/opensuse-15-no-v8"
+ENV LANG=C.UTF-8
+
+RUN set -xe; \
+	zypper update -y; \
+	zypper install -y \
+		gcc14 gcc14-c++ git git-lfs ninja ccache openssh gpg2 \
+		git cmake qt6-base-devel qt6-svg-devel libusb-1_0-devel libudev1 patch glu-devel libopenssl-devel \
+		nodejs-default npm-default \
+		lua51-devel lua51-luarocks \
+    update-alternatives; \
+  # default gcc is version 7 for some reason
+  update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-14 1; \
+  update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-14 1; \
+  update-alternatives --install /usr/bin/cc cc /usr/bin/gcc-14 1; \
+  update-alternatives --install /usr/bin/c++ c++ /usr/bin/g++-14 1; \
+	git lfs install; \
+	# setup linters \
+	luarocks install luacheck; \
+	# cleanup zypper \
+	zypper clean ; \
+	# ccache seems to not automatically cover cc/c++ and arm compilers \
+	ln -s /bin/ccache /usr/local/bin/cc; \
+	ln -s /bin/ccache /usr/local/bin/c++;
+

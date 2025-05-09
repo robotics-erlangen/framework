@@ -1,0 +1,6 @@
+FROM ci:fedora-42-no-v8
+
+ENV CCACHE_DIR="/ccache/fedora-42"
+ENV V8_INCLUDE_DIR=/libs/v8/include
+ENV V8_OUTPUT_DIR=/libs/v8/out/x64.release
+COPY --from=roboticserlangen/v8:version-2-ubuntu-24.04-x64 /v8/v8 /libs/v8

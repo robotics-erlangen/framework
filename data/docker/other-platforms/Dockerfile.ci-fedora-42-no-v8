@@ -1,0 +1,25 @@
+FROM fedora:42
+
+ENV PATH="/usr/lib/ccache:$PATH"
+ENV CCACHE_DIR="/ccache/fedora-42-no-v8"
+ENV LANG=C.UTF-8
+
+RUN set -xe; \
+	# check-update returns exit code 100 if updates are found which docker registers as an error, \
+	# so || true is applied to just let it pass \
+	dnf check-update || true; \
+	dnf install -y \
+		pkgconf patch libusb1 libusb1-devel protobuf-compiler protobuf-devel \
+		mesa-libGLU-devel mesa-libGL-devel openssl-devel \
+		qt6-qtbase-devel qt6-qtsvg \
+		g++ gcc cmake git git-lfs ninja ccache ssh gnupg \
+		nodejs npm \
+		luarocks; \
+	git lfs install; \
+	# setup linters \
+	luarocks install luacheck; \
+	# cleanup dnf \
+	dnf clean all; \
+	# ccache seems to not automatically cover cc/c++ and arm compilers \
+	ln -s /bin/ccache /usr/local/bin/cc; \
+	ln -s /bin/ccache /usr/local/bin/c++;
