@@ -160,7 +160,7 @@ sanitize_env()
 find_package(Protobuf 3.21.12)
 restore_env()
 
-if(NOT PROTOBUF_FOUND
+if(NOT Protobuf_FOUND
         # Protobuf versions 4.22 upwards have a dependency on Abseil which we
         # do not yet handle, leading to linker errors.
         #

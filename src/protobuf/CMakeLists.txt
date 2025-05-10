@@ -100,7 +100,7 @@ set_source_files_properties(${GENERATED_FILES}
 )
 
 target_link_libraries(protobuf
-    PUBLIC ${PROTOBUF_LIBRARY}
+    PUBLIC ${Protobuf_LIBRARIES}
     PUBLIC Threads::Threads
     PUBLIC Qt6::Core
 )
@@ -113,8 +113,7 @@ target_include_directories(protobuf
     PUBLIC ${PROTO_BINARY_DIR}
 )
 target_include_directories(protobuf SYSTEM
-    PUBLIC ${PROTOBUF_INCLUDE_DIR}
-    PRIVATE ${PROTOBUF_INCLUDE_DIR}
+    PUBLIC ${Protobuf_INCLUDE_DIRS}
 )
 
 if(TARGET project_protobuf)

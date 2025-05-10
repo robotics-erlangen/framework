@@ -111,14 +111,14 @@ set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
 # cmake enforces that the include directory exists
 file(MAKE_DIRECTORY "${PROTOBUF_INSTALL_DIR}/include")
 
-set(PROTOBUF_FOUND true)
-set(PROTOBUF_VERSION "3.21.12")
-set(PROTOBUF_INCLUDE_DIR "${PROTOBUF_INSTALL_DIR}/include")
-set(PROTOBUF_INCLUDE_DIRS "${PROTOBUF_INCLUDE_DIR}")
-set(PROTOBUF_LIBRARY "${PROTOBUF_INSTALL_DIR}/${PROTOBUF_SUBPATH}")
-set(PROTOBUF_LIBRARIES "${PROTOBUF_LIBRARY}")
-set(PROTOBUF_PROTOC_EXECUTABLE "${PROTOC_INSTALL_DIR}/${PROTOC_SUBPATH}")
+set(Protobuf_FOUND             true)
+set(Protobuf_VERSION           "3.21.12")
+set(Protobuf_INCLUDE_DIR       "${PROTOBUF_INSTALL_DIR}/include")
+set(Protobuf_INCLUDE_DIRS      "${Protobuf_INCLUDE_DIR}")
+set(Protobuf_LIBRARY           "${PROTOBUF_INSTALL_DIR}/${PROTOBUF_SUBPATH}")
+set(Protobuf_LIBRARIES         "${Protobuf_LIBRARY}")
 set(Protobuf_PROTOC_EXECUTABLE "${PROTOC_INSTALL_DIR}/${PROTOC_SUBPATH}")
+
 # this variable is necessary for cmake to wait until protobuf is built,
 # before trying to use protoc to generate the cpp and header files
 set(protobuf_generate_DEPENDENCIES project_protobuf CACHE INTERNAL "")
@@ -131,4 +131,4 @@ set_target_properties(protobuf::protoc PROPERTIES
     IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
 )
 
-message(STATUS "Building protobuf ${PROTOBUF_VERSION}")
+message(STATUS "Building Protobuf ${Protobuf_VERSION}")
