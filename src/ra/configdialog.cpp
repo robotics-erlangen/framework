@@ -339,7 +339,7 @@ QString ConfigDialog::robotActionString(FieldWidgetAction action)
     case FieldWidgetAction::SetDebugSearch:
         return "Set Debug Search";
     case FieldWidgetAction::ToggleVisualization:
-        return "Toogle Visualization";
+        return "Toggle Visualization";
     }
     return "";
 }
