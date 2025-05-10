@@ -31,7 +31,7 @@
 # STAMP
 
 
-if(${ESCAPE})
+if(ESCAPE)
     set(MASTER_TREEISH "master@\\\\{u\\\\}")
 else()
     set(MASTER_TREEISH "master@{u}")

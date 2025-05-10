@@ -44,7 +44,7 @@ endif()
 
 set(LUAJIT_XCFLAGS "-DLUAJIT_ENABLE_LUA52COMPAT")
 if(APPLE)
-  if(${CMAKE_CXX_COMPILER_ID} STREQUAL "AppleClang" AND ${CMAKE_CXX_COMPILER_VERSION} MATCHES "^11\.0\.")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND CMAKE_CXX_COMPILER_VERSION MATCHES "^11\.0\.")
     # workaround compiler bug, see https://forums.developer.apple.com/thread/121887 for more details
     set(LUAJIT_XCFLAGS "${LUAJIT_XCFLAGS} -fno-stack-check")
   endif()

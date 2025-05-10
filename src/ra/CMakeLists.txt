@@ -129,8 +129,8 @@ target_include_directories(ra-horus
 
 target_compile_definitions(ra-horus PRIVATE GAMECONTROLLER_RELEASE_VERSION="${GAMECONTROLLER_RELEASE_VERSION}")
 
-if(${EASY_MODE})
-	target_compile_definitions(ra-horus PRIVATE EASY_MODE)
+if(EASY_MODE)
+    target_compile_definitions(ra-horus PRIVATE EASY_MODE)
 endif()
 
 add_library(ra::ra-horus ALIAS ra-horus)
