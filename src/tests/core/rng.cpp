@@ -251,7 +251,7 @@ static double expSigma(const std::vector<double>& sigmas) {
     return std::sqrt(sq_sum);
 }
 
-TEST_F(RNGTest, independendNormal) {
+TEST_F(RNGTest, independentNormal) {
     const int runs = 1'000; // has to be larger than 35
     const int sz = 10;
     std::vector<double> sigmas;
@@ -270,7 +270,7 @@ TEST_F(RNGTest, independendNormal) {
     }
 }
 
-TEST_F(RNGTest, independendVector) {
+TEST_F(RNGTest, independentVector) {
     const int runs = 10'000;
     KSTest(runs, [this](){auto v = this->r.normalVector(2, .5); return v.x + v.y;}, F_gaussian(1, std::sqrt(2*2+2*2)));
 }
@@ -295,10 +295,10 @@ TEST_F(RNGTest, independedUniformVecIn) {
     KSTest(runs, [this](){auto v = (this->r.uniformVectorIn(Vector(3, -2), Vector(5, 0)) - Vector(3, -2)) / 2; return v.x+ v.y;}, F2_uniform);
 }
 
-TEST_F(RNGTest, multipleIndependendUniform) {
+TEST_F(RNGTest, multipleindependentUniform) {
     // As folding gets harder and harder to do by hand
     // this test instead tests for pairs if they are correlated.
-    // If none are, all elements are considered independend
+    // If none are, all elements are considered independent
 
     const int runs = 1'000;
     std::vector<double> arr[10];
