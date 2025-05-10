@@ -22,6 +22,7 @@
 #include "ui_gameeventswidget.h"
 
 #include <QPainter>
+#include <QLabel>
 #include <QProgressBar>
 
 GameEventsWidget::GameEventsWidget(QWidget *parent)
@@ -118,25 +119,44 @@ gameController::Team GameEventsWidget::teamForEvent(const gameController::GameEv
     return gameController::Team::UNKNOWN;
 }
 
-
 void GameEventsWidget::addEntry(uint64_t frame, const gameController::GameEvent& event)
 {
     const auto row = ui->eventTable->rowCount();
     ui->eventTable->insertRow(row);
-    ui->eventTable->setItem(row, 0, new QTableWidgetItem(QString("%1").arg(frame)));
+
+    auto* frameItem = new QTableWidgetItem;
+    frameItem->setData(Qt::DisplayRole, static_cast<qulonglong>(frame));
+    ui->eventTable->setItem(row, 0, frameItem);
     
     const auto byTeam = teamForEvent(event);
     const auto isYellow = byTeam == gameController::Team::YELLOW;
     const auto isBlue = byTeam == gameController::Team::BLUE;
-    const auto* teamStr = isYellow ? "🟡" : isBlue ? "🔵" : "⚪";
-    auto* teamItem = new QTableWidgetItem(teamStr);
-    teamItem->setData(Qt::UserRole, isYellow ? 1 : isBlue ? 2 : 0);
-    teamItem->setTextAlignment(Qt::AlignCenter);
-    ui->eventTable->setItem(row, 1, teamItem);
+
+    const auto teamColor = isYellow ? Qt::yellow : isBlue ? Qt::blue : Qt::gray;
+    auto* iconLabel = getColoredCircle(teamColor);
+    ui->eventTable->setCellWidget(row, 1, iconLabel);
 
     const auto enumName = gameController::GameEvent_Type_descriptor()->FindValueByNumber(event.type())->name();
     const auto nameAsQStr = QString::fromStdString(enumName);
     ui->eventTable->setItem(row, 2, new QTableWidgetItem(nameAsQStr));
+}
+
+QLabel* GameEventsWidget::getColoredCircle(const QColor& color)
+{
+    QPixmap pixmap(16, 16);
+    pixmap.fill(Qt::transparent);
+
+    QPainter painter(&pixmap);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.setBrush(color);
+    painter.setPen(Qt::NoPen);
+    painter.drawEllipse(0, 0, 16, 16);
+    painter.end();
+
+    auto* iconLabel = new QLabel;
+    iconLabel->setPixmap(pixmap);
+    iconLabel->setAlignment(Qt::AlignCenter);
+    return iconLabel;
 }
 
 void GameEventsWidget::scanLogClicked()

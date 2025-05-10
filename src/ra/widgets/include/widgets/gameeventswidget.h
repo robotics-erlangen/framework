@@ -28,6 +28,7 @@
 #include "protobuf/status.h"
 
 class QProgressBar;
+class QLabel;
 
 namespace Ui {
 class GameEventsWidget;
@@ -56,6 +57,7 @@ private slots:
 private:
     void addEntry(uint64_t frame, const gameController::GameEvent& event);
     gameController::Team teamForEvent(const gameController::GameEvent& event);
+    QLabel* getColoredCircle(const QColor& color);
 
     void resizeEvent(QResizeEvent* event) override;
 
