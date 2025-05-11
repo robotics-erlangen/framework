@@ -54,7 +54,7 @@ public:
     void setSimulationRunningTime(int seconds);
     void setRobotConfiguration(int numRobots, const QString &generation);
     void setRecordLogfile(const QString &filename);
-    void setReportEvents(bool report) { m_reportEvents = report; }
+    void setEventReportFile(const QString& filename) { m_eventReportFile = filename; }
     void setSimulationSpeed(int speed) { m_simulationSpeed = speed; }
     void setIsInCompileMode(bool isCompile) { m_isInCompileMode = isCompile; }
     void setBacklogDirectory(const QString &directoryName);
@@ -98,7 +98,7 @@ private:
     bool m_debug = false;
     int m_exitCode = 255;
     std::map<std::string, OptionInfo> m_options;
-    bool m_reportEvents = false;
+    QString m_eventReportFile = "";
     int m_simulationSpeed = 100;
     bool m_isInCompileMode = false;
     bool m_isSilent = false;

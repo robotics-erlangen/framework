@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
     QCommandLineOption autorefInitScript({"a", "autoref"}, "Autoref init script (not executed when missing)", "file");
     QCommandLineOption recordLog({"r", "record"}, "Record the game to the specified log file", "file");
     QCommandLineOption recordEnv("env", "Only record a logfile if the given environment variable is set. Only changes any behavior is -r is also set", "environment-variable");
-    QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)");
+    QCommandLineOption reportEvents({"e", "report-events"}, "Report the number of events (fouls, goals etc.)", "file");
     QCommandLineOption simulationSpeed("simulation-speed", "Speed in percent to run the simulator at. Defaults to 100%", "speed", "100");
     QCommandLineOption backlog({"b", "backlog-directory"}, "Directory for backlogging of events.", "directory");
     QCommandLineOption maxBacklog("max-backlog", "Maximum of backlog files in a category. 0 removes limit. Default 20.", "count");
@@ -140,13 +140,15 @@ int main(int argc, char* argv[])
         }
         connector.setSimulationSpeed(speed);
     }
+    if (parser.isSet(reportEvents)) {
+        connector.setEventReportFile(parser.value(reportEvents));
+    }
     connector.setAutorefInitScript(parser.value(autorefInitScript));
     connector.setInitScript(initScript);
     connector.setEntryPoint(entryPoint);
     connector.setStrategyColors(runBlueStrategy, runYellowStrategy);
     connector.setDebug(debug);
     connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
-    connector.setReportEvents(parser.isSet(reportEvents));
     connector.setSilent(parser.isSet(silent));
     connector.setForceStartGame(parser.isSet(forceStart));
 

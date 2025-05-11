@@ -284,14 +284,22 @@ void Connector::sendFlipOption(const std::string &name)
 
 void Connector::reportEvents()
 {
-    if (m_reportEvents) {
-        std::cout <<std::endl<<"Events:"<<std::endl;
-        auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
-        for (auto el : m_eventCounter) {
-            std::cout <<eventTypeDesc->FindValueByNumber(el.first)->name()<<": "<<el.second<<std::endl;
-        }
-        m_reportEvents = false;
+    if (m_eventReportFile.isEmpty()) {
+        return;
     }
+
+    QFile file{m_eventReportFile};
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        std::cerr << "Could not open file " << m_eventReportFile.toStdString() << " for event reporting" << std::endl;
+        return;
+    }
+    QTextStream out{&file};
+    auto eventTypeDesc = gameController::GameEvent::Type_descriptor();
+    for (const auto& [eventType, count] : m_eventCounter) {
+        const auto eventName = QString::fromStdString(eventTypeDesc->FindValueByNumber(eventType)->name());
+        out << eventName << ": " << count << "\n";
+    }
+    m_eventReportFile = "";
 }
 
 void Connector::handleStatus(const Status &status)
