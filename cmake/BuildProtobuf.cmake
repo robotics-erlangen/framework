@@ -72,14 +72,24 @@ set(Protobuf_LIBRARY           "${install_dir}/${PROTOBUF_SUBPATH}")
 set(Protobuf_LIBRARIES         "${Protobuf_LIBRARY}")
 set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 
-# this variable is necessary for cmake to wait until protobuf is built,
-# before trying to use protoc to generate the cpp and header files
+# this variable is necessary for cmake to wait until protobuf is built, before
+# trying to use protoc to generate the cpp and header files. It is used by the
+# protobuf_generate CMake function.
 set(protobuf_generate_DEPENDENCIES project_protobuf CACHE INTERNAL "")
-# compatibility with cmake 3.10
+
+# If the user does not have Protobuf installed, the top level FindProtobuf call
+# does not create the targets. We thus need to create them here. This would
+# also be necessary for CMake < 3.10 but we do not support that anymore.
 if(NOT TARGET protobuf::protoc)
-    # avoid error if target was already created for an older version
     add_executable(protobuf::protoc IMPORTED)
 endif()
+
+# Either FindProtobuf didn't find system Protobuf, in which case we need to
+# initialize the properties, or it did, in which case it references system
+# Protobuf instead of our self built one.
+#
+# We do not use the created targets directly, but protobuf_generate references
+# protobuf::protoc
 set_target_properties(protobuf::protoc PROPERTIES
     IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
 )
