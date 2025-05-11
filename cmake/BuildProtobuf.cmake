@@ -94,6 +94,20 @@ set_target_properties(protobuf::protoc PROPERTIES
     IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
 )
 
+# Also create an imported target for the library itself. We do not use
+# protobuf::libprotobuf since we need a bit of additional setup for
+# ExternalProject compatibility (i.e. dependency ordering)
+add_library(project_protobuf_import STATIC IMPORTED)
+set_target_properties(project_protobuf_import PROPERTIES
+    IMPORTED_LOCATION "${Protobuf_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Protobuf_INCLUDE_DIR}"
+)
+target_link_libraries(project_protobuf_import
+    INTERFACE Threads::Threads
+)
+
+EPHelper_Add_Interface_Library(PROJECT project_protobuf ALIAS lib::protobuf)
+
 if (MINGW AND CMAKE_CROSSCOMPILING)
     # Overwrites Protobuf_PROTOC_EXECUTABLE, protobuf::protoc and
     # protobuf_generate_DEPENDENCIES

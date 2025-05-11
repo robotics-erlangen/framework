@@ -100,7 +100,7 @@ set_source_files_properties(${GENERATED_FILES}
 )
 
 target_link_libraries(protobuf
-    PUBLIC ${Protobuf_LIBRARIES}
+    PUBLIC lib::protobuf
     PUBLIC Threads::Threads
     PUBLIC Qt6::Core
 )
@@ -112,12 +112,5 @@ target_include_directories(protobuf
     # #include "protobuf/..."
     PUBLIC ${PROTO_BINARY_DIR}
 )
-target_include_directories(protobuf SYSTEM
-    PUBLIC ${Protobuf_INCLUDE_DIRS}
-)
-
-if(TARGET project_protobuf)
-    add_dependencies(protobuf project_protobuf)
-endif()
 
 add_library(shared::protobuf ALIAS protobuf)
