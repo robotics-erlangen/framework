@@ -33,11 +33,7 @@ set(PROTOBUF_CMAKE_ARGS
 )
 
 set(PROTOBUF_SUBPATH "${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_LIBRARY_SUFFIX}")
-if (MINGW AND CMAKE_CROSSCOMPILING)
-    set(PROTOC_SUBPATH "${CMAKE_INSTALL_BINDIR}/protoc")
-else()
-    set(PROTOC_SUBPATH "${CMAKE_INSTALL_BINDIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}")
-endif()
+set(PROTOC_SUBPATH "${CMAKE_INSTALL_BINDIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 ExternalProject_Add(project_protobuf
     URL "${PROTOBUF_URL}"
@@ -55,69 +51,26 @@ EPHelper_Add_Cleanup(project_protobuf ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_BI
 EPHelper_Mark_For_Download(project_protobuf)
 
 externalproject_get_property(project_protobuf install_dir)
-set(PROTOBUF_INSTALL_DIR ${install_dir})
 
-if (NOT CMAKE_CROSSCOMPILING)
-    # the byproducts are available after the install step
-    ExternalProject_Add_Step(project_protobuf out
-        DEPENDEES install
-        BYPRODUCTS
-            "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
-            "<INSTALL_DIR>/${PROTOC_SUBPATH}"
-    )
-    set(PROTOC_INSTALL_DIR ${PROTOBUF_INSTALL_DIR})
-else()
-    if (NOT CMAKE_C_HOST_COMPILER OR NOT CMAKE_CXX_HOST_COMPILER)
-        message(FATAL_ERROR "When building protobuf during cross compilation the CMAKE_C_HOST_COMPILER and CMAKE_CXX_HOST_COMPILER variables \
-                            need to be set as arguments to the cmake call, because protoc needs to be built for the host machine and the mxe toolchain \
-                            does not set these variables correctly. e.g.:
-                            \$MXE_ROOT_DIR/usr/bin/x86_64-w64-mingw32.static-cmake CMAKE_C_HOST_COMPILER=gcc CMAKE_CXX_HOST_COMPILER=g++ ..")
-    endif()
-    # only install libraries from target compilation
-    ExternalProject_Add_Step(project_protobuf out
-        DEPENDEES install
-        BYPRODUCTS
-            "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
-    )
-
-    # compile the protoc for the HOST system
-    ExternalProject_Add(project_protobuf_host
-        URL "${PROTOBUF_URL}"
-        URL_HASH "${PROTOBUF_HASH}"
-        DOWNLOAD_NO_PROGRESS true
-        DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
-        CMAKE_ARGS
-            -DCMAKE_C_COMPILER:PATH=${CMAKE_C_HOST_COMPILER}
-            -DCMAKE_CXX_COMPILER:PATH=${CMAKE_CXX_HOST_COMPILER}
-            ${PROTOBUF_CMAKE_ARGS}
-    )
-
-    EPHelper_Add_Cleanup(project_protobuf_host ${CMAKE_INSTALL_LIBDIR} ${CMAKE_INSTALL_BINDIR} ${CMAKE_INSTALL_INCLUDEDIR})
-    EPHelper_Mark_For_Download(project_protobuf_host)
-
-    # the byproducts are available after the install step
-    ExternalProject_Add_Step(project_protobuf_host out
-        DEPENDEES install
-        BYPRODUCTS
-            "<INSTALL_DIR>/${PROTOC_SUBPATH}"
-    )
-
-    externalproject_get_property(project_protobuf_host install_dir)
-    set(PROTOC_INSTALL_DIR ${install_dir})
-    add_dependencies(project_protobuf project_protobuf_host)
-endif()
+# the byproducts are available after the install step
+ExternalProject_Add_Step(project_protobuf out
+    DEPENDEES install
+    BYPRODUCTS
+        "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
+        "<INSTALL_DIR>/${PROTOC_SUBPATH}"
+)
 
 set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
 # cmake enforces that the include directory exists
-file(MAKE_DIRECTORY "${PROTOBUF_INSTALL_DIR}/include")
+file(MAKE_DIRECTORY "${install_dir}/include")
 
 set(Protobuf_FOUND             true)
 set(Protobuf_VERSION           "3.21.12")
-set(Protobuf_INCLUDE_DIR       "${PROTOBUF_INSTALL_DIR}/include")
+set(Protobuf_INCLUDE_DIR       "${install_dir}/include")
 set(Protobuf_INCLUDE_DIRS      "${Protobuf_INCLUDE_DIR}")
-set(Protobuf_LIBRARY           "${PROTOBUF_INSTALL_DIR}/${PROTOBUF_SUBPATH}")
+set(Protobuf_LIBRARY           "${install_dir}/${PROTOBUF_SUBPATH}")
 set(Protobuf_LIBRARIES         "${Protobuf_LIBRARY}")
-set(Protobuf_PROTOC_EXECUTABLE "${PROTOC_INSTALL_DIR}/${PROTOC_SUBPATH}")
+set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 
 # this variable is necessary for cmake to wait until protobuf is built,
 # before trying to use protoc to generate the cpp and header files
@@ -130,5 +83,11 @@ endif()
 set_target_properties(protobuf::protoc PROPERTIES
     IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
 )
+
+if (MINGW AND CMAKE_CROSSCOMPILING)
+    # Overwrites Protobuf_PROTOC_EXECUTABLE, protobuf::protoc and
+    # protobuf_generate_DEPENDENCIES
+    include(BuildProtocForHost)
+endif()
 
 message(STATUS "Building Protobuf ${Protobuf_VERSION}")
