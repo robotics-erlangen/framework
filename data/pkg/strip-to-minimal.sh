@@ -18,7 +18,7 @@ cd ../..
 
 current_hash="$(git rev-parse --short=12 HEAD)"
 
-rm -rf .git/ .gitignore autoref strategy/lua/
+rm -rf .git/ .gitignore .gitmodules .git-blame-ignore-revs .gitlab-ci.yml .github/ autoref strategy/lua/
 
 cd src
 
