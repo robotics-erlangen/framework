@@ -22,10 +22,10 @@
 #include "ballflyfilter.h"
 #include "ballgroundcollisionfilter.h"
 
-BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel) :
+BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel, Eigen::Vector3f primaryCameraPos) :
     Filter(frame.sourceTime),
+    PRIMARY_CAMERA_POS(primaryCameraPos),
     m_lastUpdateTime(frame.sourceTime),
-    m_cameraInfo(cameraInfo),
     m_initTime(frame.sourceTime),
     m_lastFrameTime(0),
     m_confidence(0),
@@ -34,19 +34,14 @@ BallTracker::BallTracker(const VisionFrame &frame, CameraInfo *cameraInfo, const
 {
     m_primaryCamera = frame.cameraId;
 
-    const auto primaryCameraPos = cameraInfo->cameraPosition.constFind(m_primaryCamera);
-    if (primaryCameraPos == cameraInfo->cameraPosition.end()) {
-        qFatal("No camera position for camera %d", m_primaryCamera);
-    }
-
-    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform, ballModel, *primaryCameraPos);
+    m_groundFilter = new BallGroundCollisionFilter(frame, cameraInfo, transform, ballModel, PRIMARY_CAMERA_POS);
     m_flyFilter = new FlyFilter(frame, cameraInfo, transform, ballModel);
 }
 
-BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera) :
+BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera, Eigen::Vector3f primaryCameraPos) :
     Filter(previousFilter.lastUpdate()),
+    PRIMARY_CAMERA_POS(primaryCameraPos),
     m_lastUpdateTime(previousFilter.m_lastUpdateTime),
-    m_cameraInfo(previousFilter.m_cameraInfo),
     m_initTime(previousFilter.m_initTime),
     m_lastBallPos(previousFilter.m_lastBallPos),
     m_lastFrameTime(previousFilter.m_lastFrameTime),
@@ -56,14 +51,9 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
 {
     m_primaryCamera = primaryCamera;
 
-    const auto primaryCameraPos = m_cameraInfo->cameraPosition.constFind(primaryCamera);
-    if (primaryCameraPos == m_cameraInfo->cameraPosition.end()) {
-        qFatal("No camera position for camera %d", m_primaryCamera);
-    }
-
     m_flyFilter = new FlyFilter(*previousFilter.m_flyFilter);
     m_flyFilter->moveToCamera(primaryCamera);
-    m_groundFilter = new BallGroundCollisionFilter(*previousFilter.m_groundFilter, primaryCamera, *primaryCameraPos);
+    m_groundFilter = new BallGroundCollisionFilter(*previousFilter.m_groundFilter, primaryCamera, PRIMARY_CAMERA_POS);
     m_groundFilter->moveToCamera(primaryCamera);
 }
 
@@ -86,8 +76,7 @@ int BallTracker::chooseDetection(const std::vector<VisionFrame> &possibleFrames)
 
 void BallTracker::calcDistToCamera(bool flying)
 {
-    Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_primaryCamera);
-    float dist = (m_lastBallPos - Eigen::Vector2f(cam(0), cam(1))).norm();
+    float dist = (m_lastBallPos - Eigen::Vector2f(PRIMARY_CAMERA_POS(0), PRIMARY_CAMERA_POS(1))).norm();
     if (flying && m_flyFilter->isActive()) {
         dist = m_flyFilter->distToStartPos();
     }

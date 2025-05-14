@@ -532,13 +532,18 @@ void Tracker::trackBallDetections(const SSL_DetectionFrame &frame, qint64 source
 
     for (std::size_t i = 0;i<ballFrames.size();i++) {
         if (!acceptingFilterWithCamId[i]) {
+            const auto primaryCameraPos = m_cameraInfo->cameraPosition.constFind(cameraId);
+            if (primaryCameraPos == m_cameraInfo->cameraPosition.constEnd()) {
+                qFatal("No camera position for camera %d", cameraId);
+            }
+
             BallTracker* bt;
             if (acceptingFilterWithOtherCamId[i] != nullptr) {
                 // copy filter from old camera
-                bt = new BallTracker(*acceptingFilterWithOtherCamId[i], cameraId);
+                bt = new BallTracker(*acceptingFilterWithOtherCamId[i], cameraId, *primaryCameraPos);
             } else {
                 // create new Ball Filter without initial movement
-                bt = new BallTracker(ballFrames[i], m_cameraInfo, m_worldParameters->fieldTransform(), m_ballModel);
+                bt = new BallTracker(ballFrames[i], m_cameraInfo, m_worldParameters->fieldTransform(), m_ballModel, *primaryCameraPos);
             }
             m_ballFilter.append(bt);
             bt->addVisionFrame(ballFrames[i]);

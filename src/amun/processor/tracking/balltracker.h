@@ -35,8 +35,8 @@ class DribbleFilter;
 class BallTracker : public Filter
 {
 public:
-    BallTracker(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel);
-    BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
+    BallTracker(const VisionFrame &frame, CameraInfo* cameraInfo, const FieldTransform &transform, const world::BallModel &ballModel, Eigen::Vector3f primaryCameraPos);
+    BallTracker(const BallTracker& previousFilter, qint32 primaryCamera, Eigen::Vector3f primaryCameraPos);
     ~BallTracker() override;
     BallTracker(const BallTracker&) = delete;
     BallTracker& operator=(const BallTracker&) = delete;
@@ -65,13 +65,14 @@ public:
     }
 #endif
 
-private:  
+private:
+    const Eigen::Vector3f PRIMARY_CAMERA_POS;
+
     qint64 m_lastUpdateTime;
     BallGroundCollisionFilter* m_groundFilter;
     FlyFilter *m_flyFilter;
     QList<VisionFrame> m_visionFrames;
     QList<VisionFrame> m_rawMeasurements;
-    CameraInfo* m_cameraInfo;
     qint64 m_initTime;
     Eigen::Vector2f m_lastBallPos;
     qint64 m_lastFrameTime;
