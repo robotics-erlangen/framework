@@ -28,9 +28,7 @@
 QByteArray protobufhelper::bufferWithSpaceFor(const google::protobuf::MessageLite &message)
 {
     const auto size = message.ByteSizeLong();
-    // TODO The signature of QByteArray::resize() changes in Qt 6, it takes a
-    // qsizetype instead of an int
-    using resize_argument_type = int;
+    using resize_argument_type = qsizetype;
 
     if (size > std::numeric_limits<resize_argument_type>::max()) {
         qFatal("Message is too large to fit into a QByteArray");
