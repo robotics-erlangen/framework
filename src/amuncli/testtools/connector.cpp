@@ -395,7 +395,10 @@ void Connector::stopAmunAndSaveBacklog(QString directory) {
     }
 
     const QDir fullDir(logdir.path() + "/" + directory);
-    if (m_maxBacklogFiles > 0 && fullDir.count() >= m_maxBacklogFiles + 2) {
+    // Cast to size_t to avoid signed/unsigned comparison warnings. Worst case
+    // count() returns negative which is converted to a large unsigned value
+    // and the comparison fails.
+    if (m_maxBacklogFiles > 0 && static_cast<size_t>(fullDir.count()) >= m_maxBacklogFiles + 2) {
         qDebug() << "Maximum backlogs reached in directory: " + directory;
         return;
     }
