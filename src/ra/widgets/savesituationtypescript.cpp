@@ -25,6 +25,15 @@
 #include <QFile>
 #include <QRegularExpression>
 #include <QTextStream>
+#include <QtGlobal>
+
+#define CHECK_PROTOBUF_ERROR(call) \
+    do { \
+        auto status = call; \
+        if (Q_UNLIKELY(!status.ok())) { \
+            qFatal("Error during serialization: %s", status.ToString().c_str()); \
+        } \
+    } while (0)
 
 static QString formatJson(QString input, QMap<QString, QString> enumReplacements)
 {
@@ -84,9 +93,9 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
     printOptions.always_print_enums_as_ints = false;
 
     std::string worldJson, gameStateJson, geomtryJson;
-    google::protobuf::util::MessageToJsonString(worldState, &worldJson, printOptions);
-    google::protobuf::util::MessageToJsonString(gameState, &gameStateJson, printOptions);
-    google::protobuf::util::MessageToJsonString(geometry, &geomtryJson, printOptions);
+    CHECK_PROTOBUF_ERROR(google::protobuf::util::MessageToJsonString(worldState, &worldJson, printOptions));
+    CHECK_PROTOBUF_ERROR(google::protobuf::util::MessageToJsonString(gameState, &gameStateJson, printOptions));
+    CHECK_PROTOBUF_ERROR(google::protobuf::util::MessageToJsonString(geometry, &geomtryJson, printOptions));
 
     QTextStream situation(&file);
     situation <<"import * as pb from \"base/protobuf\";\n\n";
@@ -109,7 +118,7 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
     bool first = true;
     for (const robot::Specs &robot : robots) {
         std::string robotString;
-        google::protobuf::util::MessageToJsonString(robot, &robotString, printOptions);
+        CHECK_PROTOBUF_ERROR(google::protobuf::util::MessageToJsonString(robot, &robotString, printOptions));
         QString formattedString = formatJson(QString::fromStdString(robotString), {{"type", "pb.robot.Specs.GenerationType"}});
         if (first) {
             formattedString.remove(0, 2);

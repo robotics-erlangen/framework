@@ -21,8 +21,8 @@
 include(ExternalProject)
 include(ExternalProjectHelper)
 
-set(PROTOBUF_URL  "http://downloads.robotics-erlangen.de/protobuf-cpp-3.21.12.tar.gz")
-set(PROTOBUF_HASH "SHA256=4eab9b524aa5913c6fffb20b2a8abf5ef7f95a80bc0701f3a6dbb4c607f73460")
+set(PROTOBUF_URL  "https://github.com/protocolbuffers/protobuf.git")
+set(PROTOBUF_HASH "v4.25.7")
 set(PROTOBUF_CMAKE_ARGS
     -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
     -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
@@ -30,14 +30,17 @@ set(PROTOBUF_CMAKE_ARGS
     -DCMAKE_BUILD_TYPE:STRING=Release
     "-DCMAKE_CXX_FLAGS:STRING=${CMAKE_CXX_FLAGS} -w"
     -Dprotobuf_BUILD_TESTS:BOOL=OFF
+    -DCMAKE_CXX_STANDARD=${CMAKE_CXX_STANDARD}
+    -DABSL_PROPAGATE_CXX_STD:BOOL=ON
 )
 
 set(PROTOBUF_SUBPATH "${CMAKE_INSTALL_LIBDIR}/${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set(PROTOC_SUBPATH "${CMAKE_INSTALL_BINDIR}/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 ExternalProject_Add(project_protobuf
-    URL "${PROTOBUF_URL}"
-    URL_HASH "${PROTOBUF_HASH}"
+    GIT_REPOSITORY "${PROTOBUF_URL}"
+    GIT_TAG "${PROTOBUF_HASH}"
+    GIT_SHALLOW TRUE
     DOWNLOAD_NO_PROGRESS true
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
     CMAKE_ARGS
@@ -52,12 +55,16 @@ EPHelper_Mark_For_Download(project_protobuf)
 
 externalproject_get_property(project_protobuf install_dir)
 
+include(ProtobufDependencies)
+bundle_protobuf_dependencies(protobuf_dependencies PROTOBUF_DEPENDENCIES_BYPRODUCTS)
+
 # the byproducts are available after the install step
 ExternalProject_Add_Step(project_protobuf out
     DEPENDEES install
     BYPRODUCTS
         "<INSTALL_DIR>/${PROTOBUF_SUBPATH}"
         "<INSTALL_DIR>/${PROTOC_SUBPATH}"
+        ${PROTOBUF_DEPENDENCIES_BYPRODUCTS}
 )
 
 set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
@@ -103,7 +110,7 @@ set_target_properties(project_protobuf_import PROPERTIES
     INTERFACE_INCLUDE_DIRECTORIES "${Protobuf_INCLUDE_DIR}"
 )
 target_link_libraries(project_protobuf_import
-    INTERFACE Threads::Threads
+    INTERFACE Threads::Threads protobuf_dependencies
 )
 
 EPHelper_Add_Interface_Library(PROJECT project_protobuf ALIAS lib::protobuf)
