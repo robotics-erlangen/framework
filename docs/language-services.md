@@ -28,12 +28,12 @@ Windows:
 
 #### Visual Studio Code
 Visual Studio Code has a Typescript plugin installed by default.
-If you make sure to open the `strategy/typescript` folder (not the base
-`software` folder) in VS Code, it should automatically use the project-local
+If you make sure to open the `software` folder (not the
+`strategy/typescript` folder) in VS Code, it should automatically use the project-local
 `node_modules` folder. You can verify this, check [the Microsoft docs](https://code.visualstudio.com/docs/typescript/typescript-compiling#_using-the-workspace-version-of-typescript)
 If not you can change the TypeScript version by clicking on the curly braces
 next to the "TypeScript" Button on the bottom left. Click on it then click
-select version and select the workspace version.
+"Select Version" and select the workspace version.
 
 #### Vim8/Neovim
 There are multiple plugins providing language server integration for Vim but I use and recommend [`coc.nvim`](https://github.com/neoclide/coc.nvim). For the setup:
