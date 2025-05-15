@@ -258,6 +258,14 @@ export function solveCub(a: number, b: number, c: number, d: number): number[] {
  * @returns All solutions in the form Vector(re, im) (up to three, deduplicated)
  */
 export function solveCubComplex(a: number, b: number, c: number, d: number): Vector[] {
+	function maybeVectorEq(v: Vector | undefined, u: Vector | undefined): boolean {
+		if (v !== undefined && u !== undefined) {
+			return v.equals(u);
+		} else {
+			return v === undefined && u === undefined;
+		}
+	}
+
 	// TODO: Ported from https://github.com/rawify/RootFinder.js under the MIT license (modified)
 	if (a === 0) {
 		return solveSqComplex(b, c, d);
@@ -265,7 +273,9 @@ export function solveCubComplex(a: number, b: number, c: number, d: number): Vec
 
 	if (d === 0) {
 		let tmp = solveSqComplex(a, b, c);
-		if (!tmp[0].equals(new Vector(0, 0)) && !tmp[1].equals(new Vector(0, 0))) tmp.unshift(new Vector(0, 0));
+		if (!maybeVectorEq(tmp[0], new Vector(0, 0)) && !maybeVectorEq(tmp[1], new Vector(0, 0))) {
+			tmp.push(new Vector(0, 0));
+		}
 		return tmp;
 	}
 
@@ -322,11 +332,11 @@ export function solveCubComplex(a: number, b: number, c: number, d: number): Vec
 	}
 
 	// Deduplicate solutions
-	if (roots[0].equals(roots[1]) && roots[0].equals(roots[2])) {
+	if (maybeVectorEq(roots[0], roots[1]) && maybeVectorEq(roots[0], roots[2])) {
 		return [roots[0]];
-	} else if (roots[0].equals(roots[1])) {
+	} else if (maybeVectorEq(roots[0], roots[1])) {
 		return [roots[1], roots[2]];
-	} else if (roots[0].equals(roots[2])) {
+	} else if (maybeVectorEq(roots[0], roots[2])) {
 		return [roots[0], roots[1]];
 	} else {
 		return roots;
