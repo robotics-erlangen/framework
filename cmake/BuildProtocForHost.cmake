@@ -29,10 +29,10 @@ set(_host_protoc_subpath "${CMAKE_INSTALL_BINDIR}/protoc")
 
 # compile the protoc for the HOST system
 ExternalProject_Add(project_protobuf_host
-    GIT_REPOSITORY "${PROTOBUF_URL}"
-    GIT_TAG "${PROTOBUF_HASH}"
-    GIT_SHALLOW TRUE
+    URL "${PROTOBUF_URL}"
+    URL_HASH "${PROTOBUF_HASH}"
     DOWNLOAD_NO_PROGRESS true
+    PATCH_COMMAND cat "${PROTOBUF_PATCH_FILE}" | patch -p1
     DOWNLOAD_DIR "${DEPENDENCY_DOWNLOADS}"
     CMAKE_ARGS
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_HOST_COMPILER}

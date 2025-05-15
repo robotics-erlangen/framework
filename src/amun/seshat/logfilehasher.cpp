@@ -44,7 +44,7 @@ static std::string hash(const Status& collected)
 {
     google::protobuf::util::JsonPrintOptions jpo;
     jpo.add_whitespace = true;
-    jpo.always_print_primitive_fields = true;
+    jpo.always_print_fields_with_no_presence = true;
     jpo.always_print_enums_as_ints = false;
     jpo.preserve_proto_field_names = true;
     std::string s;

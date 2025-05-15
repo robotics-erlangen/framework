@@ -51,7 +51,6 @@ function(bundle_protobuf_dependencies library_name byproducts)
         absl_examine_stack
         absl_exponential_biased
         absl_failure_signal_handler
-        absl_flags
         absl_flags_commandlineflag
         absl_flags_commandlineflag_internal
         absl_flags_config
@@ -75,6 +74,7 @@ function(bundle_protobuf_dependencies library_name byproducts)
         absl_log_initialize
         absl_log_internal_check_op
         absl_log_internal_conditions
+        absl_log_internal_fnmatch
         absl_log_internal_format
         absl_log_internal_globals
         absl_log_internal_log_sink_set
@@ -114,6 +114,7 @@ function(bundle_protobuf_dependencies library_name byproducts)
         absl_throw_delegate
         absl_time
         absl_time_zone
+        absl_vlog_config_internal
         utf8_range
         utf8_validity
     )

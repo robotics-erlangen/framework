@@ -1,0 +1,12 @@
+diff --git a/cmake/install.cmake b/cmake/install.cmake
+index b383a98c..1ab657b9 100644
+--- a/cmake/install.cmake
++++ b/cmake/install.cmake
+@@ -116,7 +116,6 @@ foreach(_header ${protobuf_HEADERS})
+       break()
+     endif()
+   endforeach()
+-  message(${_from_dir} "-" ${_header})
+ 
+   # Escape _from_dir for regex special characters in the directory name.
+   string(REGEX REPLACE "([$^.[|*+?()]|])" "\\\\\\1" _from_dir_regexp "${_from_dir}")

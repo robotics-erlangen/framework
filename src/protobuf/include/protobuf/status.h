@@ -64,7 +64,7 @@ public:
         options.initial_block_size = 512;
         options.max_block_size = 32 * 1024;
         google::protobuf::Arena *arena = new google::protobuf::Arena(options);
-        amun::Status *s = google::protobuf::Arena::CreateMessage<amun::Status>(arena);
+        amun::Status *s = google::protobuf::Arena::Create<amun::Status>(arena);
         return Status(s, arena);
     }
 

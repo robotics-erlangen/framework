@@ -88,7 +88,6 @@ void saveSituationTypescript(TrackingFrom useTrackingFrom, world::State worldSta
 
     google::protobuf::util::JsonPrintOptions printOptions;
     printOptions.add_whitespace = true;
-    printOptions.always_print_primitive_fields = false;
     printOptions.preserve_proto_field_names = true; // use snake case not camel case
     printOptions.always_print_enums_as_ints = false;
 
