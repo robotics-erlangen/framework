@@ -76,7 +76,8 @@ class PID {
 // useful visualization for trajectories
 const DETAILED_TRAJECTORY = Option.addOption("Use detailed trajectory", false);
 
-type Trajectory = { pos: Position; speed: Speed; time: number }[];
+type TrajectoryPoint = { pos: Position; speed: Speed; time: number };
+type Trajectory = TrajectoryPoint[];
 
 export class TrajectoryPathResult extends ToTargetResult {
 	/** The desired target position in local coordinates */
@@ -130,6 +131,14 @@ export class TrajectoryPathResult extends ToTargetResult {
 			}
 		}
 		return positions;
+	}
+
+	public pointAtTime(time: number): TrajectoryPoint {
+		return {
+			time,
+			pos: this.posAtTime(time),
+			speed: this.speedAtTime(time),
+		};
 	}
 
 	public posAtTime(time: number): Position {
