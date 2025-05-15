@@ -1,6 +1,10 @@
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
+import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as geom from "base/geom";
+import * as ListUtil from "base/listutil";
+import * as MathUtil from "base/mathutil";
 import * as Option from "base/option";
 import * as pb from "base/protobuf";
 import * as Referee from "base/referee";
@@ -187,6 +191,76 @@ export class TrajectoryPathResult extends ToTargetResult {
 			}
 		}
 		return new Vector(0, 0);
+	}
+
+	public closestPoint(position: Position): TrajectoryPoint | undefined {
+		const candidates: TrajectoryPoint[] = [this._trajectory[0]];
+		for (let i = 0; i < this._trajectory.length - 1; i++) {
+			const timeCandidates = this._closestTimeCandidatesInSegment(position, this._trajectory[i], this._trajectory[i + 1]);
+			candidates.push(...timeCandidates.map((t) => this.pointAtTime(t)), this._trajectory[i + 1]);
+		}
+		return ListUtil.min(candidates, (c) => c.pos.distanceToSq(position))[0];
+	}
+
+	private _closestTimeCandidatesInSegment(position: Position, start: TrajectoryPoint, end: TrajectoryPoint): number[] {
+		if (Math.abs(end.time - start.time) < 1e-8) {
+			const t = (start.time + end.time) / 2;
+			return [t];
+		}
+
+		const isValidTime = (t: number): boolean => (start.time <= t && t < end.time);
+
+		if (start.speed.distanceToSq(end.speed) < 1e-3 * 1e-3) {
+			// constant speed
+			const t = start.time + geom.intersectLineLine(start.pos, start.speed, position, start.speed.perpendicular())[1]!;
+			return isValidTime(t) ? [t] : [];
+		} else {
+			const acc = (end.speed - start.speed) / (end.time - start.time);
+
+			// The position of the robot on a segment of the trajectory is given by
+			//     s(t) = s_0 + v_0 * (t - t_0) + .5 * a * (t - t_0)^2
+			// where
+			//     - t is the current time since the start of the trajectory,
+			//     - t_0 is the start time of the segment,
+			//     - s_0 is the initial position of the segment,
+			//     - v_0 is the initial velocity of the segment, and
+			//     - a is the acceleration, which is constant during the segment.
+			//
+			// Now we want to find t such that the distance between the trajectory point
+			// at time t and p, i.e.
+			//     ||s(t) - p||,
+			// is minimal. To simplify, instead of minimizing the above term, we minimize
+			//     f(t) = ||s(t) - p||^2 = sum (s_0 - p + v_0 * (t - t_0) + .5 * a * (t - t_0)^2)^2,
+			// where "sum (...)" is the sum of (...) evaluated for the x and y component separately.
+			// This leads to
+			//     f'(t) = sum (2 * A * B + 2 * (A * a + B^2) * t + 3 * B * a * t^2 + a^2 * t^3),
+			// where
+			//     A = s_0 - v_0 * t_0 + .5 * a * t_0^2 - p, and
+			//     B = v_0 - a * t_0.
+			//
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (s_0 - p + v_0 * (t - t_0) + .5 * a * (t - t_0)^2) * (v_0 + a * (t - t_0))
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (s_0 - p + v_0 * t - v_0 * t_0 + .5 * a * t^2 - a * t * t_0 + .5 * a * t_0^2) * (v_0 + a * (t - t_0))
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (s_0 - p - v_0 * t_0 + .5 * a * t_0^2 + v_0 * t - a * t * t_0 + .5 * a * t^2) * (v_0 - a * t_0 + a * t)
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (s_0 - p - v_0 * t_0 + .5 * a * t_0^2 + (v_0 - a * t_0) * t + .5 * a * t^2) * (v_0 - a * t_0 + a * t)
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (A + B * t + .5 * a * t^2) * (B + a * t)
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (A * (B + a * t) + B * (B + a * t) * t + .5 * (B + a * t) * a * t^2)
+			//     f'(t) = ||s(t) - p||^2 = sum 2 * (A * B + A * a * t + B * B * t + B * a * t^2 + .5 * B * a * t^2 + .5 * a^2 * t^3)
+			//     f'(t) = ||s(t) - p||^2 = sum (2 * A * B + 2 * (A * a + B^2) * t + 3 * B * a * t^2 + a^2 * t^3)
+			const A = start.pos - start.speed * start.time + .5 * acc * start.time * start.time - position;
+			const B = start.speed - acc * start.time;
+
+			const c0 = 2 * A.dot(B);
+			const c1 = 2 * (acc.dot(A) + B.lengthSq());
+			const c2 = 3 * acc.dot(B);
+			const c3 = acc.lengthSq();
+			const ts = MathUtil.solveCub(c3, c2, c1, c0);
+			return ts.filter(isValidTime);
+		}
+	}
+
+	public debug() {
+		super.debug();
+		debug.set("trajectory", this._trajectory);
 	}
 
 	public vis() {
