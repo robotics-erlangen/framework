@@ -95,8 +95,8 @@ This might not support all operating systems or distributions.
 
 2. Build V8 yourself.
 Take a look at [`data/scripts/README.md`](data/scripts/README.md).
-### Building the Framework
 
+### Building the Framework
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
 ```
@@ -133,16 +133,16 @@ make install-menu
 
 ## Windows
 
-Compilation on Windows is done using `MSYS2`.
+Compilation on Windows is either done using `MSYS2` or WSL2 (Windows Subsystem for Linux).
 
-### Setup
+### MSYS2
 
 First, download dependencies and setup the compiler environment. The setup is
 tested using the given versions.
 
-#### MSYS2
-Run the most recent [installer](http://repo.msys2.org/distrib/x86_64) (e.g. msys2-x86_64-20190524.exe)
-(use the default path `C:\msys64`). Open `MSYS2 MINGW64` (NOT MSYS2 UCRT) and run the following command
+#### Setup
+Run the most recent [installer](http://repo.msys2.org/distrib/x86_64) (e.g. `msys2-x86_64-20190524.exe`)
+(use the default path `C:\msys64`). Open `MSYS2 MINGW64` (NOT `MSYS2 UCRT`) and run the following command
 ```
 $ pacman -Syu
 ```
@@ -166,7 +166,7 @@ This way not only is the home where you expect it to be, but git and more specif
 If you don't know how to do that google "set environment variable windows".
 Beware that git might not work with this option.
 
-### Compiling
+#### Compiling
 After setting up the dependencies, you are ready to start the compilation
 
 **DO**
@@ -200,12 +200,12 @@ $ cmake --build . --target pack
 ```
 Note than when doing this, the other calls to `cmake --build` are not necessary.
 
-### Common problems
+#### Common problems
 
-#### Windows 10/11 - Problems with USB driver (e.g. radio device)
+##### Windows 10/11 - Problems with USB driver (e.g. radio device)
 Install [Zadig](https://zadig.akeo.ie/) try to find the device that causes problems (you may need to select "list all devices" for it to show up in the list) and then install the WinUSB driver for it.
 
-#### Windows 7 - Problems with USB driver installation
+##### Windows 7 - Problems with USB driver installation
 In case windows does not automatically find the driver for the transceiver, follow
 the following steps:
 - Access the website http://catalog.update.microsoft.com/
@@ -213,6 +213,34 @@ the following steps:
 - Unpack the downloaded _cab_ files, so that there is a file with the name `winusbcompat.inf`
 - Open the device manager and choose to manually select a driver for the transceiver.
   Then select the folder containing the `winusbcompat.inf`.
+
+### WSL
+If you don't have WSL installed on your system, run
+```
+wsl --install -d Ubuntu
+```
+to install Ubuntu for WSL.
+
+If on the other hand, you already have Ubuntu set up in WSL, run
+```
+wsl --update
+```
+to ensure you have the [WSLg](https://github.com/microsoft/wslg) update,
+and check with
+```
+wsl --list -v
+```
+that the distro you want to use for compiling this repo uses version 2 of WSL.
+If it doesn't (i.e. there is a `1` in the `VERSION` column for Ubuntu),
+run
+```
+wsl --shutdown
+wsl --set-version Ubuntu 2
+```
+
+After these steps, you should be able to run all kinds of GUI apps from WSL ([e.g. `gedit`, `nautilus`](https://learn.microsoft.com/en-us/windows/wsl/tutorials/gui-apps)).
+
+From here, follow [the steps for regular Ubuntu (non-WSL)](#linux).
 
 ## macOS
 Homebrew requires Xcode and Command Line Utilities.
