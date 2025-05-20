@@ -49,7 +49,7 @@ static std::string hash(const Status& collected)
     jpo.preserve_proto_field_names = true;
     std::string s;
     auto status = google::protobuf::util::MessageToJsonString(*collected, &s, jpo);
-    if (Q_UNLIKELY(status.ok())) {
+    if (Q_UNLIKELY(!status.ok())) {
         qFatal("Failed to convert protobuf message to JSON: %s", status.ToString().c_str());
     }
     QByteArray res = QCryptographicHash::hash(QByteArray(s.c_str()), QCryptographicHash::Sha512).toHex();
