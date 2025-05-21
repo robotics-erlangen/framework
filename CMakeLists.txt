@@ -156,22 +156,8 @@ include(EnvHelper)
 find_package(OpenGL REQUIRED)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-sanitize_env()
-find_package(Protobuf 3.21.12)
-restore_env()
 
-if(NOT Protobuf_FOUND
-        # Protobuf versions 4.22 upwards have a dependency on Abseil which we
-        # do not yet handle, leading to linker errors.
-        #
-        # Note that Protobuf uses a variant of semantic versioning: the minor
-        # part denotes the protoc version, while the major part is incremented
-        # independently if the release *for a certain language* has breaking
-        # changes. So for C++, 3.21 is followed by 4.22
-        OR Protobuf_VERSION VERSION_GREATER_EQUAL 4.22.0
-        OR NOT TARGET protobuf::protoc)
-    include(BuildProtobuf)
-endif()
+include(BuildProtobuf)
 
 # Try to auto-locate Qt5 on MacOS (won't work with custom installs)
 # TODO change this to qt6 and hope nothing explodes

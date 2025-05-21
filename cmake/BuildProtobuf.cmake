@@ -21,6 +21,19 @@
 include(ExternalProject)
 include(ExternalProjectHelper)
 
+# Use find_package not to find the system installation, but to create the
+# protobuf_generate function
+#
+# We could in principle use the system version as well, but we'd need to...
+# - handle the case were the installed version is too new and thus breaking
+# - configure the proper dependencies (absl, etc.) for the system version,
+#   since the module mode find_package script does not do that, or use the config
+#   mode script
+# - integrate that with cross compilation and the lib::protobuf target
+sanitize_env()
+find_package(Protobuf 5.29.4 QUIET)
+restore_env()
+
 set(PROTOBUF_URL  "https://downloads.robotics-erlangen.de/protobuf-v5.29.4.tar.gz")
 set(PROTOBUF_HASH "SHA256=25a6659b46ee0b0832b1864fca02a6c37c52271bef4afcea531cdb7f31332cdd")
 set(PROTOBUF_CMAKE_ARGS
@@ -75,7 +88,7 @@ set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
 file(MAKE_DIRECTORY "${install_dir}/include")
 
 set(Protobuf_FOUND             true)
-set(Protobuf_VERSION           "3.21.12")
+set(Protobuf_VERSION           "5.29.4")
 set(Protobuf_INCLUDE_DIR       "${install_dir}/include")
 set(Protobuf_INCLUDE_DIRS      "${Protobuf_INCLUDE_DIR}")
 set(Protobuf_LIBRARY           "${install_dir}/${PROTOBUF_SUBPATH}")
