@@ -277,6 +277,8 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
 {
     const float HIGH_PRECISION_DISTANCE_THRESHOLD = 0.1f;
     const float HIGH_PRECISION_SPEED_THRESHOLD = 0.2f;
+    const float MAX_ALLOWED_TIME = 20.0f;
+
     const bool highPrecision = (start.pos.distanceSq(target.pos) < HIGH_PRECISION_DISTANCE_THRESHOLD * HIGH_PRECISION_DISTANCE_THRESHOLD)
         && target.speed == Vector(0, 0)
         && start.speed.lengthSquared() < HIGH_PRECISION_SPEED_THRESHOLD * HIGH_PRECISION_SPEED_THRESHOLD;
@@ -369,7 +371,7 @@ std::optional<Trajectory> AlphaTimeTrajectory::findTrajectory(const RobotState &
         }
         lastCenterDistanceDiff = currentCenterDistanceDiff;
         currentTime += currentCenterDistanceDiff * distanceFactor / std::max(PARAMETER(AlphaTimeTrajectory, 0.3, 0.82f, 1.5), assumedSpeed);
-        currentTime = std::max(currentTime, 0.0f);
+        currentTime = std::max(std::min(MAX_ALLOWED_TIME, currentTime), 0.0f);
 
         // update angle
         const float newAngle = (endPos - currentCenterTimePos).angle();
