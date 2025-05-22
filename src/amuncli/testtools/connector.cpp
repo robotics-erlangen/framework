@@ -167,6 +167,9 @@ void Connector::addStrategyLoad(amun::CommandStrategy *strategy, const QString &
     if (!entryPoint.isEmpty()) {
         load->set_entry_point(entryPoint.toStdString());
     }
+    if (m_autoReload) {
+        strategy->set_auto_reload(true);
+    }
 }
 
 void Connector::setRobotConfiguration(int numRobots, const QString &generation)
@@ -250,7 +253,7 @@ void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy, qint6
         if (m_exitCode != 0 || it == m_options.end()) {
             if (m_backlogDir != "") {
                 m_backlogList.push_back({time, "STRATEGY_CRASH"});
-            } else {
+            } else if (!m_autoReload) {
                 delayedExit(m_exitCode);
             }
         } else {
@@ -389,7 +392,7 @@ void Connector::handleStatus(const Status &status)
         m_backlogList.pop_front();
         stopAmunAndSaveBacklog(p.second);
 
-        if (p.second == "STRATEGY_CRASH") {
+        if (p.second == "STRATEGY_CRASH" && !m_autoReload) {
             reportEvents();
             delayedExit(m_exitCode);
         }

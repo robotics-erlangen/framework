@@ -56,6 +56,7 @@ int main(int argc, char* argv[])
     QCommandLineOption realismConfig("realism", "Simulator realism configuration (short file name without the .txt)", "realism");
     QCommandLineOption silent("silent", "Do not print any messages");
     QCommandLineOption forceStart({"f", "force-start"}, "Force start the game immediately (Kickoff will be used otherwise)");
+    QCommandLineOption autoReload("auto-reload", "Automatically reload the strategy when it crashes");
     parser.addOption(strategyColorConfig);
     parser.addOption(debugOption);
     parser.addOption(simulatorConfig);
@@ -72,6 +73,7 @@ int main(int argc, char* argv[])
     parser.addOption(realismConfig);
     parser.addOption(silent);
     parser.addOption(forceStart);
+    parser.addOption(autoReload);
 
     // parse command line, handles --version
     parser.process(app);
@@ -151,6 +153,7 @@ int main(int argc, char* argv[])
     connector.setSimulationRunningTime(simulationRunningTime < 0 ? std::numeric_limits<int>::max() : simulationRunningTime);
     connector.setSilent(parser.isSet(silent));
     connector.setForceStartGame(parser.isSet(forceStart));
+    connector.setAutoReload(parser.isSet(autoReload));
 
     if (parser.isSet(backlog)) {
         connector.setBacklogDirectory(parser.value(backlog));

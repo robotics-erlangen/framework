@@ -62,6 +62,7 @@ public:
     void setRealismConfig(const QString &shortFile);
     void setSilent(bool silent) { m_isSilent = silent; }
     void setForceStartGame(bool forceStart) { m_forceStart = forceStart; }
+    void setAutoReload(bool autoReload) { m_autoReload = autoReload; }
 
     void start();
 
@@ -103,6 +104,7 @@ private:
     bool m_isInCompileMode = false;
     bool m_isSilent = false;
     bool m_forceStart = false;
+    bool m_autoReload = false;
 
     QString m_simulatorConfigurationFile;
     qint64 m_simulationRunningTime = std::numeric_limits<qint64>::max();
