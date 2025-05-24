@@ -38,7 +38,7 @@ faster.
 #### Ubuntu 22.04/24.04
 The package names are
 ```
-cmake protobuf-compiler libprotobuf-dev qt6-base-dev libqt6opengl6-dev g++ libusb-1.0-0-dev libsdl2-dev libqt6svg6-dev libssl-dev
+cmake protobuf-compiler libprotobuf-dev qt6-base-dev libqt6opengl6-dev g++ libusb-1.0-0-dev libsdl2-dev libqt6svg6-dev libssl-dev libglu1-mesa-dev
 ```
 where `protobuf-compiler` and `libprotobuf-dev` will be built from source if
 not already installed.
