@@ -44,7 +44,7 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
             } else {
                 hasFailedYellow = true;
             }
-        } else if (event.type() == gameController::GameEvent::GOAL) {
+        } else if (event.type() == gameController::GameEvent::GOAL || event.type() == gameController::GameEvent::INVALID_GOAL) {
             hasGoal = true;
         }
     }
