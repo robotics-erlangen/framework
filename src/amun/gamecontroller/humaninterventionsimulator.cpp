@@ -53,8 +53,10 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
         m_ballIsTeleported = false;
     }
 
-    if (referee.command() == SSL_Referee::HALT
-            && ((hasFailedBlue && hasFailedYellow) || hasGoal)
+    const auto bothTeamsFailed = hasFailedBlue && hasFailedYellow;
+    const auto isHaltOrStop = referee.command() == SSL_Referee::HALT || referee.command() == SSL_Referee::STOP;
+    if (isHaltOrStop
+            && (bothTeamsFailed || hasGoal)
             && referee.has_designated_position()
             && referee.has_next_command()
             && !m_ballIsTeleported) {
