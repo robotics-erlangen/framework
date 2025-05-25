@@ -32,11 +32,25 @@ HumanInterventionSimulator::HumanInterventionSimulator(const Timer *timer, QObje
 {
 }
 
+void HumanInterventionSimulator::teleportBallTo(float x, float y)
+{
+    Command ballCommand(new amun::Command);
+    auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
+    teleport->set_teleport_safely(true);
+    teleport->set_x(x);
+    teleport->set_y(y);
+    teleport->set_vx(0);
+    teleport->set_vy(0);
+    teleport->set_vz(0);
+    emit sendCommand(ballCommand);
+}
+
 bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &referee)
 {
     // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
     bool hasFailedBlue = false, hasFailedYellow = false;
     bool hasGoal = false;
+    bool hasAttackerTooCloseToDefenseArea = false;
     for (const auto &event : referee.game_events()) {
         if (event.type() == gameController::GameEvent::PLACEMENT_FAILED) {
             if (event.placement_failed().by_team() == gameController::Team::BLUE) {
@@ -46,33 +60,34 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
             }
         } else if (event.type() == gameController::GameEvent::GOAL || event.type() == gameController::GameEvent::INVALID_GOAL) {
             hasGoal = true;
+        } else if (event.type() == gameController::GameEvent::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA) {
+            hasAttackerTooCloseToDefenseArea = true;
         }
     }
 
-    if (referee.command() != SSL_Referee::HALT) {
+    const auto isHalt = referee.command() == SSL_Referee::HALT;
+    const auto isStop = referee.command() == SSL_Referee::STOP;
+    if (!isHalt && !isStop) {
         m_ballIsTeleported = false;
     }
 
+    if (hasAttackerTooCloseToDefenseArea && isHalt) {
+        m_ballIsTeleported = true;
+        teleportBallTo(0, 0);
+
+        emit sendRefereeCommand(SSL_Referee::FORCE_START);
+        return true;
+    }
+
     const auto bothTeamsFailed = hasFailedBlue && hasFailedYellow;
-    const auto isHaltOrStop = referee.command() == SSL_Referee::HALT || referee.command() == SSL_Referee::STOP;
-    if (isHaltOrStop
+    if ((isHalt || isStop)
             && (bothTeamsFailed || hasGoal)
             && referee.has_designated_position()
             && referee.has_next_command()
             && !m_ballIsTeleported) {
 
         m_ballIsTeleported = true;
-
-        Command ballCommand(new amun::Command);
-        auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
-        teleport->set_teleport_safely(true);
-        teleport->set_x(referee.designated_position().x());
-        teleport->set_y(referee.designated_position().y());
-        teleport->set_vx(0);
-        teleport->set_vy(0);
-        teleport->set_vz(0);
-        emit sendCommand(ballCommand);
-
+        teleportBallTo(referee.designated_position().x(), referee.designated_position().y());
         return true;
     }
 

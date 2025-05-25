@@ -66,6 +66,7 @@ public slots:
     void handleCommand(const amun::CommandReferee &refereeCommand);
     void setEnabled(bool enabled);
     void setFlip(bool flip);
+    void handleRefereeCommand(SSL_Referee::Command command);
 
 private:
     const Timer *m_timer;

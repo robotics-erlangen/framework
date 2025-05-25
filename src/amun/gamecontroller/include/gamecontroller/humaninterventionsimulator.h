@@ -60,9 +60,11 @@ public:
 signals:
     void sendCommand(const Command &command);
     void sendStatus(const Status &status);
+    void sendRefereeCommand(SSL_Referee::Command command);
 
 private:
     bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
+    void teleportBallTo(float x, float y);
 
 private:
     const Timer *m_timer;

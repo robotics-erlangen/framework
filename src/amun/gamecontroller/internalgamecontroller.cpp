@@ -101,6 +101,7 @@ InternalGameController::InternalGameController(const Timer *timer, QObject *pare
 
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendStatus, this, &InternalGameController::sendStatus);
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendCommand, this, &InternalGameController::sendCommand);
+    connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendRefereeCommand, this, &InternalGameController::handleRefereeCommand);
 }
 
 InternalGameController::~InternalGameController()
@@ -228,6 +229,22 @@ gameController::Command InternalGameController::mapCommand(SSL_Referee::Command 
         return makeCommand(gameController::Command::HALT, false, true);
     }
     return it->second;
+}
+
+void InternalGameController::handleRefereeCommand(SSL_Referee::Command command)
+{
+    gameController::CiInput ciInput;
+    ciInput.set_timestamp(m_timer->currentTime());
+
+    const auto mapped = mapCommand(command);
+    auto *change = ciInput.add_api_inputs()->mutable_change();
+    change->mutable_new_command_change()->mutable_command()->CopyFrom(mapped);
+
+    if (!sendCiInput(ciInput) && m_gcCIProcess.hasQueuedInputs()) {
+        m_gcCIProcess.enqueueInput(ciInput);
+    }
+
+    m_lastReferee.set_command(command);
 }
 
 static gameController::Division mapDivision(world::Geometry_Division division)

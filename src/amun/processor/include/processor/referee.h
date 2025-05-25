@@ -24,11 +24,9 @@
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_gc/state/ssl_gc_referee_message.pb.h"
 #include "protobuf/world.pb.h"
-#include <optional>
 #include <QByteArray>
 #include <QObject>
 #include <QString>
-#include <memory>
 #include <string>
 
 class Referee : public QObject
