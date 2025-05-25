@@ -30,7 +30,8 @@
 /*!
  * \brief Create a new Referee instance
  */
-Referee::Referee() :
+Referee::Referee(QObject *parent) :
+    QObject(parent),
     m_counter(-1),
     m_flipped(false)
 {

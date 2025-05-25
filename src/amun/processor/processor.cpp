@@ -31,7 +31,6 @@
 #include "tracking/latency.h"
 #include "tracking/tracker.h"
 #include "tracking/worldparameters.h"
-#include "config/config.h"
 #include <cmath>
 #include <QTimer>
 #include <QFile>
@@ -146,8 +145,8 @@ Processor::Processor(const Timer *timer, bool isReplay) :
     connect(m_worldParameters.get(), &WorldParameters::ballModelUpdated, m_speedTracker.get(), &Tracker::setBallModel);
 
     // keep two separate referee states
-    m_referee = new Referee();
-    m_refereeInternal = new Referee();
+    m_referee = new Referee(this);
+    m_refereeInternal = new Referee(this);
 
     m_gameControllerThread = new QThread(this);
     m_gameControllerThread->setObjectName("game controller thread");
@@ -185,9 +184,6 @@ Processor::~Processor()
 {
     m_gameControllerThread->quit();
     m_gameControllerThread->wait();
-
-    delete m_refereeInternal;
-    delete m_referee;
 
     qDeleteAll(m_blueTeam.robots);
     qDeleteAll(m_yellowTeam.robots);

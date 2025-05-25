@@ -34,7 +34,7 @@ class Referee : public QObject
     Q_OBJECT
 
 public:
-    explicit Referee();
+    explicit Referee(QObject *parent = nullptr);
 
 public:
     const amun::GameState& gameState() const { return m_gameState; }
