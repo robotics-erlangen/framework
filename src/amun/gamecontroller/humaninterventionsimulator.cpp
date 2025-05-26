@@ -49,7 +49,7 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
 {
     // checks for halt after both teams failed placement, teleports the ball correctly and continues the game
     bool hasFailedBlue = false, hasFailedYellow = false;
-    bool hasGoal = false;
+    bool hasManualContinueEvent = false;
     bool hasAttackerTooCloseToDefenseArea = false;
     for (const auto &event : referee.game_events()) {
         if (event.type() == gameController::GameEvent::PLACEMENT_FAILED) {
@@ -58,8 +58,9 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
             } else {
                 hasFailedYellow = true;
             }
-        } else if (event.type() == gameController::GameEvent::GOAL || event.type() == gameController::GameEvent::INVALID_GOAL) {
-            hasGoal = true;
+        } else if (event.type() == gameController::GameEvent::GOAL || event.type() == gameController::GameEvent::INVALID_GOAL ||
+                   event.type() == gameController::GameEvent::DEFENDER_IN_DEFENSE_AREA) {
+            hasManualContinueEvent = true;
         } else if (event.type() == gameController::GameEvent::ATTACKER_TOO_CLOSE_TO_DEFENSE_AREA) {
             hasAttackerTooCloseToDefenseArea = true;
         }
@@ -71,7 +72,7 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
         m_ballIsTeleported = false;
     }
 
-    if (hasAttackerTooCloseToDefenseArea && isHalt) {
+    if (hasAttackerTooCloseToDefenseArea && isHalt && !m_ballIsTeleported) {
         m_ballIsTeleported = true;
         teleportBallTo(0, 0);
 
@@ -81,7 +82,7 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
 
     const auto bothTeamsFailed = hasFailedBlue && hasFailedYellow;
     if ((isHalt || isStop)
-            && (bothTeamsFailed || hasGoal)
+            && (bothTeamsFailed || hasManualContinueEvent)
             && referee.has_designated_position()
             && referee.has_next_command()
             && !m_ballIsTeleported) {
