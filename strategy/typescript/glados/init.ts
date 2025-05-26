@@ -67,7 +67,7 @@ class PostProc implements Process {
 				log("Taking advantage");
 				GameController.sendAdvantageReponse("continue");
 				this._takingAdvantage = true;
-			} else if (this._takingAdvantage && !(Referee.hasTooManyOpponentRobots() && ObserverReferee.shouldTakeAdvantage())) {
+			} else if (this._takingAdvantage && Referee.hasTooManyOpponentRobots() && !ObserverReferee.shouldTakeAdvantage()) {
 				log("Stopping advantage");
 				GameController.sendAdvantageReponse("stop");
 				this._takingAdvantage = false;
