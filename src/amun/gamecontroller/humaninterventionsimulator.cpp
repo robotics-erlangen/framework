@@ -34,6 +34,8 @@ HumanInterventionSimulator::HumanInterventionSimulator(const Timer *timer, QObje
 
 void HumanInterventionSimulator::teleportBallTo(float x, float y)
 {
+    m_ballIsTeleported = true;
+
     Command ballCommand(new amun::Command);
     auto* teleport = ballCommand->mutable_simulator()->mutable_ssl_control()->mutable_teleport_ball();
     teleport->set_teleport_safely(true);
@@ -73,7 +75,6 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
     }
 
     if (hasAttackerTooCloseToDefenseArea && isHalt && !m_ballIsTeleported) {
-        m_ballIsTeleported = true;
         teleportBallTo(0, 0);
 
         emit sendRefereeCommand(SSL_Referee::FORCE_START);
@@ -87,7 +88,6 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
             && referee.has_next_command()
             && !m_ballIsTeleported) {
 
-        m_ballIsTeleported = true;
         teleportBallTo(referee.designated_position().x(), referee.designated_position().y());
         return true;
     }
@@ -210,6 +210,13 @@ void HumanInterventionSimulator::handleStatus(const Status &status)
         if (gameState.has_state()) {
             m_lastGameState = gameState.state();
         }
+
+        const auto isStageFinished = gameState.has_stage_time_left() && gameState.stage_time_left() < 0;
+        if (isStageFinished && m_lastGameState == amun::GameState::Stop && !m_ballIsTeleported && m_autoContinue) {
+            teleportBallTo(0, 0);
+            emit sendResetMatch();
+            emit sendRefereeCommand(SSL_Referee::PREPARE_KICKOFF_YELLOW);
+        }
     }
 
     if (status->has_world_state()) {
@@ -256,7 +263,6 @@ void HumanInterventionSimulator::checkNoProgress(float ballX, float ballY, qint6
 
     if (time - m_ballPosTime > NO_PROGRESS_CHECK_TIME && !m_ballIsTeleported) {
         m_ballPosTime = time;
-        m_ballIsTeleported = true;
         teleportBallTo(0, 0);
 
         emit sendRefereeCommand(SSL_Referee::FORCE_START);

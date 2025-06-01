@@ -102,6 +102,7 @@ InternalGameController::InternalGameController(const Timer *timer, QObject *pare
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendStatus, this, &InternalGameController::sendStatus);
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendCommand, this, &InternalGameController::sendCommand);
     connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendRefereeCommand, this, &InternalGameController::handleRefereeCommand);
+    connect(&m_humanInterventionSimulator, &HumanInterventionSimulator::sendResetMatch, this, &InternalGameController::resetMatch);
 }
 
 InternalGameController::~InternalGameController()
@@ -456,39 +457,42 @@ void InternalGameController::start()
     }
 
     // queue all packets to set the GC to the current game state
-    {
-        // configure the game controller
-        {
-            gameController::CiInput ciInput;
-            ciInput.set_timestamp(m_timer->currentTime());
-            ciInput.add_api_inputs()->set_reset_match(true);
-
-            ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(mapDivision(m_currentDivision));
-            // automatically continue events without needing human input
-            ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(m_enableAutoContinue);
-            addEventConfiguration(m_eventsConfig, ciInput.add_api_inputs()->mutable_config_delta());
-
-            // Set team names to own
-            {
-                auto* updateBlueTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
-                updateBlueTeam->set_for_team(gameController::Team::BLUE);
-                updateBlueTeam->mutable_team_name()->set_value(TEAM_NAME);
-
-                auto* updateYellowTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
-                updateYellowTeam->set_for_team(gameController::Team::YELLOW);
-                updateYellowTeam->mutable_team_name()->set_value(TEAM_NAME);
-            }
-
-            m_gcCIProcess.enqueueInput(ciInput);
-        }
-
-        auto prevReferee = m_lastReferee;
-        m_lastReferee.Clear();
-        handleRefereeUpdate(prevReferee, true);
-
-        // trigger a re-send of the geometry
-        m_geometryString.clear();
-    }
+    resetMatch();
 
     m_gcCIProcess.start();
+}
+
+void InternalGameController::resetMatch()
+{
+    // configure the game controller
+    {
+        gameController::CiInput ciInput;
+        ciInput.set_timestamp(m_timer->currentTime());
+        ciInput.add_api_inputs()->set_reset_match(true);
+
+        ciInput.add_api_inputs()->mutable_change()->mutable_update_config_change()->set_division(mapDivision(m_currentDivision));
+        // automatically continue events without needing human input
+        ciInput.add_api_inputs()->mutable_config_delta()->set_auto_continue(m_enableAutoContinue);
+        addEventConfiguration(m_eventsConfig, ciInput.add_api_inputs()->mutable_config_delta());
+
+        // Set team names to own
+        {
+            auto* updateBlueTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
+            updateBlueTeam->set_for_team(gameController::Team::BLUE);
+            updateBlueTeam->mutable_team_name()->set_value(TEAM_NAME);
+
+            auto* updateYellowTeam = ciInput.add_api_inputs()->mutable_change()->mutable_update_team_state_change();
+            updateYellowTeam->set_for_team(gameController::Team::YELLOW);
+            updateYellowTeam->mutable_team_name()->set_value(TEAM_NAME);
+        }
+
+        m_gcCIProcess.enqueueInput(ciInput);
+    }
+
+    auto prevReferee = m_lastReferee;
+    m_lastReferee.Clear();
+    handleRefereeUpdate(prevReferee, true);
+
+    // trigger a re-send of the geometry
+    m_geometryString.clear();
 }

@@ -67,6 +67,7 @@ public slots:
     void setEnabled(bool enabled);
     void setFlip(bool flip);
     void handleRefereeCommand(SSL_Referee::Command command);
+    void resetMatch();
 
 private:
     const Timer *m_timer;

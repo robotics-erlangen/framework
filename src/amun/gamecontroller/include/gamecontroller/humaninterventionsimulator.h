@@ -63,6 +63,7 @@ signals:
     void sendCommand(const Command &command);
     void sendStatus(const Status &status);
     void sendRefereeCommand(SSL_Referee::Command command);
+    void sendResetMatch();
 
 private:
     bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
