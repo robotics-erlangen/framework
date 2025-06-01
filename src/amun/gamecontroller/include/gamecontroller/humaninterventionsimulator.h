@@ -22,13 +22,14 @@
 
 #include "protobuf/command.h"
 #include "protobuf/world.pb.h"
+#include "protobuf/gamestate.pb.h"
+#include "core/vector.h"
 #include <QObject>
 #include <QVector>
 
 class SSL_Referee;
 class Status;
 class Timer;
-class Vector;
 
 /*! \brief Simulates field interactions that would normally be done by a human.
  *
@@ -56,6 +57,7 @@ public:
     void handleNumberOfRobots(const world::State &worldState);
 
     void handleStatus(const Status &status);
+    void setAutoContinue(bool autoContinue) { m_autoContinue = autoContinue; }
 
 signals:
     void sendCommand(const Command &command);
@@ -65,14 +67,19 @@ signals:
 private:
     bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
     void teleportBallTo(float x, float y);
+    void checkNoProgress(float ballX, float ballY, qint64 time);
 
 private:
     const Timer *m_timer;
 
+    bool m_autoContinue = true;
     bool m_ballIsTeleported = false;
     qint64 m_lastExchangeTime = 0;
     float m_fieldWidth = 1; // short side of the field
     QVector<uint32_t> m_blueTeamIds, m_yellowTeamIds;
     int m_allowedRobotsBlue = 11;
     int m_allowedRobotsYellow = 11;
+    Vector m_ballPos{0, 0};
+    qint64 m_ballPosTime = 0;
+    amun::GameState::State m_lastGameState = amun::GameState::Halt;
 };

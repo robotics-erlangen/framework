@@ -199,11 +199,23 @@ void HumanInterventionSimulator::handleStatus(const Status &status)
     }
 
     if (status->has_game_state()) {
-        if (status->game_state().has_blue() && status->game_state().blue().has_max_allowed_bots()) {
-            m_allowedRobotsBlue = status->game_state().blue().max_allowed_bots();
+        const auto &gameState = status->game_state();
+        if (gameState.has_blue() && gameState.blue().has_max_allowed_bots()) {
+            m_allowedRobotsBlue = gameState.blue().max_allowed_bots();
         }
-        if (status->game_state().has_yellow() && status->game_state().yellow().has_max_allowed_bots()) {
-            m_allowedRobotsYellow = status->game_state().yellow().max_allowed_bots();
+        if (gameState.has_yellow() && gameState.yellow().has_max_allowed_bots()) {
+            m_allowedRobotsYellow = gameState.yellow().max_allowed_bots();
+        }
+        if (gameState.has_state()) {
+            m_lastGameState = gameState.state();
+        }
+    }
+
+    if (status->has_world_state()) {
+        for (const auto &reality : status->world_state().reality()) {
+            if (reality.has_ball()) {
+                checkNoProgress(reality.ball().p_x(), reality.ball().p_y(), status->time());
+            }
         }
     }
 
@@ -218,6 +230,35 @@ void HumanInterventionSimulator::handleStatus(const Status &status)
         for (const auto &spec : status->team_yellow().robot()) {
             m_yellowTeamIds.append(spec.id());
         }
+    }
+}
+
+void HumanInterventionSimulator::checkNoProgress(float ballX, float ballY, qint64 time)
+{
+    const auto NO_PROGRESS_CHECK_DIST = 0.1f;
+    const auto NO_PROGRESS_CHECK_TIME = 10000000000ll; // 10 seconds
+
+    if (!m_autoContinue) {
+        return;
+    }
+
+    // while the game controller also checks for no progress,
+    // this only works when the ball is visible
+    Vector ballPos{ballX, ballY};
+    const auto isGame = m_lastGameState == amun::GameState::Game || m_lastGameState == amun::GameState::GameForce;
+    const auto dist = m_ballPos.distance(ballPos);
+    const auto ballMoved = dist > NO_PROGRESS_CHECK_DIST || m_ballPosTime == 0;
+    if (!isGame || ballMoved) {
+        m_ballPos = ballPos;
+        m_ballPosTime = time;
+    }
+
+    if (time - m_ballPosTime > NO_PROGRESS_CHECK_TIME && !m_ballIsTeleported) {
+        m_ballPosTime = time;
+        m_ballIsTeleported = true;
+        teleportBallTo(0, 0);
+
+        emit sendRefereeCommand(SSL_Referee::FORCE_START);
     }
 }
 

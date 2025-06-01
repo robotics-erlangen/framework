@@ -371,6 +371,7 @@ void InternalGameController::handleRestartGameController()
 
 void InternalGameController::handleUseAutoContinue(bool useAutoContinue)
 {
+    m_humanInterventionSimulator.setAutoContinue(useAutoContinue);
     if (m_enableAutoContinue == useAutoContinue) {
         return;
     }
