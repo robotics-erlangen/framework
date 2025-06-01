@@ -69,6 +69,7 @@ private:
     bool isPositionFreeToEnterRobot(Vector pos, const world::State &worldState);
     void teleportBallTo(float x, float y);
     void checkNoProgress(float ballX, float ballY, qint64 time);
+    void writeLogMessage(const QString &message);
 
 private:
     const Timer *m_timer;

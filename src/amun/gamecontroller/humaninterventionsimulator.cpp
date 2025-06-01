@@ -97,6 +97,9 @@ bool HumanInterventionSimulator::handleBallTeleportation(const SSL_Referee &refe
 
 void HumanInterventionSimulator::handleNumberOfRobots(const world::State &worldState)
 {
+    const auto MAX_ROBOT_DIST = 1.0f;
+    const auto MIN_BALL_DIST_GAME = 3.0f;
+
     const Vector substitutionPos1(m_fieldWidth / 2, 0);
     const Vector substitutionPos2(-m_fieldWidth / 2, 0);
 
@@ -120,30 +123,30 @@ void HumanInterventionSimulator::handleNumberOfRobots(const world::State &worldS
         const int numRobots = teamRobots.size();
         if (numRobots > allowedRobots) {
             for (const auto &robot : teamRobots) {
-                const Vector pos(robot.p_x(), robot.p_y());
                 const Vector speed(robot.v_x(), robot.v_y());
-
-                if (speed.length() < 0.1 && ((pos.distance(substitutionPos1) < 1 && ballPos.distance(substitutionPos1) > 3)
-                        || (pos.distance(substitutionPos2) < 1 && ballPos.distance(substitutionPos2) > 3))) {
-
-                    m_lastExchangeTime = worldState.time();
-
-                    Command command(new amun::Command);
-                    auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
-                    teleport->mutable_id()->set_id(robot.id());
-                    teleport->mutable_id()->set_team(team);
-                    teleport->set_present(false);
-                    emit sendCommand(command);
-
-                    Status status(new amun::Status);
-                    auto debug = status->add_debug();
-                    debug->set_source(amun::DebugSource::GameController);
-                    auto log = debug->add_log();
-                    log->set_timestamp(m_timer->currentTime());
-                    log->set_text(QString("Removed %1 %2 to fix the robot count").arg(teamString).arg(robot.id()).toStdString());
-                    emit sendStatus(status);
-                    break;
+                if (speed.length() > 0.1) {
+                    continue;
                 }
+
+                const Vector pos(robot.p_x(), robot.p_y());
+                const auto minBallDist = m_lastGameState == amun::GameState::Stop ? 0.5f : MIN_BALL_DIST_GAME;
+                const auto pos1Matches = pos.distance(substitutionPos1) < MAX_ROBOT_DIST && ballPos.distance(substitutionPos1) > minBallDist;
+                const auto pos2Matches = pos.distance(substitutionPos2) < MAX_ROBOT_DIST && ballPos.distance(substitutionPos2) > minBallDist;
+                if (!pos1Matches && !pos2Matches) {
+                    continue;
+                }
+
+                m_lastExchangeTime = worldState.time();
+
+                Command command(new amun::Command);
+                auto teleport = command->mutable_simulator()->mutable_ssl_control()->add_teleport_robot();
+                teleport->mutable_id()->set_id(robot.id());
+                teleport->mutable_id()->set_team(team);
+                teleport->set_present(false);
+                emit sendCommand(command);
+
+                writeLogMessage(QString("Removed %1 %2 to fix the robot count").arg(teamString).arg(robot.id()));
+                break;
             }
         } else if (numRobots < allowedRobots) {
 
@@ -180,17 +183,22 @@ void HumanInterventionSimulator::handleNumberOfRobots(const world::State &worldS
                 teleport->set_present(true);
                 emit sendCommand(command);
 
-                Status status(new amun::Status);
-                auto debug = status->add_debug();
-                debug->set_source(amun::DebugSource::GameController);
-                auto log = debug->add_log();
-                log->set_timestamp(m_timer->currentTime());
-                log->set_text(QString("Added %1 %2 since yellow card is over").arg(teamString).arg(possibleId).toStdString());
-                emit sendStatus(status);
+                writeLogMessage(QString("Added %1 %2 since yellow card is over").arg(teamString).arg(possibleId));
                 break;
             }
         }
     }
+}
+
+void HumanInterventionSimulator::writeLogMessage(const QString &message)
+{
+    Status status(new amun::Status);
+    auto debug = status->add_debug();
+    debug->set_source(amun::DebugSource::GameController);
+    auto log = debug->add_log();
+    log->set_timestamp(m_timer->currentTime());
+    log->set_text(message.toStdString());
+    emit sendStatus(status);
 }
 
 void HumanInterventionSimulator::handleStatus(const Status &status)
