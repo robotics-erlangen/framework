@@ -113,6 +113,11 @@ amun::RobotValue *AbstractStrategyScript::addRobotValue()
     return m_debugValues->add_robot();
 }
 
+amun::MetricValue *AbstractStrategyScript::addMetric()
+{
+    return m_debugValues->add_metric();
+}
+
 void AbstractStrategyScript::setCommands(const QList<RobotCommandInfo> &commands)
 {
     if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {

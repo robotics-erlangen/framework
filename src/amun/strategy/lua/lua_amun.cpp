@@ -247,6 +247,16 @@ static int amunAddPlot(lua_State *state)
     return 0;
 }
 
+static int amunAddMetricValue(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    auto *value = thread->addMetric();
+    value->set_name(luaL_checkstring(state, 1));
+    value->set_value(lua_tonumber(state, 2));
+    value->set_divisor(lua_tonumber(state, 3));
+    return 0;
+}
+
 static int amunSendCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -426,6 +436,7 @@ static const luaL_Reg amunMethods[] = {
     {"addVisualizationCircle", amunAddVisualizationCircle},
     {"addDebug",            amunAddDebug},
     {"addPlot",             amunAddPlot},
+    {"addMetric",           amunAddMetricValue},
     {"sendGameControllerMessage",   amunSendGameControllerMessage},
     {"getGameControllerMessage",    amunGetGameControllerMessage},
     {"connectGameController",       amunConnectGameController},

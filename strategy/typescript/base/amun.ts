@@ -124,6 +124,8 @@ interface Amun extends AmunPublic {
 	addDebug(key: string, value?: number | boolean | string): void;
 	/** Add a value to the plotter */
 	addPlot(name: string, value: number): void;
+	/** Add a metric value */
+	addMetric?: (name: string, value: number, divisor: number) => void;
 	/** Send internal referee command. Only works in debug mode. Must be fully populated */
 	sendRefereeCommand(command: pb.SSL_Referee): void;
 	/** Check if performance mode is active */
@@ -223,6 +225,7 @@ export function _hideFunctions() {
 		getSelectedOptions: makeDisabledFunction("getSelectedOptions"),
 		addDebug: makeDisabledFunction("addDebug"),
 		addPlot: makeDisabledFunction("addPlot"),
+		addMetric: makeDisabledFunction("addMetric"),
 		sendRefereeCommand: makeDisabledFunction("sendRefereeCommand"),
 		getPerformanceMode: makeDisabledFunction("getPerformanceMode"),
 		connectDebugger: makeDisabledFunction("connectDebugger"),

@@ -472,6 +472,21 @@ static void amunAddPlot(const FunctionCallbackInfo<Value>& args)
     value->set_value(float(number));
 }
 
+static void amunAddMetric(const FunctionCallbackInfo<Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    amun::MetricValue *metric = t->addMetric();
+    metric->set_name(*String::Utf8Value(isolate, args[0]));
+    float value, divisor;
+    if (!checkNumberOfArguments(isolate, 3, args.Length()) || !verifyNumber(isolate, args[1], value) ||
+            !verifyNumber(isolate, args[2], divisor)) {
+        return;
+    }
+    metric->set_value(value);
+    metric->set_divisor(divisor);
+}
+
 static void amunSendCommand(const FunctionCallbackInfo<Value>& args)
 {
     Isolate* isolate = args.GetIsolate();
@@ -763,6 +778,7 @@ void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addPolygonSimple",   amunAddPolygonSimple},
         { "addDebug",           amunAddDebug},
         { "addPlot",            amunAddPlot},
+        { "addMetric",          amunAddMetric},
         { "getPerformanceMode", amunGetPerformanceMode},
         { "setCommand",         amunSetCommand},
         { "setCommands",        amunSetCommands},

@@ -101,6 +101,7 @@ public:
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
     amun::RobotValue *addRobotValue();
+    amun::MetricValue *addMetric();
     void setCommands(const QList<RobotCommandInfo> &commands);
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);

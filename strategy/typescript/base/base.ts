@@ -53,6 +53,7 @@ import "base/debug";
 import "base/debugcommands";
 import "base/option";
 import "base/plot";
+import "base/metric";
 import "base/robot";
 import "base/trycatch";
 import "base/vis";
