@@ -1,10 +1,10 @@
 import { FriendlyRobot } from "base/robot";
 
 import { FeintPass } from "glados/agent/attacker/feintpass";
-import { RemoveExtraRobot } from "glados/agent/attacker/removeextrarobot";
 import { Agent } from "glados/agent/base/agent";
 import { BehaviorConstructor } from "glados/agent/base/behavior";
 import { Default } from "glados/agent/dummy/default";
+import { RemoveExtraRobot } from "glados/agent/shared/removeextrarobot";
 import * as DummyUtil from "glados/util/dummy";
 
 export class Dummy extends Agent {

@@ -11,7 +11,6 @@ import { DuelAssistant } from "glados/agent/attacker/duelassistant";
 import { Move } from "glados/agent/attacker/move";
 import { PenaltyPassiveAttackerOffense } from "glados/agent/attacker/penaltypassiveattackeroffense";
 import { PenaltyShootout } from "glados/agent/attacker/penaltyshootout";
-import { RemoveExtraRobot } from "glados/agent/attacker/removeextrarobot";
 import { RunObjective } from "glados/agent/attacker/runobjective";
 import { SelectObjective } from "glados/agent/attacker/selectobjective";
 import { Stop } from "glados/agent/attacker/stop";
@@ -19,6 +18,7 @@ import { Agent } from "glados/agent/base/agent";
 import { CheckableConstructor } from "glados/agent/base/behavior";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
+import { RemoveExtraRobot } from "glados/agent/shared/removeextrarobot";
 import { MessageType } from "glados/control/messaging";
 
 export class Attacker extends Agent {

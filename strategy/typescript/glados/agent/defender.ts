@@ -15,6 +15,7 @@ import { ZoneDefense } from "glados/agent/defender/zonedefense";
 import { BallEscort } from "glados/agent/shared/ballescort";
 import { BreakPass } from "glados/agent/shared/breakpass";
 import { PenaltyPassiveDefense } from "glados/agent/shared/penaltypassivedefense";
+import { RemoveExtraRobot } from "glados/agent/shared/removeextrarobot";
 import { MessageType } from "glados/control/messaging";
 
 
@@ -27,6 +28,7 @@ export class Defender extends Agent {
 			PassTarget,
 			parameterizeClass(BallEscort, true),
 			HandleBall,
+			RemoveExtraRobot,
 			ManMark,
 			CenterBack,
 			BreakPass,
