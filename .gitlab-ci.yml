@@ -26,7 +26,10 @@ stages:
       - build/
   artifacts:
     paths:
-      - build/bin/
+      - build/bin/amun-cli
+      - build/bin/cpptests
+      - build/bin/icudtl.dat
+      - build/bin/run.sh
     expire_in: 1 day
 
 .test-template:
