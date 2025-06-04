@@ -227,7 +227,12 @@ void Connector::start()
         addStrategyLoad(command->mutable_strategy_autoref(), m_autorefInitScript, {});
 
         command->mutable_referee()->set_active(true);
+    }
+    
+    emit sendCommand(command);
 
+    // only send the start game command once the simulator and internal game controller are enabled
+    if (!m_autorefInitScript.isEmpty()) {
         m_referee.changeStage(SSL_Referee::NORMAL_FIRST_HALF);
         m_referee.changeBlueKeeper(m_numRobots);
         m_referee.changeYellowKeeper(0);
@@ -238,12 +243,10 @@ void Connector::start()
         } else if (m_runYellow) {
             m_referee.changeCommand(SSL_Referee::PREPARE_KICKOFF_YELLOW);
         }
-
+        if (m_forceStart) {
+            m_referee.changeCommand(SSL_Referee::FORCE_START);
+        }
     }
-    if (m_forceStart) {
-        m_referee.changeCommand(SSL_Referee::FORCE_START);
-    }
-    emit sendCommand(command);
 }
 
 void Connector::handleStrategyStatus(const amun::StatusStrategy &strategy, qint64 time)
