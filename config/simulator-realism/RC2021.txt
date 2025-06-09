@@ -17,3 +17,5 @@ object_position_offset: 0
 missing_robot_detections: 0
 command_delay: 0
 robot_rotation_error: 0
+rotated_robot_detections_start: 0
+rotated_robot_detections_stop: 1

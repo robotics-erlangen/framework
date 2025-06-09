@@ -17,3 +17,5 @@ vision_processing_time: 10000000
 missing_robot_detections: 0.02
 command_delay: 0
 robot_rotation_error: 0
+rotated_robot_detections_start: 0
+rotated_robot_detections_stop: 1

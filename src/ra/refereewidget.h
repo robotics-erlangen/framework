@@ -51,7 +51,6 @@ signals:
     void changeStage(SSL_Referee::Stage stage);
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
-    void enableAutoContinue(bool enable);
     void changeSidesFlipped(bool flipped);
     void sendCommand(const Command& command);
     void sendYellowCard(int forTeamYellow);

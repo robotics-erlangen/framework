@@ -52,4 +52,9 @@ message RealismConfigErForce {
     optional int64 command_delay = 18;
     // How much the robots rotational acceleration should be influenced by the forward acceleration
     optional float robot_rotation_error = 19;
+    // For each camera and robot, the probability to start adding an additional robot detection
+    // rotated 90 degrees counterclockwise with the appropriately rotated pattern.
+    optional float rotated_robot_detections_start = 20;
+    // The probability to stop adding rotated robot detections once started.
+    optional float rotated_robot_detections_stop = 21;
 }

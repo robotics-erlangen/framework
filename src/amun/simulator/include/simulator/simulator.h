@@ -97,12 +97,15 @@ private:
     void sendSSLSimErrorInternal(ErrorSource source);
     void resetFlipped(RobotMap &robots, float side);
     std::tuple<QList<QByteArray>, QByteArray, qint64> createVisionPacket();
+    void createRobotDetection(SimRobot* robot, bool teamIsBlue, world::SimulatorState& simState, std::vector<SSL_DetectionFrame>& detections);
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team, QMap<uint32_t, robot::Specs>& specs);
     void moveBall(const sslsim::TeleportBall &ball);
     void moveRobot(const sslsim::TeleportRobot &robot);
     void teleportRobotToFreePosition(SimRobot *robot);
     void initializeDetection(SSL_DetectionFrame *detection, std::size_t cameraId);
+    // returns the id of the pattern rotated by 90 degrees clockwise
+    static uint32_t getRotatedRobotId(uint32_t id);
 
 private:
     typedef std::tuple<SSLSimRobotControl, qint64, bool> RadioCommand;
@@ -127,6 +130,8 @@ private:
     qint64 m_lastBallSendTime = 0;
     std::map<qint64, unsigned> m_lastFrameNumber;
     ErrorAggregator *m_aggregator;
+    // (camera id , robot) -> had rotated detection in the last frame
+    std::map<std::pair<std::size_t, SimRobot*>, bool> m_hasRotatedDetection;
 
     std::mt19937 rand_shuffle_src = std::mt19937(std::random_device()());
 };

@@ -67,6 +67,8 @@ SimulatorConfigWidget::SimulatorConfigWidget(QWidget *parent) :
     connect(ui->spinDribblerBallDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinMissingRobotDetections, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinRotateDetectStart, SIGNAL(valueChanged(double)), SLOT(sendAll()));
+    connect(ui->spinRotateDetectStop, SIGNAL(valueChanged(double)), SLOT(sendAll()));
     connect(ui->spinRotationError, SIGNAL(valueChanged(double)), SLOT(sendAll()));
 
     connect(ui->spinVisionDelay, SIGNAL(valueChanged(int)), SLOT(sendAll()));
@@ -148,12 +150,15 @@ void SimulatorConfigWidget::realismPresetChanged(QString name)
     ui->spinCommandDelay->setValue(config.command_delay() / 1000000LL);
     ui->chkSimulateDribbling->setChecked(config.simulate_dribbling());
     ui->spinMissingRobotDetections->setValue(config.missing_robot_detections() * 100.0f);
+    ui->spinRotateDetectStart->setValue(config.rotated_robot_detections_start() * 100.0f);
+    ui->spinRotateDetectStop->setValue(config.rotated_robot_detections_stop() * 100.0f);
     ui->spinRotationError->setValue(config.robot_rotation_error());
 
     bool enableNoise = ui->spinStddevBall->value() != 0 || ui->spinStddevRobotPos->value() != 0 ||
                        ui->spinStddevRobotPhi->value() != 0 || ui->spinStdDevBallArea->value() != 0 ||
                        ui->spinDribblerBallDetections->value() != 0 || ui->spinMissingDetections->value() != 0 ||
-                       ui->spinMissingRobotDetections->value() != 0;
+                       ui->spinMissingRobotDetections->value() != 0 || ui->spinRotateDetectStart->value() != 0 ||
+                       ui->spinRotateDetectStop->value() != 0;
     ui->chkEnableNoise->setChecked(enableNoise);
 }
 
@@ -184,6 +189,8 @@ void SimulatorConfigWidget::sendAll()
         realism->set_missing_ball_detections(isEnabled ? ui->spinMissingDetections->value() / 100.0f : 0);
         realism->set_simulate_dribbling(isEnabled ? ui->chkSimulateDribbling->isChecked() : false);
         realism->set_missing_robot_detections(isEnabled ? ui->spinMissingRobotDetections->value() / 100.0f : 0);
+        realism->set_rotated_robot_detections_start(isEnabled ? ui->spinRotateDetectStart->value() / 100.0f : 0);
+        realism->set_rotated_robot_detections_stop(isEnabled ? ui->spinRotateDetectStop->value() / 100.0f : 0);
     }
 
     // robot driving behavior

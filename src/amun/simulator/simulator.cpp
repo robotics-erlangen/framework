@@ -98,6 +98,8 @@ struct camun::simulator::SimulatorData
     bool dribblePerfect;
     float missingRobotDetections;
     int64_t commandDelay;
+    float rotDetectStartProp;
+    float rotDetectStopProp;
 };
 
 static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
@@ -449,43 +451,7 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
 
         for (const auto& it : team) {
             SimRobot* robot = it.first;
-            auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
-            robot->update(robotProto, m_data->ball);
-
-            if (m_time - robot->getLastSendTime() >= m_minRobotDetectionTime) {
-                const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
-                const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
-
-                for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
-
-                    if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
-                        continue;
-                    }
-
-                    bool missingRobot = m_data->missingRobotDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingRobotDetections;
-                    if (missingRobot) {
-                        continue;
-                    }
-
-                    const btVector3 positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, m_data->cameraPositions[cameraId]);
-                    if (teamIsBlue) {
-                        robot->update(detections[cameraId].add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
-                    } else {
-                        robot->update(detections[cameraId].add_robots_yellow(), m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
-                    }
-
-                    // once in a while, add a ball mis-detection at a corner of the dribbler
-                    // in real games, this happens because the ball detection light beam used by many teams is red
-                    float detectionProb = timeDiff * m_data->ballDetectionsAtDribbler;
-                    if (m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb) {
-                        // always on the right side of the dribbler for now
-                        if (!m_data->ball->addDetection(detections[cameraId].add_balls(), robot->dribblerCorner(false) / SIMULATOR_SCALE,
-                                                        m_data->stddevRobot, 0, m_data->cameraPositions[cameraId], false, 0, positionOffset)) {
-                            detections[cameraId].mutable_balls()->DeleteSubrange(detections[cameraId].balls_size()-1, 1);
-                        }
-                    }
-                }
-            }
+            createRobotDetection(robot, teamIsBlue, simState, detections);
         }
     }
 
@@ -549,6 +515,93 @@ std::tuple<QList<QByteArray>, QByteArray, qint64> Simulator::createVisionPacket(
         d = {};
     }
     return {data,d, 0};
+}
+
+uint32_t Simulator::getRotatedRobotId(uint32_t id)
+{
+    // pink is 0, green is 1, starting from the top left side (dribbler is up) as the most significant bit, going clockwise to the least significant bit
+    static constexpr std::array patterns = {
+        0b0001, // 0
+        0b1001, // 1
+        0b1101, // 2
+        0b0101, // 3
+        0b0010, // 4
+        0b1010, // 5
+        0b1110, // 6
+        0b0110, // 7
+        0b1111, // 8
+        0b0000, // 9
+        0b0011, // 10
+        0b1100, // 11
+        0b1011, // 12
+        0b1000, // 13
+        0b0111, // 14
+        0b0100, // 15
+    };
+
+    const auto pattern = patterns[id];
+    const auto rotatedPattern = (pattern >> 1) | ((pattern << 3) & 0b1000);
+    const auto it = std::ranges::find(patterns, rotatedPattern);
+    return std::distance(patterns.begin(), it);
+}
+
+void Simulator::createRobotDetection(SimRobot* robot, bool teamIsBlue, world::SimulatorState& simState, std::vector<SSL_DetectionFrame>& detections)
+{
+    auto* robotProto = teamIsBlue ? simState.add_blue_robots() : simState.add_yellow_robots();
+    robot->update(robotProto, m_data->ball);
+
+    if (m_time - robot->getLastSendTime() < m_minRobotDetectionTime) {
+        return;
+    }
+
+    const float timeDiff = (m_time - robot->getLastSendTime()) * 1E-9;
+    const btVector3 robotPos = robot->position() / SIMULATOR_SCALE;
+
+    const std::size_t numCameras = m_data->reportedCameraSetup.size();
+    for (std::size_t cameraId = 0; cameraId < numCameras; ++cameraId) {
+
+        if (!checkCameraID(cameraId, robotPos, m_data->cameraPositions, m_data->cameraOverlap)) {
+            continue;
+        }
+
+        const auto& cameraPos = m_data->cameraPositions[cameraId];
+        const auto positionOffset = positionOffsetForCamera(m_data->objectPositionOffset, cameraPos);
+        auto& cameraDetections = detections[cameraId];
+
+        bool missingRobot = m_data->missingRobotDetections > 0 && m_data->rng.uniformFloat(0, 1) <= m_data->missingRobotDetections;
+        if (!missingRobot) {
+            auto* robotDetection = teamIsBlue ? cameraDetections.add_robots_blue() : cameraDetections.add_robots_yellow();
+            robot->update(robotDetection, m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+        }
+
+        const auto hadRotated = m_hasRotatedDetection[{cameraId, robot}];
+        const auto randRotated = m_data->rng.uniformFloat(0, 1);
+        const auto rotThreshold = hadRotated ? (1 - m_data->rotDetectStopProp) : m_data->rotDetectStartProp;
+        const auto hasRotated = randRotated < rotThreshold;
+        m_hasRotatedDetection[{cameraId, robot}] = hasRotated;
+        if (hasRotated) {
+            // add a rotated robot detection (rotate 90 degrees counterclockwise)
+            auto* rotatedDetection = teamIsBlue ? cameraDetections.add_robots_blue() : cameraDetections.add_robots_yellow();
+            robot->update(rotatedDetection, m_data->stddevRobot, m_data->stddevRobotPhi, m_time, positionOffset);
+            const auto rotatedId = getRotatedRobotId(rotatedDetection->robot_id());
+            rotatedDetection->set_robot_id(rotatedId);
+            rotatedDetection->set_orientation(rotatedDetection->orientation() + 0.5 * M_PI);
+        }
+
+        // once in a while, add a ball mis-detection at a corner of the dribbler
+        // in real games, this happens because the ball detection light beam used by many teams is red
+        const auto detectionProb = timeDiff * m_data->ballDetectionsAtDribbler;
+        const auto hasBallDetection = m_data->ballDetectionsAtDribbler > 0 && m_data->rng.uniformFloat(0, 1) < detectionProb;
+        if (hasBallDetection) {
+            // always on the right side of the dribbler for now
+            const auto cornerPos = robot->dribblerCorner(false) / SIMULATOR_SCALE;
+            const auto ballVisible = m_data->ball->addDetection(cameraDetections.add_balls(), cornerPos, m_data->stddevRobot,
+                                                                0, cameraPos, false, 0, positionOffset);
+            if (!ballVisible) {
+                cameraDetections.mutable_balls()->DeleteSubrange(cameraDetections.balls_size()-1, 1);
+            }
+        }
+    }
 }
 
 void Simulator::sendVisionPacket()
@@ -818,6 +871,13 @@ void Simulator::handleCommand(const Command &command)
                         robot->setRotationError(realism.robot_rotation_error());
                     }
                 }
+            }
+
+            if (realism.has_rotated_robot_detections_start()) {
+                m_data->rotDetectStartProp = realism.rotated_robot_detections_start();
+            }
+            if (realism.rotated_robot_detections_stop()) {
+                m_data->rotDetectStopProp = realism.rotated_robot_detections_stop();
             }
         }
 

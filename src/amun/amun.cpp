@@ -381,7 +381,7 @@ void Amun::stop()
         m_strategyThread[i]->wait();
     }
 
-    // As the strategy may still be writing to debugHelper, we can only start quitting as soon as the starategy is dead for sure.
+    // As the strategy may still be writing to debugHelper, we can only start quitting as soon as the strategy is dead for sure.
     m_debugHelperThread->quit();
     m_debugHelperThread->wait();
     m_gitRecorderThread->wait();
