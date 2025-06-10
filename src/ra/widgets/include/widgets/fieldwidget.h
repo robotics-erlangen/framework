@@ -232,6 +232,7 @@ private:
     QAction *m_actionRestoreSimulatorState;
     QAction *m_actionFollowBall;
     QAction *m_actionShowAxes;
+    QAction *m_actionShowAOI;
 
     std::string m_geometryString;
     bool m_geometryUpdated;
@@ -242,8 +243,6 @@ private:
     QRectF m_realFieldRect;
     QRectF m_aoi;
     QGraphicsPathItem *m_aoiItem;
-    QGraphicsPathItem *m_virtualFieldAoiItem;
-    QRectF m_virtualFieldAoi;
 
     QHash<uint, robot::Specs> m_teamBlue;
     QHash<uint, robot::Specs> m_teamYellow;

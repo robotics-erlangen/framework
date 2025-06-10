@@ -200,9 +200,9 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     // other actions
     m_contextMenu->addSeparator();
-    QAction *actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
-    actionShowAOI->setCheckable(true);
-    connect(actionShowAOI, SIGNAL(toggled(bool)), SLOT(setAOIVisible(bool)));
+    m_actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
+    m_actionShowAOI->setCheckable(true);
+    connect(m_actionShowAOI, SIGNAL(toggled(bool)), SLOT(setAOIVisible(bool)));
     m_actionFollowBall = m_contextMenu->addAction("Follow ball");
     m_actionFollowBall->setCheckable(true);
     QAction *actionCustomFieldSetup = m_contextMenu->addAction("Virtual Field");
@@ -318,7 +318,6 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     // rectangle for area of interest
     m_aoiItem = createAoiItem(128);
-    m_virtualFieldAoiItem = createAoiItem(80);
     m_aoi = QRectF(-1, -1, 2, 2);
 
     m_ballTrace.color = ballColor.darker();
@@ -1568,8 +1567,18 @@ void FieldWidget::virtualFieldSetupDialog()
 
     tracking->mutable_virtual_geometry()->CopyFrom(config->geometry);
     emit sendCommand(command);
-    m_virtualFieldAoiItem->setVisible(m_virtualFieldConfiguration->enabled);
-    updateAOI();
+
+    if (m_usingVirtualField) {
+        auto maxX = m_virtualFieldGeometry.field_width() * 0.5 + m_virtualFieldGeometry.boundary_width();
+        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width();
+        m_aoi = QRectF(QPointF(-maxX, -maxY), QPointF(maxX, maxY));
+    }
+
+    m_aoiItem->setVisible(m_usingVirtualField);
+    // toggling this bool calls the slot setAOIVisible
+    m_actionShowAOI->setChecked(m_usingVirtualField);
+    // if virtual field is on then custom vision area can't be disabled
+    m_actionShowAOI->setEnabled(!m_usingVirtualField);
 }
 
 void FieldWidget::resizeAOI(QPointF pos)
@@ -1615,34 +1624,16 @@ void FieldWidget::updateAOI()
     path.addPolygon(polygon.subtracted(QPolygonF(m_aoi)));
     m_aoiItem->setPath(path);
 
-    QRectF transformedVirtualFieldRect;
-    if (m_usingVirtualField) {
-        auto maxX = m_virtualFieldGeometry.field_width() * 0.5 + m_virtualFieldGeometry.boundary_width();
-        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width();
-        transformedVirtualFieldRect = QRectF(QPointF(-maxX, -maxY), QPointF(maxX, maxY));
-        QPainterPath realPath;
-        realPath.addPolygon(polygon.subtracted(QPolygonF(transformedVirtualFieldRect)));
-        m_virtualFieldAoiItem->setPath(realPath);
-    }
-
     // inform tracking about changes
     Command command(new amun::Command);
     amun::CommandTracking *tracking = command->mutable_tracking();
-    tracking->set_aoi_enabled(m_aoiItem->isVisible() || m_usingVirtualField);
-    if (m_aoiItem->isVisible() || m_usingVirtualField) {
+    tracking->set_aoi_enabled(m_aoiItem->isVisible());
+    if (m_aoiItem->isVisible()) {
         world::TrackingAOI *aoi = tracking->mutable_aoi();
-        QRectF resultAoi;
-        if (m_aoiItem->isVisible() && m_usingVirtualField) {
-            resultAoi = m_aoi.intersected(transformedVirtualFieldRect);
-        } else if (m_aoiItem->isVisible()) {
-            resultAoi = m_aoi;
-        } else { // m_usingVirtualField
-            resultAoi = transformedVirtualFieldRect;
-        }
-        aoi->set_x1(qMin(resultAoi.left(), resultAoi.right()));
-        aoi->set_y1(qMin(resultAoi.top(), resultAoi.bottom()));
-        aoi->set_x2(qMax(resultAoi.left(), resultAoi.right()));
-        aoi->set_y2(qMax(resultAoi.top(), resultAoi.bottom()));
+        aoi->set_x1(qMin(m_aoi.left(), m_aoi.right()));
+        aoi->set_y1(qMin(m_aoi.top(), m_aoi.bottom()));
+        aoi->set_x2(qMax(m_aoi.left(), m_aoi.right()));
+        aoi->set_y2(qMax(m_aoi.top(), m_aoi.bottom()));
     }
     emit sendCommand(command);
 }
