@@ -1787,7 +1787,8 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
             const int br = (mapFromScene(m_aoi.bottomRight()) - event->pos()).manhattanLength();
             const int min = qMin(qMin(tl, tr), qMin(bl, br));
 
-            if (min <= 10) {
+            const int minDim = qMin(size().width(), size().height());
+            if (min <= minDim / 50) {
                 if (min == tl) {
                     m_dragType = DragTopLeft;
                 } else if (min == tr) {
