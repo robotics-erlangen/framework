@@ -21,6 +21,8 @@
 #ifndef GOALSELECTIONWIDGET_H
 #define GOALSELECTIONWIDGET_H
 
+#include "protobuf/world.pb.h"
+#include "virtualfieldsetupdialog.h"
 #include <QWidget>
 #include <QRadioButton>
 #include <QButtonGroup>
@@ -35,6 +37,13 @@ public:
     void setActiveButton(int buttonId);
     int goalId() const { return m_buttonGroup.checkedId(); }
     bool isSelectionRealGoal() const { return m_buttonGroup.checkedId() == 4 || m_buttonGroup.checkedId() == 10; }
+    void setRealGeom(const world::Geometry* geom) { realGeom = geom; }
+    void setPreliminaryGeom(const std::optional<VirtualFieldConfiguration> config) {
+        maybeVirtualFieldConfig = config;
+        // this is necessary for the widget to be redrawn when maybeVirtualFieldConfig changes
+        this->update();
+    }
+    void setRotation(const float rotation) { m_rotation = rotation; }
 
 signals:
     void goalIdChanged(int id);
@@ -53,6 +62,11 @@ private:
                                                                  {0.f, 0.25f}, {0.f, 0.5f}, {0.f, 0.75f},
                                                                  {0.25f, 1.f}, {0.5f, 1.f}, {0.75f, 1.f},
                                                                  {1.f, 0.25f}, {1.f, 0.5f}, {1.f, 0.75f}};
+    const world::Geometry* realGeom;
+    float fieldWidthInRect = 1;
+    float fieldHeightInRect = 1;
+    std::optional<VirtualFieldConfiguration> maybeVirtualFieldConfig;
+    float m_rotation;
 };
 
 #endif // GOALSELECTIONWIDGET_H

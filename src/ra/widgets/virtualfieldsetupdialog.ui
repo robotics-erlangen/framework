@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>391</width>
-    <height>518</height>
+    <width>486</width>
+    <height>363</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,6 +16,9 @@
   <layout class="QGridLayout" name="gridLayout_3">
    <item row="0" column="0">
     <layout class="QVBoxLayout" name="verticalLayout_4">
+     <property name="sizeConstraint">
+      <enum>QLayout::SetDefaultConstraint</enum>
+     </property>
      <item>
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
@@ -30,8 +33,17 @@
        </item>
        <item>
         <layout class="QHBoxLayout" name="contentLayout">
+         <property name="sizeConstraint">
+          <enum>QLayout::SetDefaultConstraint</enum>
+         </property>
          <item>
           <widget class="QGroupBox" name="widthGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="title">
             <string>Width</string>
            </property>
@@ -39,9 +51,9 @@
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="QRadioButton" name="quadSizeWidth">
+               <widget class="QRadioButton" name="divAWidth">
                 <property name="text">
-                 <string>quad size field</string>
+                 <string>Div A Field</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -49,9 +61,9 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="doubleSizeWidth">
+               <widget class="QRadioButton" name="divBWidth">
                 <property name="text">
-                 <string>double size field</string>
+                 <string>Div B Field</string>
                 </property>
                 <property name="checked">
                  <bool>false</bool>
@@ -61,7 +73,7 @@
               <item>
                <widget class="QRadioButton" name="customWidth">
                 <property name="text">
-                 <string>custom</string>
+                 <string>Custom</string>
                 </property>
                </widget>
               </item>
@@ -79,6 +91,12 @@
          </item>
          <item>
           <widget class="QGroupBox" name="heightGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="title">
             <string>Height</string>
            </property>
@@ -86,9 +104,9 @@
             <item row="0" column="0">
              <layout class="QVBoxLayout" name="verticalLayout_2">
               <item>
-               <widget class="QRadioButton" name="quadSizeHeight">
+               <widget class="QRadioButton" name="divAHeight">
                 <property name="text">
-                 <string>quad size field</string>
+                 <string>Div A Field</string>
                 </property>
                 <property name="checked">
                  <bool>true</bool>
@@ -96,19 +114,19 @@
                </widget>
               </item>
               <item>
-               <widget class="QRadioButton" name="doubleSizeHeight">
+               <widget class="QRadioButton" name="divBHeight">
                 <property name="text">
-                 <string>double size field</string>
+                 <string>Div B Field</string>
                 </property>
                 <property name="checked">
-                 <bool>false</bool>
+                 <bool>False</bool>
                 </property>
                </widget>
               </item>
               <item>
                <widget class="QRadioButton" name="customHeight">
                 <property name="text">
-                 <string>custom</string>
+                 <string>Custom</string>
                 </property>
                </widget>
               </item>
@@ -124,94 +142,99 @@
            </layout>
           </widget>
          </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout">
-         <item>
-          <widget class="QGroupBox" name="goalGroupBox">
-           <property name="title">
-            <string>Goal width</string>
-           </property>
-           <widget class="QWidget" name="verticalLayoutWidget">
-            <property name="geometry">
-             <rect>
-              <x>9</x>
-              <y>29</y>
-              <width>161</width>
-              <height>81</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_5">
-             <item>
-              <widget class="QRadioButton" name="quadSizeGoal">
-               <property name="text">
-                <string>quad size field</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="doubleSizeGoal">
-               <property name="text">
-                <string>double size field</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="realGoal">
-               <property name="text">
-                <string>from real field</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-          </widget>
-         </item>
          <item>
           <widget class="QGroupBox" name="defenseGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
            <property name="title">
             <string>Defense area</string>
            </property>
-           <widget class="QWidget" name="verticalLayoutWidget_2">
-            <property name="geometry">
-             <rect>
-              <x>10</x>
-              <y>30</y>
-              <width>160</width>
-              <height>81</height>
-             </rect>
-            </property>
-            <layout class="QVBoxLayout" name="verticalLayout_6">
-             <item>
-              <widget class="QRadioButton" name="quadSizeDefense">
-               <property name="text">
-                <string>quad size field</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="doubleSizeDefense">
-               <property name="text">
-                <string>double size field</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QRadioButton" name="realDefense">
-               <property name="text">
-                <string>from real field</string>
-               </property>
-               <property name="checked">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </widget>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_5">
+            <item row="0" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QRadioButton" name="divADefense">
+                <property name="text">
+                 <string>Div A Field</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="divBDefense">
+                <property name="text">
+                 <string>Div B Field</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="realDefense">
+                <property name="text">
+                 <string>From Real Field</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </item>
+         <item>
+          <widget class="QGroupBox" name="goalGroupBox">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="title">
+            <string>Goal width</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_4">
+            <item row="0" column="0">
+             <layout class="QVBoxLayout" name="verticalLayout_5">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMaximumSize</enum>
+              </property>
+              <item>
+               <widget class="QRadioButton" name="divAGoal">
+                <property name="text">
+                 <string>Div A Field</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="divBGoal">
+                <property name="text">
+                 <string>Div B Field</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QRadioButton" name="realGoal">
+                <property name="text">
+                 <string>From Real Field</string>
+                </property>
+                <property name="checked">
+                 <bool>true</bool>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
           </widget>
          </item>
         </layout>
@@ -230,7 +253,14 @@
         </widget>
        </item>
        <item>
-        <widget class="GoalSelectionWidget" name="goalPositionSelection" native="true"/>
+        <widget class="GoalSelectionWidget" name="goalPositionSelection" native="true">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
+        </widget>
        </item>
       </layout>
      </item>

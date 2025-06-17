@@ -103,6 +103,9 @@ public:
 
     void setHorusMode(bool enable);
     void setCornerBlockCathetusLength(float cornerBlockCathetusLength);
+    static void drawGeometry(QPainter *painter, const world::Geometry& geometry, const float halfFieldHeight, const QRectF& geometryRect, bool isExportingScreenshot, const float lineScaling = 1.0);
+    static void drawField(QPainter *painter, const QRectF &geometryRect, const QRectF &fieldRect, const world::Geometry &geometry, float cornerBlockCathetusLength, float isExportingScreenshot);
+    static std::tuple<QRectF, QRectF> computeFieldAndGeomRect(const world::Geometry& geometry);
 
 signals:
     void sendCommand(const Command &command);
@@ -191,8 +194,8 @@ private:
     void setFieldOrientation(float rotation);
     void sendRobotMoveCommands(const QPointF &p);
     void sendSimulatorTeleportBall(const QPointF &p);
-    void drawLines(QPainter *painter, QRectF rect, bool cosmetic);
-    void drawGoal(QPainter *painter, float side, bool cosmetic);
+    static void drawLines(QPainter *painter, const world::Geometry& geometry, QRectF geometryRect, bool cosmetic, const float scaling);
+    static void drawGoal(QPainter *painter, const world::Geometry& geometry, float side, bool cosmetic);
     void drawCoordinateAxes(QPainter *painter, const QRectF &rect);
     QGraphicsItem* createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createFieldFunction(const amun::Visualization &vis);

@@ -43,6 +43,9 @@
 #include <QUrl>
 #include <QSignalMapper>
 #include <QQuaternion>
+#include <QPainter>
+#include <QPalette>
+#include <QTransform>
 #include "fieldwidget.h"
 #include "virtualfieldsetupdialog.h"
 
@@ -1576,9 +1579,9 @@ static void drawGoalSubstitutionArea(QPainter *painter, const world::Geometry& g
 
 void FieldWidget::virtualFieldSetupDialog()
 {
-    VirtualFieldSetupDialog dialog(*m_virtualFieldConfiguration, this);
+    VirtualFieldSetupDialog dialog(*m_virtualFieldConfiguration, m_drawScenes[m_currentScene].geometry, m_rotation, this);
     dialog.exec();
-    auto config = new VirtualFieldConfiguration(dialog.getResult(m_drawScenes[m_currentScene].geometry));
+    auto config = new VirtualFieldConfiguration(dialog.getResult());
     m_virtualFieldConfiguration.reset(config);
     m_usingVirtualField = m_virtualFieldConfiguration->enabled;
     m_virtualFieldGeometry.CopyFrom(m_virtualFieldConfiguration->geometry);
@@ -2208,6 +2211,44 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     painter->save();
 
+    if (m_actionAntialiasing->isChecked()) {
+        painter->setRenderHint(QPainter::Antialiasing);
+    }
+    painter->fillRect(rect, palette().brush(QPalette::Base));
+
+    const auto [geomRect, fieldRect] = computeFieldAndGeomRect(geometry);
+    drawField(painter, geomRect, fieldRect, geometry, m_cornerBlockCathetusLength, m_isExportingScreenshot);
+
+    if (m_showCoordinateAxes) {
+        drawCoordinateAxes(painter, fieldRect);
+    }
+
+    painter->restore();
+}
+
+std::tuple<QRectF, QRectF> FieldWidget::computeFieldAndGeomRect(const world::Geometry& geometry)
+{
+    const float fieldWidth = geometry.field_width();
+    const float fieldHeight = geometry.field_height();
+    const float halfFieldWidth = fieldWidth / 2.0f;
+    const float halfFieldHeight = fieldHeight / 2.0f;
+
+    QRectF geomRect;
+    geomRect.setLeft(-halfFieldWidth);
+    geomRect.setTop(-halfFieldHeight);
+    geomRect.setWidth(fieldWidth);
+    geomRect.setHeight(fieldHeight);
+
+    const float boundaryWidthTouchLine = geometry.boundary_width();
+    const float offsetTouchLine = boundaryWidthTouchLine + 0.025f;
+    const float boundaryWidthGoalLine = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.boundary_width();
+    const float offsetGoalLine = boundaryWidthGoalLine + 0.025f;
+    const QRectF fieldRect = geomRect.adjusted(-offsetTouchLine, -offsetGoalLine, offsetTouchLine, offsetGoalLine);
+    return { geomRect, fieldRect};
+}
+
+void FieldWidget::drawField(QPainter *painter, const QRectF &geometryRect, const QRectF &fieldRect, const world::Geometry &geometry, float cornerBlockCathetusLength, float isExportingScreenshot)
+{
     const float fieldWidth = geometry.field_width();
     const float fieldHeight = geometry.field_height();
     const float goalWidth = geometry.goal_width();
@@ -2216,82 +2257,67 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     const float halfFieldHeight = fieldHeight / 2.0f;
     const float halfGoalWidth = goalWidth / 2.0f;
 
-    QRectF rect1;
-    rect1.setLeft(-halfFieldWidth);
-    rect1.setTop(-halfFieldHeight);
-    rect1.setWidth(fieldWidth);
-    rect1.setHeight(fieldHeight);
-
-    const float boundaryWidth = geometry.boundary_width();
-    const float offset = boundaryWidth + 0.025f;
-    const QRectF rect2 = rect1.adjusted(-offset, -offset, offset, offset);
-
-    if (m_actionAntialiasing->isChecked()) {
-        painter->setRenderHint(QPainter::Antialiasing);
-    }
-    painter->fillRect(rect, palette().brush(QPalette::Base));
-
     // field
     painter->setPen(QPen(Qt::white, 0.05, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
     painter->setBrush(QColor(0,60,0));
-    painter->drawRect(rect2);
+    painter->drawRect(fieldRect);
 
     // corner blocks
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::white);
     for (const float xSign : { -1, 1 }) {
         for (const float ySign : { -1, 1 }) {
-            const float wf = halfFieldWidth + boundaryWidth;
+            const float wf = halfFieldWidth + geometry.boundary_width();
             const auto boundaryWidthGoalLine = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.boundary_width();
             const float hf = halfFieldHeight + boundaryWidthGoalLine;
             const QPointF corner[] = {
                 QPointF{xSign * wf, ySign * hf},
-                QPointF{xSign * (wf - m_cornerBlockCathetusLength), ySign * hf},
-                QPointF{xSign * wf, ySign * (hf - m_cornerBlockCathetusLength)},
+                QPointF{xSign * (wf - cornerBlockCathetusLength), ySign * hf},
+                QPointF{xSign * wf, ySign * (hf - cornerBlockCathetusLength)},
             };
             painter->drawConvexPolygon(corner, 3);
 
             const float wg = halfGoalWidth + goalWallWidth;
             const QPointF goal[] = {
                 QPointF{xSign * wg, ySign * hf},
-                QPointF{xSign * (wg + m_cornerBlockCathetusLength), ySign * hf},
-                QPointF{xSign * wg, ySign * (hf - m_cornerBlockCathetusLength)},
+                QPointF{xSign * (wg + cornerBlockCathetusLength), ySign * hf},
+                QPointF{xSign * wg, ySign * (hf - cornerBlockCathetusLength)},
             };
             painter->drawConvexPolygon(goal, 3);
         }
     }
 
+    drawGeometry(painter, geometry, halfFieldHeight, geometryRect, isExportingScreenshot);
+}
+
+void FieldWidget::drawGeometry(QPainter *painter, const world::Geometry& geometry, const float halfFieldHeight, const QRectF& geometryRect, bool isExportingScreenshot, const float lineScaling)
+{
     painter->setPen(QPen(Qt::white, 0));
     painter->setBrush(Qt::NoBrush);
 
     // draw field lines twice
     // first with a cosmetic pen
     // and again with a two dimensional pen
-    if (!m_isExportingScreenshot) {
+    if (!isExportingScreenshot) {
         // do not render cosmetic lines when exporting to SVG
         // these lines create issues when inkscape processes them, making the result unusable
-        drawLines(painter, rect1, true);
+        drawLines(painter, geometry, geometryRect, true, lineScaling);
     }
-    drawLines(painter, rect1, false);
+    drawLines(painter, geometry, geometryRect, false, lineScaling);
 
     // penalty points
     painter->setPen(Qt::NoPen);
     painter->setBrush(Qt::white);
     painter->drawEllipse(QPointF(0, halfFieldHeight - geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
     painter->drawEllipse(QPointF(0, -halfFieldHeight + geometry.penalty_spot_from_field_line_dist()), 0.01, 0.01);
-
-
-    if (m_showCoordinateAxes) {
-        drawCoordinateAxes(painter, rect2);
-    }
-
-    painter->restore();
 }
 
-void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
+void FieldWidget::drawLines(QPainter *painter, const world::Geometry& geometry, QRectF geometryRect, bool cosmetic, const float scaling)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
-    const float lw = geometry.line_width();
+    painter->setPen(QPen(Qt::white, 0));
+    painter->setBrush(Qt::NoBrush);
+
+    const float lw = geometry.line_width() / scaling;
     const float lwh = lw / 2.0f;
 
     QPen pen;
@@ -2316,15 +2342,15 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
             }
 
             QPainterPath path;
-            path.moveTo(dr + ds / 2.0f, rect.bottom());
-            path.arcTo(-dr + ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 0, 90);
-            path.lineTo(-ds / 2.0f, rect.bottom() - dr);
-            path.arcTo(-dr - ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 90, 90);
+            path.moveTo(dr + ds / 2.0f, geometryRect.bottom());
+            path.arcTo(-dr + ds / 2.0f, geometryRect.bottom() - dr, dr * 2, dr * 2, 0, 90);
+            path.lineTo(-ds / 2.0f, geometryRect.bottom() - dr);
+            path.arcTo(-dr - ds / 2.0f, geometryRect.bottom() - dr, dr * 2, dr * 2, 90, 90);
 
-            path.moveTo(dr + ds / 2.0f, rect.top());
-            path.arcTo(-dr + ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, 0, -90);
-            path.lineTo(-ds / 2.0f, rect.top() + dr);
-            path.arcTo(-dr - ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, -90, -90);
+            path.moveTo(dr + ds / 2.0f, geometryRect.top());
+            path.arcTo(-dr + ds / 2.0f, geometryRect.top() - dr, dr * 2, dr * 2, 0, -90);
+            path.lineTo(-ds / 2.0f, geometryRect.top() + dr);
+            path.arcTo(-dr - ds / 2.0f, geometryRect.top() - dr, dr * 2, dr * 2, -90, -90);
 
             painter->drawPath(path);
 
@@ -2337,20 +2363,20 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
                 dh -= lwh;
             }
 
-            QRectF defAreaBlue(QPointF(-0.5 * dw, rect.bottom() - dh), QPointF(0.5 * dw, rect.bottom()));
-            QRectF defAreaYellow(QPointF(0.5 * dw, rect.top() + dh), QPointF(-0.5 * dw, rect.top()));
+            QRectF defAreaBlue(QPointF(-0.5 * dw, geometryRect.bottom() - dh), QPointF(0.5 * dw, geometryRect.bottom()));
+            QRectF defAreaYellow(QPointF(0.5 * dw, geometryRect.top() + dh), QPointF(-0.5 * dw, geometryRect.top()));
             painter->drawRect(defAreaBlue);
             painter->drawRect(defAreaYellow);
         }
     }
 
     if (!cosmetic) {
-        rect.adjust(lwh, lwh, -lwh, -lwh);
+        geometryRect.adjust(lwh, lwh, -lwh, -lwh);
     }
 
     // inner boundary
-    painter->drawRect(rect);
-    painter->drawLine(QPointF(rect.left(), 0.0f), QPointF(rect.right(), 0.0f));
+    painter->drawRect(geometryRect);
+    painter->drawLine(QPointF(geometryRect.left(), 0.0f), QPointF(geometryRect.right(), 0.0f));
 
     if (geometry.has_goal_substitution_area_width()) {
         drawGoalSubstitutionArea(painter, geometry);
@@ -2371,17 +2397,16 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     // blue goal
     pen.setColor("dodgerblue");
     painter->setPen(pen);
-    drawGoal(painter, 1.0f, cosmetic);
+    drawGoal(painter, geometry, 1.0f, cosmetic);
 
     // yellow goal
     pen.setColor("yellow");
     painter->setPen(pen);
-    drawGoal(painter, -1.0f, cosmetic);
+    drawGoal(painter, geometry, -1.0f, cosmetic);
 }
 
-void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
+void FieldWidget::drawGoal(QPainter *painter, const world::Geometry& geometry, float side, bool cosmetic)
 {
-    const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     QPainterPath path;
 
     const float d = cosmetic ? 0 : geometry.goal_wall_width() / 2.0f;

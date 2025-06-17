@@ -41,10 +41,10 @@ struct VirtualFieldConfiguration {
     float width = 9, height = 12;
 
     enum GoalOrDefenseType {
-        QUAD_SIZE, DOUBLE_SIZE, FROM_REAL
+        DIV_A, DIV_B, FROM_REAL
     };
     GoalOrDefenseType goalType = GoalOrDefenseType::FROM_REAL;
-    GoalOrDefenseType defenseType = GoalOrDefenseType::QUAD_SIZE;
+    GoalOrDefenseType defenseType = GoalOrDefenseType::DIV_A;
 };
 
 class VirtualFieldSetupDialog : public QDialog
@@ -52,9 +52,12 @@ class VirtualFieldSetupDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit VirtualFieldSetupDialog(const VirtualFieldConfiguration &start, QWidget *parent = nullptr);
+     explicit VirtualFieldSetupDialog(const VirtualFieldConfiguration &start,
+                                      const world::Geometry geometry,
+                                      float rotation,
+                                      QWidget *parent = nullptr);
     ~VirtualFieldSetupDialog();
-    VirtualFieldConfiguration getResult(const world::Geometry &realGeometry);
+    VirtualFieldConfiguration getResult();
 
 protected slots:
     void widthChanged(double width);
@@ -62,14 +65,17 @@ protected slots:
 
 private slots:
     void adaptGoalBoxVisibility();
+    void updatePreliminaryGeometry();
 
 private:
     Ui::VirtualFieldSetupDialog *ui;
 
-    const double QUAD_SIZE_WIDTH = 9;
-    const double DOUBLE_SIZE_WIDTH = 4.5;
-    const double QUAD_SIZE_HEIGHT = 12;
-    const double DOUBLE_SIZE_HEIGHT = 6;
+    const double DIV_A_WIDTH = 9;
+    const double DIV_B_WIDTH = 6;
+    const double DIV_A_HEIGHT = 12;
+    const double DIV_B_HEIGHT = 9;
+
+    const world::Geometry m_realGeometry;
 };
 
 #endif // VIRTUALFIELDSETUPDIALOG_H
