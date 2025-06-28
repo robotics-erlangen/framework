@@ -1,3 +1,4 @@
+import * as debug from "base/debug";
 import { Obstacle } from "base/path";
 import { Position } from "base/vector";
 import * as World from "base/world";
@@ -69,6 +70,9 @@ export class MoveToPos extends Task {
 
 	public run() {
 		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
+		debug.set("Target Pos", this._pos);
+		debug.set("Use CMA", this._useCMA);
+		debug.set("Custom Obstacles", this._customObstacles);
 
 		for (let obstacle of this._customObstacles) {
 			this._robot.path.addObstacle(obstacle);
