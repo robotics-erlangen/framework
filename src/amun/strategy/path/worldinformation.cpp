@@ -157,7 +157,6 @@ std::vector<Obstacles::Obstacle*> WorldInformation::intersectingObstacles(const 
 
 bool WorldInformation::isTrajectoryInObstacle(const Trajectory &profile, float timeOffset) const
 {
-    // TODO: field border??
     const auto obstacles = intersectingObstacles(profile);
 
     const float totalTime = profile.endTime();
@@ -171,6 +170,9 @@ bool WorldInformation::isTrajectoryInObstacle(const Trajectory &profile, float t
             if (o->intersects(point)) {
                 return true;
             }
+        }
+        if (!pointInPlayfield(point.state.pos, m_radius)) {
+            return true;
         }
     }
     return false;
