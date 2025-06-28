@@ -119,6 +119,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_rotation(0.0f),
     m_drawScenes(1),
     m_visualizationsUpdated(false),
+    m_showCoordinateAxes(false),
     m_infoTextUpdated(false),
     m_hasTouchInput(false),
     m_dragType(DragNone),
@@ -126,7 +127,6 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_isLogplayer(false),
     m_enableDragMeasure(false),
     m_flipped(false),
-    m_showCoordinateAxes(false),
     m_virtualFieldConfiguration(new VirtualFieldConfiguration)
 {
     m_touchStatusType = QGestureRecognizer::registerRecognizer(new TouchStatusRecognizer);
