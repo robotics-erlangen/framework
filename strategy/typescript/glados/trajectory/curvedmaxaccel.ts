@@ -677,7 +677,7 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
 
-		const endTime = speedProfile[speedProfile.length - 1][1];
+		const endTime = speedProfile[speedProfile.length - 1][0];
 		const result = new CurvedMaxAccelResult(
 			this._robot,
 			targetPos,
