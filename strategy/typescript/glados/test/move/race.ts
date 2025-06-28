@@ -211,9 +211,11 @@ export class Race extends Move {
 				this._maxOvershootDistance[i] = 0;
 			}
 
+			let dir = (targetPos - startPos).angle();
+
 			taskAssignments[r] = Assignment.create({
 				class: MoveToPos,
-				params: [{ pos: positions[this._posIndices[i]], ignoreDefaultObstacles: true, dir: 0 }],
+				params: [{ pos: positions[this._posIndices[i]], ignoreDefaultObstacles: true, dir: dir, useCMA: true }],
 				restart: posReached[i] && synchronized,
 			});
 		}

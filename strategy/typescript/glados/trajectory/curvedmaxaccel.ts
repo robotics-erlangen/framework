@@ -14,6 +14,7 @@ import * as World from "base/world";
 
 import { DirectRotation } from "glados/trajectory/directrotation";
 import * as PathHelper from "glados/trajectory/pathhelper";
+import * as Rating from "glados/util/rating";
 
 // preprocess the waypoints to ensure that the first corner is more or less
 // in the direction the robot is currently moving into
@@ -658,7 +659,7 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 				vis.addCircleRaw("circle_fitting", robotPos + speedVector.perpendicular() * sgn, speedVector.length(), vis.colors.green);
 				// phi = atan(v * v / r * MY * G)
 				// G. acceleration of gravity\
-				// MY. friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
+				// MY. friction of the carpet, m_ball * Constants.fastBallDeceleration = MY * m_ball * G
 				// -> MY * G = World.BallModel.FastBallDeceleration
 				// we assume v = r, so phi = atan (v / Constants.fBD)
 				let speed = speedVector.length();
@@ -668,8 +669,16 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 		} else {
 			targetDir = Coordinates.toGlobal(targetDir);
 		}
+
+		const MIN_ROT_ACC_FACTOR = 0.3;
+
+		const endTime = speedProfile[speedProfile.length - 1][0];
+		const rotRating = Rating.valueToRating(endTime, 1.2, 0.3);
+		const rotAccFactor = MIN_ROT_ACC_FACTOR + (1 - MIN_ROT_ACC_FACTOR) * rotRating;
+
 		let [angularSpeed, angularAccel] = this._rotationCalculation.calculateRotationHysteresis(robotDir,
-			this._robot.angularSpeed, targetDir, rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime);
+			this._robot.angularSpeed, targetDir, rotAccelerate * rotAccFactor,
+			rotBrake * rotAccFactor, rotMaxSpeed * rotAccFactor, rotationExponentialTime);
 
 		let spline = [{ t_start: 0, t_end: Infinity,
 			x: { a0: robotPos.x, a1: speedVector.x, a2: accelVector.x / 2, a3: 0 },
@@ -677,7 +686,6 @@ export class CurvedMaxAccel extends TrajectoryHandler<[Position, number, number,
 			phi: { a0: robotDir, a1: angularSpeed, a2: angularAccel / 2, a3: 0 }
 		}];
 
-		const endTime = speedProfile[speedProfile.length - 1][0];
 		const result = new CurvedMaxAccelResult(
 			this._robot,
 			targetPos,
