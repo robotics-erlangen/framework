@@ -4,6 +4,7 @@
 /src/html/
 Makefile
 error.html
+report.txt
 *.swp
 /libs/v8/depot_tools
 /libs/v8/v8
@@ -18,3 +19,6 @@ node_modules/
 /.clangd*
 **/__pycache__/**
 compile_commands.json
+.clangd
+.clang-format
+.clang-tidy
