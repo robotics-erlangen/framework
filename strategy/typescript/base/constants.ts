@@ -78,3 +78,6 @@ export const maxTeamSize: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
 	"A": 11,
 	"B": 6,
 };
+
+/** expected time between two strategy frames [s] */
+export const expectedFrameTime = 0.01;
