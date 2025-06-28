@@ -570,7 +570,12 @@ export class Shoot extends Behavior {
 
 			let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
 			let ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, undefined, this._robot);
-			let passReceiveTime = Math.max(suggestedTime, shootTime + ballTravelTime + World.Time);
+			let passReceiveTime;
+			if (ballTravelTime === Infinity) {
+				passReceiveTime = suggestedTime;
+			} else {
+				passReceiveTime = Math.max(suggestedTime, shootTime + ballTravelTime + World.Time);
+			}
 
 			// save time for future use:
 			this._decision.time = passReceiveTime;
