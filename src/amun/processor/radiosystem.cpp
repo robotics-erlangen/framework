@@ -839,11 +839,10 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
             const auto maybeError = transceiver->flush(time);
             if (maybeError.has_value()) {
                 transceiverErrorOccurred(*maybeError);
-                goto BREAK; // goto to exit the two nested loops
+                return;
             }
         }
     }
-BREAK:
 
     // only restart timeout if not yet active
     if (!m_timeoutTimer->isActive()) {
