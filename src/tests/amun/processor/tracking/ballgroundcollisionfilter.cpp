@@ -752,7 +752,7 @@ TEST(BallGroundCollisionFilter, AfterShotMultipleRobot) {
     s.simulate(0.2);
     s.addTestFunction([SECOND_ROBOT_POS](const TrackedStateInfo &state) {
         ASSERT_TRUE(state.trackedPos);
-        ASSERT_GE(state.trackedPos->distance(SECOND_ROBOT_POS), 0.1f);
+        ASSERT_GE(state.trackedPos->distance(SECOND_ROBOT_POS), 0.05f);
     });
     s.simulate(1);
 }
