@@ -319,10 +319,10 @@ GlobalSpeed CommandEvaluator::evaluateSplinePartAtTime(const robot::Spline &spli
 // normalizes to [-pi, pi)
 static float normalizeAngle(float angle) {
     while (angle < -std::numbers::pi) {
-        angle += std::numbers::pi;
+        angle += 2 * std::numbers::pi;
     }
     while (angle >= std::numbers::pi) {
-        angle -= std::numbers::pi;
+        angle -= 2 * std::numbers::pi;
     }
     return angle;
 }
