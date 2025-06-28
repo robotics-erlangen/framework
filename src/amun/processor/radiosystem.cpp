@@ -83,7 +83,7 @@ RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
     m_packetCounter(0),
     m_simulatorEnabled(false),
-    m_onlyRestartAfterTimestamp(0),
+    m_onlyRestartAfterTimestamp{},
     m_timer(timer),
     m_droppedCommands(0),
 #ifdef USB_FOUND
@@ -216,10 +216,10 @@ void RadioSystem::openTransceiver()
     if (foundWorkingTransceiver) {
         m_timeoutTimer->start(500);
     } else {
-        transceiverErrorOccurred({"T2015|HBC", "No devices found!", 0});
+        transceiverErrorOccurred({"T2015|HBC", "No devices found!", {}});
     }
 #else
-    transceiverErrorOccurred({"USB", "No USB Support", 0});
+    transceiverErrorOccurred({"USB", "No USB Support", {}});
 #endif // USB_FOUND
 }
 
@@ -232,28 +232,16 @@ void RadioSystem::closeTransceiver()
 
 bool RadioSystem::ensureOpen()
 {
-    const bool allOpen = areAllTransceiversOpen();
-    if (!allOpen && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
+    if (m_onlyRestartAfterTimestamp.has_value() && Timer::systemTime() > m_onlyRestartAfterTimestamp.value()) {
+        m_onlyRestartAfterTimestamp.reset();
         openTransceiver();
     }
-    return allOpen;
+    return anyTransceiverPresent();
 }
 
 bool RadioSystem::anyTransceiverPresent() const
 {
     return std::ranges::any_of(m_transceivers, ([](const auto& transceiversForGen) { return !transceiversForGen.empty(); }));
-}
-
-bool RadioSystem::areAllTransceiversOpen() const
-{
-    for (const auto& generation : m_transceivers) {
-        for (const auto& transceiver : generation) {
-            if (!transceiver->isOpen()) {
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 void RadioSystem::transceiverErrorOccurred(const TransceiverError &transceiverError)
@@ -268,7 +256,11 @@ void RadioSystem::transceiverErrorOccurred(const TransceiverError &transceiverEr
     status->mutable_transceiver()->set_error(transceiverError.m_errorMessage.toStdString());
     emit sendStatus(status);
 
-    m_onlyRestartAfterTimestamp = Timer::systemTime() + transceiverError.m_restartDelayInNs;
+    if (transceiverError.m_restartDelayInNs.has_value()) {
+        m_onlyRestartAfterTimestamp = Timer::systemTime() + transceiverError.m_restartDelayInNs.value();
+    } else {
+        m_onlyRestartAfterTimestamp = {};
+    }
 }
 
 void RadioSystem::transceiverResponded(const QString &transceiverName)
@@ -784,7 +776,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
 
 void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
-    if (!anyTransceiverPresent() || !ensureOpen()) {
+    if (!ensureOpen()) {
         return;
     }
 

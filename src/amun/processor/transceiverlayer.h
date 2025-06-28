@@ -31,7 +31,7 @@ namespace Radio { class Address; }
 struct TransceiverError {
     QString m_deviceName;
     QString m_errorMessage;
-    qint64 m_restartDelayInNs = 0;
+    std::optional<qint64> m_restartDelayInNs = {};
 };
 Q_DECLARE_METATYPE(TransceiverError);
 

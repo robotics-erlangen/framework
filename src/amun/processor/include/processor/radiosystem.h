@@ -103,7 +103,7 @@ private:
     QTimer *m_timeoutTimer;
     QTimer *m_processTimer;
     bool m_simulatorEnabled;
-    qint64 m_onlyRestartAfterTimestamp;
+    std::optional<qint64> m_onlyRestartAfterTimestamp;
 
     const Timer *m_timer;
     QList<robot::RadioCommand> m_commands;

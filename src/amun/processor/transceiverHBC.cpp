@@ -156,7 +156,7 @@ std::optional<std::vector<TransceiverError>> TransceiverHBC::tryConnect(QObject*
 
     // try to open the communication channel
     if (!m_device->open(QIODevice::ReadWrite)) {
-        return {{TransceiverError(m_debugName, m_device->errorString())}};
+        return {{TransceiverError(m_debugName, m_device->errorString(), (qint64) 1000 * 1000 * 1000)}};
     }
 
     const auto maybeError = sendInitPacket();
@@ -176,7 +176,7 @@ std::optional<std::vector<TransceiverError>> TransceiverHBC::tryConnect(QObject*
     if (!deviceError.empty()) {
         return deviceError;
     } else if (!isOpen()) {
-        return {{TransceiverError(m_debugName, "Handshake timed out!")}};
+        return {{TransceiverError(m_debugName, "Handshake timed out!", (qint64) 1000 * 1000 * 1000)}};
     } else {
         // technically we could lose an error that happens between the disconnect above and here,
         // but it *probably* will never lead to any issues. Hopefully.
@@ -195,7 +195,8 @@ std::optional<TransceiverError> TransceiverHBC::read()
     // read until no further data is available
     const int size = m_device->read(buffer, maxSize);
     if (size == -1) {
-        return TransceiverError(m_debugName, m_device->errorString());
+        m_connectionState = State::DISCONNECTED;
+        return TransceiverError(m_debugName, m_device->errorString(), (qint64) 1000 * 1000 * 1000);
     }
 
     const qint64 receiveTime = m_timer->currentTime();
@@ -362,14 +363,14 @@ std::optional<TransceiverError> TransceiverHBC::handleInitPacket(const char *dat
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
-        return TransceiverError(m_debugName, "Invalid reply from transceiver", (qint64) 10 * 1000 * 1000 * 1000);
+        return TransceiverError(m_debugName, "Invalid reply from transceiver");
     }
 
     const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
     if (handshake->protocolVersion < PROTOCOL_VERSION) {
-        return TransceiverError(m_debugName, "Outdated firmware", (qint64) 10 * 1000 * 1000 * 1000);
+        return TransceiverError(m_debugName, "Outdated firmware");
     } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
-        return TransceiverError(m_debugName, "Not yet supported transceiver firmware", (qint64) 10 * 1000 * 1000 * 1000);
+        return TransceiverError(m_debugName, "Not yet supported transceiver firmware");
     }
 
     m_connectionState = State::CONNECTED;
@@ -424,7 +425,8 @@ std::optional<TransceiverError> TransceiverHBC::write(const QByteArray &packet)
     // transmission usually either succeeds completely or fails horribly
     // write does not actually guarantee complete delivery!
     if (m_device->write(packet) < 0) {
-        return TransceiverError(m_debugName, m_device->errorString());
+        m_connectionState = State::DISCONNECTED;
+        return TransceiverError(m_debugName, m_device->errorString(), (qint64) 1000 * 1000 * 1000);
     }
 
     return {};
