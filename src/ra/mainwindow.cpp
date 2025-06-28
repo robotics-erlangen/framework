@@ -337,8 +337,8 @@ MainWindow::MainWindow(bool tournamentMode, bool isRa, bool broadcastUiCommands,
     QSignalMapper *mapper = new QSignalMapper(this);
     connect(mapper, &QSignalMapper::mappedInt, this, &MainWindow::setSpeed);
     QAction *speedActions[] = { ui->actionSpeed1, ui->actionSpeed5, ui->actionSpeed10, ui->actionSpeed20,
-                              ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed1000 };
-    int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 1000 };
+                              ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed500, ui->actionSpeed1000 };
+    int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 500, 1000 };
     for (uint i = 0; i < sizeof(speedActions) / sizeof(speedActions[0]); ++i) {
         QAction *action = speedActions[i];
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
