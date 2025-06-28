@@ -540,17 +540,17 @@ function uLRBCondition() {
 		debug.pop();
 		return true; // do update if the position seems plausible
 	}
+	if (World.Ball.detectionQuality > 0.2) {
+		debug.set(undefined, "good");
+		debug.pop();
+		return true; // if the data is good, we take it after some time
+	}
 	if (World.Time - lastRealisticBallTime <= MAX_INVISIBLE_TIME) {
 		debug.set(undefined, "waiting");
 		debug.pop();
 		return false; // we don't want to update the prediction with bad data too quickly,
 		// but we do need to update after some time to stay responsive,
 		// for example if the ball was moved by the referee
-	}
-	if (World.Ball.detectionQuality > 0.2) {
-		debug.set(undefined, "good");
-		debug.pop();
-		return true; // if the data is good, we take it after some time
 	}
 	if (World.RefereeState === "BallPlacementDefensive" || World.RefereeState === "BallPlacementOffensive") {
 		debug.set(undefined, "ball placement");
