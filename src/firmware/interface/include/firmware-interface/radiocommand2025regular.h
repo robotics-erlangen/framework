@@ -156,9 +156,6 @@ typedef struct {
     IMUStatusFlags2025 imu_status;
     SDStatusFlags2025 sd_status;
 
-    uint8_t main_board_id;
-    uint8_t kicker_board_id;
-
     int16_t motor0_load_torque:LOAD_TORQUE_BITS;
     int16_t motor1_load_torque:LOAD_TORQUE_BITS;
     int16_t motor2_load_torque:LOAD_TORQUE_BITS;
@@ -174,5 +171,6 @@ typedef struct {
 
     bool power_enabled:1;
     bool ball_detected:1;
-} __attribute__ ((packed)) RegularResponsePayload2025;
 
+    uint16_t unused;
+} __attribute__ ((packed)) RegularResponsePayload2025;

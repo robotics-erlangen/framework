@@ -95,9 +95,6 @@ typedef struct {
     IMUStatusFlags2025 imu_status;
     SDStatusFlags2025 sd_status;
 
-    uint8_t main_board_id;
-    uint8_t kicker_board_id;
-
     float motor_load_torque[NUM_MOTORS];  // [Nm]
 
     RadioCommand2025State measured_pos;  // [m] and [rad]

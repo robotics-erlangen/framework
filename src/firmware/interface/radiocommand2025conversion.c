@@ -233,9 +233,6 @@ void write_response(const RadioCommand2025Response *response, RegularResponsePay
     payload->imu_status = response->imu_status;
     payload->sd_status = response->sd_status;
 
-    payload->main_board_id = response->main_board_id;
-    payload->kicker_board_id = response->kicker_board_id;
-
     payload->motor0_load_torque = map_to_signed(response->motor_load_torque[MOTOR_FR], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
     payload->motor1_load_torque = map_to_signed(response->motor_load_torque[MOTOR_FL], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
     payload->motor2_load_torque = map_to_signed(response->motor_load_torque[MOTOR_BR], -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX, LOAD_TORQUE_BITS);
@@ -265,9 +262,6 @@ void read_response(RadioCommand2025Response *response, const RegularResponsePayl
     response->kicker_status = payload->kicker_status;
     response->imu_status = payload->imu_status;
     response->sd_status = payload->sd_status;
-
-    response->main_board_id = payload->main_board_id;
-    response->kicker_board_id = payload->kicker_board_id;
 
     response->motor_load_torque[MOTOR_FR] = map_from_signed(payload->motor0_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
     response->motor_load_torque[MOTOR_FL] = map_from_signed(payload->motor1_load_torque, LOAD_TORQUE_BITS, -LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);

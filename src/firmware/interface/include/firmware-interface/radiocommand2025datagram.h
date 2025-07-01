@@ -20,37 +20,34 @@ typedef struct {
 } __attribute__ ((packed)) EchoDatagram;
 
 typedef struct {
-    float kcoupling_val1;
-    float kcoupling_val2;
-    float kcoupling_val3;
-    float kcoupling_val4;
-    float kcoupling_val5;
-    float kforce_coupling1;
-    float kforce_coupling2;
-    float kforce_coupling3;
-    float kforce_coupling4;
-    float velocity_coupling_x_front;
-    float velocity_coupling_x_rear;
-    float velocity_coupling_y_front;
-    float velocity_coupling_y_rear;
-    float velocity_coupling_phi;
-    uint8_t ir_param;
-    float max_accel;
-    float pfusch_faktor;
-    float mass_factor;
-} __attribute__ ((packed)) ConfigParamsDatagram;
+    uint32_t main[3];
+    uint32_t kicker[3];
+    uint32_t dribbler[3];
+    uint32_t motor_fl[3];
+    uint32_t motor_fr[3];
+    uint32_t motor_bl[3];
+    uint32_t motor_br[3];
+} __attribute__ ((packed)) BoardIdsResponseDatagram;
+
+typedef struct {
+    uint8_t datetime_str[19];
+    uint32_t kicker_id[3];
+    float linear[3];
+    float chip[3];
+} __attribute__ ((packed)) WriteKickCalibrationCommandDatagram;
 
 typedef enum {
     ECHO_COMMAND,
-    READ_ID_COMMAND,
-    READ_CONFIG_COMMAND,
-    WRITE_CONFIG_COMMAND
+    READ_ROBOT_ID_COMMAND,
+    READ_BOARD_IDS_COMMAND,
+    TOGGLE_KICK_CALIBRATION_COMMAND,
+    WRITE_KICK_CALIBRATION_COMMAND
 } CommandDatagramType2025;
 
 typedef enum {
     ECHO_RESPONSE,
-    ID_RESPONSE,
-    CONFIG_RESPONSE
+    ROBOT_ID_RESPONSE,
+    BOARD_IDS_RESPONSE
 } ResponseDatagramType2025;
 
 typedef struct {
@@ -64,4 +61,3 @@ typedef struct {
     ResponseDatagramType2025 datatagram_type:7; // The type of data in data_chunk
     uint8_t data_chunk[DATAGRAM_CHUNK_SIZE];
 } __attribute__ ((packed)) DatagramResponsePayload2025;
-

@@ -147,9 +147,6 @@ RadioCommand2025Response static randomResponse(RNG &rng) {
         .ball_detected = randomBool(rng),
     };
 
-    response.main_board_id = rng.uniformInt() % UINT8_MAX;
-    response.kicker_board_id = rng.uniformInt() % UINT8_MAX;
-
     for (uint32_t i = 0; i < RadioCommand2025MotorIndex::NUM_MOTORS; i++) {
         response.motor_status[i] = randomMotorStatus(rng);
         response.motor_load_torque[i] = rng.uniformFloat(-LOAD_TORQUE_MAX, LOAD_TORQUE_MAX);
