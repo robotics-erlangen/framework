@@ -48,9 +48,9 @@ RadioCommand2025State static randomState(RNG &rng, float xyMax, float angleMax) 
 }
 
 RadioCommand2025Common static randomCommon(RNG &rng) {
-    const bool is_chip = randomBool(rng);
+    const bool chip = randomBool(rng);
     float shot_power;
-    if (is_chip) {
+    if (chip) {
         shot_power = rng.uniformFloat(0, CHIP_DISTANCE_MAX);
     } else {
         shot_power = rng.uniformFloat(0, LINEAR_SHOT_SPEED_MAX);
@@ -62,7 +62,7 @@ RadioCommand2025Common static randomCommon(RNG &rng) {
 
         .dribbler = rng.uniformFloat(-DRIBBLER_MAX, DRIBBLER_MAX),
         .shot_power = shot_power,
-        .is_chip = is_chip,
+        .chip = chip,
         .charge = randomBool(rng),
         .force_kick = randomBool(rng),
 
@@ -184,8 +184,8 @@ static bool commonEq(const RadioCommand2025Common &a, const RadioCommand2025Comm
         && a.eject_sd_card == b.eject_sd_card
 
         && approxEq(a.dribbler, b.dribbler, 0, ABS_ERROR(-DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS))
-        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, a.is_chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX, SHOT_POWER_BITS))
-        && a.is_chip == b.is_chip
+        && approxEq(a.shot_power, b.shot_power, 0, ABS_ERROR(0, a.chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX, SHOT_POWER_BITS))
+        && a.chip == b.chip
         && a.charge == b.charge
         && a.force_kick == b.force_kick
 
@@ -201,7 +201,7 @@ static std::ostream &operator<<(std::ostream &out, const RadioCommand2025Common 
 
         << ".dribbler=" << a.dribbler << ", "
         << ".shot_power=" << a.shot_power << ", "
-        << ".is_chip=" << a.is_chip << ", "
+        << ".chip=" << a.chip << ", "
         << ".charge=" << a.charge << ", "
         << ".force_kick=" << a.force_kick << ", "
         << ".has_detection=" << a.has_detection;

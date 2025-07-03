@@ -44,8 +44,8 @@ typedef struct {
     bool eject_sd_card;
 
     float dribbler;  // percent of max dribbler speed, from -DRIBBLER_MAX to DRIBBLER_MAX
-    float shot_power;  // if shot_power == 0: disable kicker, else if is_chip is false: [m/s], from 0 to LINEAR_SHOT_SPEED_MAX, else: [m], from 0 to CHIP_DISTANCE_MAX
-    bool is_chip;  // false: flat kick, true: chip
+    float shot_power;  // if shot_power == 0: disable kicker, else if chip is false: [m/s], from 0 to LINEAR_SHOT_SPEED_MAX, else: [m], from 0 to CHIP_DISTANCE_MAX
+    bool chip;  // false: flat kick, true: chip
     bool charge;  // false: discharge kick capacitors, true: charge kick capacitors
     bool force_kick;  // false: kick on break beam detection, true: force kick right now
 

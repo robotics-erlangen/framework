@@ -77,8 +77,8 @@ void write_common(const RadioCommand2025Common *common, RegularCommandPayload202
     cmd->time_offset = map_to_signed(common->time_offset, -TIME_OFFSET_MAX, TIME_OFFSET_MAX, TIME_OFFSET_BITS);
 
     cmd->dribbler = map_to_signed(common->dribbler, -DRIBBLER_MAX, DRIBBLER_MAX, DRIBBLER_BITS);
-    cmd->shot_power = map_to_unsigned(common->shot_power, 0.0f, common->is_chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX, SHOT_POWER_BITS);
-    cmd->is_chip = common->is_chip;
+    cmd->shot_power = map_to_unsigned(common->shot_power, 0.0f, common->chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX, SHOT_POWER_BITS);
+    cmd->chip = common->chip;
     cmd->charge = common->charge;
     cmd->force_kick = common->force_kick;
 
@@ -100,8 +100,8 @@ void read_common(RadioCommand2025Common *common, const RegularCommandPayload2025
     common->time_offset = map_from_signed(cmd->time_offset, TIME_OFFSET_BITS, -TIME_OFFSET_MAX, TIME_OFFSET_MAX);
 
     common->dribbler = map_from_signed(cmd->dribbler, DRIBBLER_BITS, -DRIBBLER_MAX, DRIBBLER_MAX);
-    common->shot_power = map_from_unsigned(cmd->shot_power, SHOT_POWER_BITS, 0.0f, cmd->is_chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX);
-    common->is_chip = cmd->is_chip;
+    common->shot_power = map_from_unsigned(cmd->shot_power, SHOT_POWER_BITS, 0.0f, cmd->chip ? CHIP_DISTANCE_MAX : LINEAR_SHOT_SPEED_MAX);
+    common->chip = cmd->chip;
     common->charge = cmd->charge;
     common->force_kick = cmd->force_kick;
 

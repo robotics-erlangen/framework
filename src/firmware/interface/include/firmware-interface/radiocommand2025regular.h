@@ -96,7 +96,7 @@ typedef struct {
 
     int8_t dribbler:DRIBBLER_BITS;
     uint8_t shot_power:SHOT_POWER_BITS;
-    bool is_chip:1;
+    bool chip:1;
     bool charge:1;
     bool force_kick:1;
 

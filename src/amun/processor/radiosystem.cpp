@@ -745,7 +745,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
 
         .dribbler = command.dribbler(),
         .shot_power = command.kick_power(),
-        .is_chip = command.kick_style() == robot::Command_KickStyle_Chip,
+        .chip = command.kick_style() == robot::Command_KickStyle_Chip,
         .charge = charge,
         .force_kick = command.force_kick(),
 
