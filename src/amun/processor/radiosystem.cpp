@@ -442,10 +442,61 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
         } else {
             const RegularResponsePayload2025 *regular = &response->payload.regular;
 
+            RadioCommand2025Response response_data;
+            read_response(&response_data, regular);
+
             robot::RadioResponse r;
             r.set_time(time);
             r.set_generation((uint)Radio::Generation::GenPasta);
             r.set_id(id);
+
+            r.set_battery(response_data.battery / 100.0f);
+            r.set_packet_loss_rx(response_data.packet_loss / 100.0f);
+            r.set_ball_detected(response_data.ball_detected);
+
+            bool any_error = false;
+            robot::ExtendedError *e = r.mutable_extended_error();
+
+            any_error |= response_data.motor_status[MOTOR_FR].error;
+            e->set_motor_1_error(response_data.motor_status[MOTOR_FR].error);
+            any_error |= response_data.motor_status[MOTOR_FL].error;
+            e->set_motor_2_error(response_data.motor_status[MOTOR_FL].error);
+            any_error |= response_data.motor_status[MOTOR_BR].error;
+            e->set_motor_3_error(response_data.motor_status[MOTOR_BR].error);
+            any_error |= response_data.motor_status[MOTOR_BL].error;
+            e->set_motor_4_error(response_data.motor_status[MOTOR_BL].error);
+
+            any_error |= response_data.motor_status[DRIBBLER].error;
+            e->set_dribbler_error(response_data.motor_status[DRIBBLER].error);
+
+            any_error |= response_data.kicker_status.error;
+            e->set_kicker_error(response_data.kicker_status.error);
+            any_error |= response_data.kicker_status.break_beam_error;
+            e->set_kicker_break_beam_error(response_data.kicker_status.break_beam_error);
+
+            bool motor_encoder_error =
+                response_data.motor_status[MOTOR_FR].encoder_error ||
+                response_data.motor_status[MOTOR_FL].encoder_error ||
+                response_data.motor_status[MOTOR_BR].encoder_error ||
+                response_data.motor_status[MOTOR_BL].encoder_error;
+            any_error |= motor_encoder_error;
+            e->set_motor_encoder_error(motor_encoder_error);
+
+            any_error |= response_data.imu_status.error;
+            e->set_main_sensor_error(response_data.imu_status.error);
+
+            r.set_error_present(any_error);
+
+            if (response_data.power_enabled) {
+                robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+                const float phi = response_data.measured_pos.angle;
+                const float v_x = response_data.measured_vel.coords.x;
+                const float v_y = response_data.measured_vel.coords.y;
+
+                speedStatus->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
+                speedStatus->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
+                speedStatus->set_omega(response_data.measured_vel.angle);
+            }
 
             responses.append(r);
         }
