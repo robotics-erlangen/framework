@@ -720,7 +720,7 @@ bool static writeTrajectoryPath(robot::ControllerInput const &controller, RadioC
         .alpha = normalizeAngle(traj0.alpha()),
         .t = traj0.time(),
         .acceleration = traj0.acceleration(),
-        .v_max = 0,
+        .v_max = traj0.v_max(),
 
         .slow_down_time = traj0.slow_down_time(),
         .is_fast_endspeed = traj0.end_speed_type() == robot::AlphaTimeTrajectory::EndSpeedType::AlphaTimeTrajectory_EndSpeedType_Fast,
