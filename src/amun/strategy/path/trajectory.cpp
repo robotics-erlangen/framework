@@ -445,14 +445,6 @@ std::vector<TrajectoryPoint> Trajectory::getTrajectoryPoints(float t0) const
     return result;
 }
 
-void Trajectory::printDebug() const
-{
-    for (std::size_t i = 0;i<profile.size();i++) {
-        std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
-    }
-    std::cout <<std::endl;
-}
-
 Trajectory::Iterator::Iterator(const Trajectory &trajectory, const float startTimeOffset) :
     trajectory(trajectory),
     startTimeOffset(startTimeOffset),
@@ -488,3 +480,17 @@ TrajectoryPoint Trajectory::Iterator::next(const float timeOffset)
     const RobotState state{pos, partialState.second};
     return TrajectoryPoint{state, currentTime + startTimeOffset};
 }
+
+std::ostream &operator<<(std::ostream &out, const Trajectory &traj)
+{
+    out << "[";
+    if (traj.profile.size() != 0) {
+        out << traj.profile[0].t << ": (" << traj.profile[0].v.x << ", " << traj.profile[0].v.y << ")";
+        for (std::size_t i = 1; i < traj.profile.size(); i++) {
+            out << ", " << traj.profile[i].t << ": (" << traj.profile[i].v.x << ", " << traj.profile[i].v.y << ")";
+        }
+    }
+    out << "]";
+    return out;
+}
+

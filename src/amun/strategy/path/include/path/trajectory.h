@@ -28,6 +28,7 @@
 #include "accelerationprofile.h"
 
 #include <cassert>
+#include <ostream>
 #include <vector>
 
 class AlphaTimeTrajectory;
@@ -116,7 +117,7 @@ public:
         return (profile[1].v - profile[0].v) / (profile[1].t - profile[0].t);
     }
 
-    void printDebug() const;
+    friend std::ostream &operator<<(std::ostream &out, const Trajectory &traj);
 
     // WARNING: this function does NOT create points for the slow down time. Use other functions if that is necessary
     std::vector<TrajectoryPoint> getTrajectoryPoints(float t0) const;
