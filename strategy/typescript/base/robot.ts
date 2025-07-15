@@ -132,12 +132,13 @@ export class Robot implements RobotState {
 	public isFriendly: boolean;
 	/** True if robot is tracked */
 	public isVisible: boolean = false;
-	/** the robot's radius (defaults to 0.09m) */
+	/** the robot's radius [m] */
 	public radius: number;
+	/** distance from robot center to the dribbler [m] */
 	public shootRadius: number;
-	/** Width of the dribbler */
+	/** Width of the dribbler [m] 	*/
 	public dribblerWidth: number;
-	/** maximum speed */
+	/** maximum speed [m/s] */
 	public maxSpeed: number;
 	/** maximum angular speed */
 	public maxAngularSpeed: number = 0;
