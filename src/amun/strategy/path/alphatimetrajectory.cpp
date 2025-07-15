@@ -220,39 +220,47 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
 
 std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime)
 {
+    if (slowDownTime != 0.0f) {
+        return {};
+    }
+
     const float MAX_ACCELERATION_FACTOR = 1.2f;
 
     const Vector targetOffset = target.pos - start.pos;
-
     const Vector v0 = start.speed;
+    const bool directionMatches = std::signbit(v0.x) == std::signbit(targetOffset.x) && std::signbit(v0.y) == std::signbit(targetOffset.y);
+    if (!directionMatches) {
+        return {};
+    }
+
     const Vector necessaryAcc = necessaryAcceleration(v0, targetOffset);
     const float accLength = necessaryAcc.length();
+    if (acc >= accLength || accLength >= acc * MAX_ACCELERATION_FACTOR) {
+        return {};
+    }
+
     const Vector times(std::abs(v0.x) / necessaryAcc.x, std::abs(v0.y) / necessaryAcc.y);
     const float timeDiff = std::abs(times.x - times.y);
-    const bool directionMatches = std::signbit(v0.x) == std::signbit(targetOffset.x) && std::signbit(v0.y) == std::signbit(targetOffset.y);
-    if (directionMatches && accLength > acc && accLength < acc * MAX_ACCELERATION_FACTOR && slowDownTime == 0.0f) {
 
-        Trajectory1D x = Trajectory1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
-        Trajectory1D y = Trajectory1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
+    Trajectory1D x = Trajectory1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
+    Trajectory1D y = Trajectory1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
+    if (timeDiff < 0.1f) {
+        return Trajectory{x, y, start.pos, slowDownTime};
+    }
 
-        if (timeDiff < 0.1f) {
-            return Trajectory{x, y, start.pos, slowDownTime};
-        } else {
-            if (times.x > times.y) {
-                x = Trajectory1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
-                x.integrateTime();
-            } else {
-                y = Trajectory1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
-                y.integrateTime();
-            }
-            const float accX = x.initialAcceleration();
-            const float accY = y.initialAcceleration();
-            const float totalAcc = std::sqrt(accX * accX + accY * accY);
-            const Trajectory converted{x, y, start.pos, slowDownTime};
-            if (totalAcc < acc * MAX_ACCELERATION_FACTOR && converted.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
-                return converted;
-            }
-        }
+    if (times.x > times.y) {
+        x = Trajectory1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
+        x.integrateTime();
+    } else {
+        y = Trajectory1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
+        y.integrateTime();
+    }
+    const float accX = x.initialAcceleration();
+    const float accY = y.initialAcceleration();
+    const float totalAcc = std::sqrt(accX * accX + accY * accY);
+    const Trajectory converted{x, y, start.pos, slowDownTime};
+    if (totalAcc < acc * MAX_ACCELERATION_FACTOR && converted.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
+        return converted;
     }
     return {};
 }
