@@ -472,3 +472,201 @@ TEST(RadioCommand2025, ReadWriteRespone) {
         ASSERT_RESPONSE_EQ(written, read);
     }
 }
+
+TEST(RadioCommand2025, ZeroConvertsToZeroInCommon) {
+    RegularCommandPayload2025 cmd;
+
+    RadioCommand2025Common written = {
+        .time_offset = 0,
+        .standby = false,
+        .eject_sd_card = false,
+
+        .dribbler = 0,
+        .shot_power = 0,
+        .chip = false,
+        .charge = false,
+        .force_kick = false,
+
+        .has_detection = true,
+        .detection = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+    };
+    write_common(&written, &cmd);
+    //ASSERT_EQ(cmd.time_offset, 0);
+    ASSERT_EQ(cmd.dribbler, 0);
+    ASSERT_EQ(cmd.shot_power, 0);
+    ASSERT_EQ(cmd.detection_pos_x, 0);
+    ASSERT_EQ(cmd.detection_pos_y, 0);
+    ASSERT_EQ(cmd.detection_phi, 0);
+
+    RadioCommand2025Common read;
+    read_common(&read, &cmd);
+    ASSERT_COMMON_EQ(written, read);
+}
+
+TEST(RadioCommand2025, ZeroConvertsToZeroInTrajectoryPath) {
+    RegularCommandPayload2025 cmd;
+
+    RadioCommand2025TrajectoryPath written = {
+        .start_state = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+
+        .start_vel = {
+            .x = 0,
+            .y = 0,
+        },
+
+        .end_angle = 0,
+
+        .end_vel = {
+            .x = 0,
+            .y = 0,
+        },
+
+        .alpha = 0,
+        .t = 0,
+        .acceleration = 0,
+        .v_max = 0,
+
+        .slow_down_time = 0,
+        .is_fast_endspeed = false,
+    };
+    write_trajectory_path(&written, &cmd);
+    ASSERT_EQ(cmd.traj.trajectory_path.start_pos_x, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.start_pos_y, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.start_phi, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.start_vel_x, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.start_vel_y, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.end_phi, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.end_vel_x, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.end_vel_y, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.alpha, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.t, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.acceleration, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.v_max, 0);
+    ASSERT_EQ(cmd.traj.trajectory_path.slow_down_time, 0);
+
+    RadioCommand2025TrajectoryPath read;
+    ASSERT_TRUE(read_trajectory_path(&read, &cmd));
+    ASSERT_TRAJECTORY_PATH_EQ(written, read);
+}
+
+TEST(RadioCommand2025, ZeroConvertsToZeroInSpline) {
+    RegularCommandPayload2025 cmd;
+
+    RadioCommand2025Spline written = {
+        .pos = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+        .vel = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+        .acc = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+        .jerk = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+    };
+    write_spline(&written, &cmd, true);
+    ASSERT_EQ(cmd.traj.spline.x_pos, 0);
+    ASSERT_EQ(cmd.traj.spline.y_pos, 0);
+    ASSERT_EQ(cmd.traj.spline.phi_pos, 0);
+    ASSERT_EQ(cmd.traj.spline.x_vel, 0);
+    ASSERT_EQ(cmd.traj.spline.y_vel, 0);
+    ASSERT_EQ(cmd.traj.spline.phi_vel, 0);
+    ASSERT_EQ(cmd.traj.spline.x_acc, 0);
+    ASSERT_EQ(cmd.traj.spline.y_acc, 0);
+    ASSERT_EQ(cmd.traj.spline.phi_acc, 0);
+    ASSERT_EQ(cmd.traj.spline.x_jerk, 0);
+    ASSERT_EQ(cmd.traj.spline.y_jerk, 0);
+    ASSERT_EQ(cmd.traj.spline.phi_jerk, 0);
+
+    RadioCommand2025Spline read;
+    ASSERT_TRUE(read_spline(&read, &cmd, true));
+    ASSERT_SPLINE_EQ(written, read);
+}
+
+TEST(RadioCommand2025, ZeroConvertsToZeroInResponse) {
+    RegularResponsePayload2025 resp;
+
+    RadioCommand2025Response written = {
+        .battery = 0,
+        .packet_loss = 0,
+
+        .motor_status = {
+            { 0 },
+            { 0 },
+            { 0 },
+            { 0 },
+            { 0 },
+        },
+        .kicker_status = { 0 },
+        .imu_status = { 0 },
+        .sd_status = { 0 },
+
+        .motor_load_torque = { 0 },
+
+        .measured_pos = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+        .measured_vel = {
+            .coords = {
+                .x = 0,
+                .y = 0,
+            },
+            .angle = 0,
+        },
+
+        .power_enabled = false,
+        .ball_detected = false,
+    };
+    write_response(&written, &resp);
+    ASSERT_EQ(resp.battery, 0);
+    ASSERT_EQ(resp.packet_loss, 0);
+    ASSERT_EQ(resp.measured_pos_x, 0);
+    ASSERT_EQ(resp.measured_pos_y, 0);
+    ASSERT_EQ(resp.measured_phi, 0);
+    ASSERT_EQ(resp.measured_vel_x, 0);
+    ASSERT_EQ(resp.measured_vel_y, 0);
+    ASSERT_EQ(resp.measured_omega, 0);
+    ASSERT_EQ(resp.motor0_load_torque, 0);
+    ASSERT_EQ(resp.motor1_load_torque, 0);
+    ASSERT_EQ(resp.motor2_load_torque, 0);
+    ASSERT_EQ(resp.motor3_load_torque, 0);
+    ASSERT_EQ(resp.dribbler_load_torque, 0);
+
+    RadioCommand2025Response read;
+    read_response(&read, &resp);
+    ASSERT_RESPONSE_EQ(written, read);
+}

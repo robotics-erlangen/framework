@@ -35,7 +35,11 @@ static int32_t map_to_interval(float x, float x_min, float x_max, int32_t y_min,
     // That way, when mapping 0 from a symmetric interval [-a, a] to a N bit signed integer interval,
     // 0 is mapped to 0 instead of -1. Because otherwise the call below would result in roundf(-.5f),
     // which equals -1.
-    int32_t y = roundf(y_min + (y_max - y_min) * (x - x_min) / (x_max - x_min) + EPSILON);
+    //
+    // Also this is has to be done in double precision, as otherwise the value ranges and bit counts
+    // used in the current radio protocol (at the time of writing especially the spline.acc_phi field)
+    // would lead to precision loss when using 32 bit floats.
+    int32_t y = round(y_min + (double)(y_max - y_min) * (x - x_min) / (x_max - x_min) + EPSILON);
     return max(min(y_max, y), y_min);
 }
 
