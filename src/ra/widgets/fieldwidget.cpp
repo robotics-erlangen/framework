@@ -1657,8 +1657,13 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 
         amun::RobotMoveCommand *move = command->add_robot_move_blue();
         move->set_id(m_dragId);
-        move->set_p_x(p.x());
-        move->set_p_y(p.y());
+        if (m_usingVirtualField) {
+            move->set_p_x(flipFactor * m_virtualFieldTransform.applyPosX(p.x(), p.y()));
+            move->set_p_y(flipFactor * m_virtualFieldTransform.applyPosY(p.x(), p.y()));
+        } else {
+            move->set_p_x(p.x());
+            move->set_p_y(p.y());
+        }
     } else if (m_dragType == DragYellow) {
         sslsim::TeleportRobot *robot = sim->mutable_ssl_control()->add_teleport_robot();
         auto* id = robot->mutable_id();
@@ -1669,8 +1674,13 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 
         amun::RobotMoveCommand *move = command->add_robot_move_yellow();
         move->set_id(m_dragId);
-        move->set_p_x(p.x() );
-        move->set_p_y(p.y());
+        if (m_usingVirtualField) {
+            move->set_p_x(flipFactor * m_virtualFieldTransform.applyPosX(p.x(), p.y()));
+            move->set_p_y(flipFactor * m_virtualFieldTransform.applyPosY(p.x(), p.y()));
+        } else {
+            move->set_p_x(p.x());
+            move->set_p_y(p.y());
+        }
     }
     emit sendCommand(command);
 }
