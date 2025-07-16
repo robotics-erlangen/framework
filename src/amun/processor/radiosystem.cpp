@@ -431,7 +431,7 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
         }
         responses.append(r);
-    } else if (header->command == RESPONSE_2025_DEFAULT && size == sizeof(RadioResponse2025)) {
+    } else if (header->command == RESPONSE_2025_DEFAULT && size == sizeof(RadioResponse2025) + 1) {
         const uint8_t id = data[0];
         size -= sizeof(uint8_t);
         data += sizeof(uint8_t);
