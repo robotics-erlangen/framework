@@ -450,8 +450,9 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             r.set_generation((uint)Radio::Generation::GenPasta);
             r.set_id(id);
 
-            r.set_battery(response_data.battery / 100.0f);
-            r.set_packet_loss_rx(response_data.packet_loss / 100.0f);
+            r.set_battery(response_data.battery);
+            r.set_packet_loss_rx(response_data.packet_loss);
+            r.set_packet_loss_tx(response_data.packet_loss);  // TODO compute rx and tx loss separately
             r.set_ball_detected(response_data.ball_detected);
 
             bool any_error = false;
