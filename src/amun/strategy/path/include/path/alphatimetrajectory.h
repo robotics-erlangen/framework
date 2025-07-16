@@ -31,6 +31,9 @@
 #include "gtest/gtest.h"
 #endif
 
+std::optional<float> unadjustAngle(Vector startSpeed, Vector endSpeed, float time, float angle, float acc, EndSpeed endSpeedType);
+float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float angle, float acc, EndSpeed endSpeedType);
+
 // WARNING: generated trajectories may exceed the maximum velocity by a factor of up to sqrt(2) in rare cases
 class AlphaTimeTrajectory
 {

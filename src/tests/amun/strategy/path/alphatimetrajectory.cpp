@@ -292,4 +292,62 @@ TEST(AlphaTimeTrajectory, calculateTrajectoryPositionInvariant) {
     }
 }
 
+TEST(AlphaTimeTrajectory, adjustUnadjustAngle) {
+    constexpr int RUNS = 10'000;
+
+    for (int i = 0; i < RUNS; i++) {
+        RNG rng(i + 1);
+
+        const float maxSpeed = rng.uniformFloat(0.3, 5);
+
+        const Vector v0 = makeSpeed(rng, maxSpeed);
+        const Vector v1 = rng.uniform() > 0.9 ? Vector(0, 0) : makeSpeed(rng, maxSpeed);
+        const float time = rng.uniformFloat(0.005, 5);
+        const float angle = rng.uniformFloat(0, 2 * M_PI);
+
+        const float minAcc = (v1 - v0).length() / time;
+        const float acc = rng.uniformFloat(minAcc, minAcc + 3);
+        const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::EXACT : EndSpeed::FAST;
+
+        // adjust then unadjust
+        const float adjusted = adjustAngle(v0, v1, time, angle, acc, endSpeedType);
+        const std::optional<float> unadjusted = unadjustAngle(v0, v1, time, adjusted, acc, endSpeedType);
+        ASSERT_TRUE(unadjusted.has_value());
+        ASSERT_APPROX_EQ(angle, unadjusted.value(), 1e-2, 1e-2);
+
+        // readjusted
+        const float readjusted = adjustAngle(v0, v1, time, unadjusted.value(), acc, endSpeedType);
+        ASSERT_APPROX_EQ(adjusted, readjusted, 1e-2, 1e-2);
+    }
+}
+
+TEST(AlphaTimeTrajectory, unadjustAdjustAngle) {
+    constexpr int RUNS = 10'000;
+
+    for (int i = 0; i < RUNS; i++) {
+        RNG rng(i + 1);
+
+        const float maxSpeed = rng.uniformFloat(0.3, 5);
+
+        const Vector v0 = makeSpeed(rng, maxSpeed);
+        const Vector v1 = rng.uniform() > 0.9 ? Vector(0, 0) : makeSpeed(rng, maxSpeed);
+        const float time = rng.uniformFloat(0.005, 5);
+        const float angle = rng.uniformFloat(0, 2 * M_PI);
+
+        const float minAcc = (v1 - v0).length() / time;
+        const float acc = rng.uniformFloat(minAcc, minAcc + 3);
+        const EndSpeed endSpeedType = rng.uniform() > 0.5 ? EndSpeed::EXACT : EndSpeed::FAST;
+
+        // unadjust then adjust
+        const std::optional<float> unadjusted = unadjustAngle(v0, v1, time, angle, acc, endSpeedType);
+        if (!unadjusted.has_value()) {
+            // invalid input angle
+            continue;
+        }
+
+        const float adjusted = adjustAngle(v0, v1, time, unadjusted.value(), acc, endSpeedType);
+        ASSERT_APPROX_EQ(angle, adjusted, 1e-2, 1e-2);
+    }
+}
+
 // TODO: test total time

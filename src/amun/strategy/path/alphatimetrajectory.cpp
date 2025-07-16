@@ -20,6 +20,8 @@
 
 #include "alphatimetrajectory.h"
 #include "parameterization.h"
+#include <cassert>
+
 #ifndef FIRMWARE
 #include <QDebug>
 #endif // !FIRMWARE
@@ -45,12 +47,11 @@ static Vector minTimeEndSpeed(Vector startSpeed, Vector endSpeed)
     return Vector(endSpeedX, endSpeedY);
 }
 
-static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float angle, float acc, EndSpeed endSpeedType)
+static std::optional<std::tuple<float, float, float>> getAngleAdjustmentValues(Vector startSpeed, Vector endSpeed, float time, float acc, EndSpeed endSpeedType)
 {
     if (endSpeedType == EndSpeed::FAST) {
         endSpeed = minTimeEndSpeed(startSpeed, endSpeed);
     }
-    angle = normalizeAnglePositive(angle);
 
     // case 1: only startSpeed.x is != 0
     // this results in 2 cases where the angle is invalid, in a range around 0 and 180 degree
@@ -65,8 +66,12 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     const Vector diff = endSpeed - startSpeed;
     const Vector absDiff(std::abs(diff.x), std::abs(diff.y));
     if (absDiff.x > time * acc || absDiff.y > time * acc) {
+        // TODO I think these assert are reasonable, but the fail constantly
+        //assert(absDiff.x - time * acc < 0.01);
+        //assert(absDiff.y - time * acc < 0.01);
+
         // sometimes happens because of floating point inaccuracies
-        return angle;
+        return {};
     }
     // offset to ensure that values directly on the border of an invalid segment are not treated as invalid later
     const float FLOATING_POINT_OFFSET = 0.0005f;
@@ -75,9 +80,73 @@ static float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float a
     const float gapSizeHalfY = std::asin(absDiff.y / (time * acc)) + FLOATING_POINT_OFFSET;
 
     const float circleCircumference = float(2 * M_PI) - gapSizeHalfX * 4 - gapSizeHalfY * 4;
-    const float circumferenceFactor = circleCircumference / float(2 * M_PI);
-    angle *= circumferenceFactor;
+    if (circleCircumference < 0) {
+        // TODO how does this happen?
+        return {};
+    }
 
+    const float circumferenceFactor = circleCircumference / float(2 * M_PI);
+
+    return std::make_tuple(gapSizeHalfX, gapSizeHalfY, circumferenceFactor);
+}
+
+// the inverse of adjustAngle, i.e.
+//     adjusted = adjustAngle(..., angle, ...)
+//     unadjusted = unadjustAngle(..., adjusted, ...)
+//     assert unadjusted == angle
+std::optional<float> unadjustAngle(Vector startSpeed, Vector endSpeed, float time, float angle, float acc, EndSpeed endSpeedType)
+{
+    const std::optional<std::tuple<float, float, float>> angleAdjustmentValues = getAngleAdjustmentValues(startSpeed, endSpeed, time, acc, endSpeedType);
+    if (!angleAdjustmentValues.has_value()) {
+        return angle;
+    }
+
+    const float gapSizeHalfX = std::get<0>(angleAdjustmentValues.value());
+    const float gapSizeHalfY = std::get<1>(angleAdjustmentValues.value());
+    const float circumferenceFactor = std::get<2>(angleAdjustmentValues.value());
+
+    // the following intervals are invalid for angle:
+    //   - [0, gapSizeHalfX]
+    //   - [pi/2 - gapSizeHalfY, pi/2 + gapSizeHalfY]
+    //   - [pi - gapSizeHalfX, pi + gapSizeHalfX]
+    //   - [3pi/2 - gapSizeHalfY, 3pi/2 + gapSizeHalfY]
+    //   - [2pi - gapSizeHalfX, 2pi]
+    angle = normalizeAnglePositive(angle);
+    if ((0 <= angle && angle < gapSizeHalfX)
+            || (0.5f * M_PI - gapSizeHalfY <= angle && angle < 0.5f * M_PI + gapSizeHalfY)
+            || (1.0f * M_PI - gapSizeHalfX <= angle && angle < 1.0f * M_PI + gapSizeHalfX)
+            || (1.5f * M_PI - gapSizeHalfY <= angle && angle < 1.5f * M_PI + gapSizeHalfY)
+            || (2.0f * M_PI - gapSizeHalfX <= angle && angle < 2.0f * M_PI)) {
+        return {};
+    }
+
+    if (angle > float(M_PI * 1.5) + gapSizeHalfY) {
+        angle -= gapSizeHalfY * 2.0f;
+    }
+    if (angle > float(M_PI) + gapSizeHalfX) {
+        angle -= gapSizeHalfX * 2.0f;
+    }
+    if (angle > float(M_PI / 2) + gapSizeHalfY) {
+        angle -= gapSizeHalfY * 2.0f;
+    }
+    angle -= gapSizeHalfX;
+    angle /= circumferenceFactor;
+    return angle;
+}
+
+float adjustAngle(Vector startSpeed, Vector endSpeed, float time, float angle, float acc, EndSpeed endSpeedType)
+{
+    const std::optional<std::tuple<float, float, float>> angleAdjustmentValues = getAngleAdjustmentValues(startSpeed, endSpeed, time, acc, endSpeedType);
+    if (!angleAdjustmentValues.has_value()) {
+        return angle;
+    }
+
+    const float gapSizeHalfX = std::get<0>(angleAdjustmentValues.value());
+    const float gapSizeHalfY = std::get<1>(angleAdjustmentValues.value());
+    const float circumferenceFactor = std::get<2>(angleAdjustmentValues.value());
+
+    angle = normalizeAnglePositive(angle);
+    angle *= circumferenceFactor;
     angle += gapSizeHalfX;
     if (angle > float(M_PI / 2) - gapSizeHalfY) {
         angle += gapSizeHalfY * 2.0f;
