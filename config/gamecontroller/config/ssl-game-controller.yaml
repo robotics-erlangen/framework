@@ -1,7 +1,7 @@
 time-acquisition-mode: ci
 network:
-  publish-address:
-  publish-nif:
+  publish-address: ""
+  publish-nif: ""
   vision-address:
   tracker-address:
   skip-interfaces: []
