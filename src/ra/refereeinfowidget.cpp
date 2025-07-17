@@ -188,6 +188,25 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         };
         setTimeoutLabel(m_yellowTimeoutsLeft, m_yellowTimeoutTime, state.yellow(), ui->timeoutsLeftYellow);
         setTimeoutLabel(m_blueTimeoutsLeft, m_blueTimeoutTime, state.blue(), ui->timeoutsLeftBlue);
+
+        auto setSubstitutions = [](uint &bufferedSubstitutions, uint substitutions, QLabel *label) {
+            if (bufferedSubstitutions != substitutions) {
+                bufferedSubstitutions = substitutions;
+                label->setNum(static_cast<int>(substitutions));
+            }
+        };
+        if (state.yellow().has_bot_substitutions_left()) {
+            setSubstitutions(
+                m_yellowSubstitutions,
+                state.yellow().bot_substitutions_left(),
+                ui->remainingSubstitutionsYellow);
+        }
+        if (state.blue().has_bot_substitutions_left()) {
+            setSubstitutions(
+                m_blueSubstitutions,
+                state.blue().bot_substitutions_left(),
+                ui->remainingSubstitutionsBlue);
+        }
     }
 
     if (status->has_geometry()) {
@@ -237,6 +256,8 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->placementFailuresBlue->setStyleSheet(blue);
     ui->timeoutsLeftLabelBlue->setStyleSheet(blue);
     ui->timeoutsLeftBlue->setStyleSheet(blue);
+    ui->remainingSubstitutionsBlue->setStyleSheet(blue);
+    ui->remainingSubstitutionsBlueDesc->setStyleSheet(blue);
 
     ui->allowedBotsLabelYellow->setStyleSheet(yellow);
     ui->allowedBotsYellow->setStyleSheet(yellow);
@@ -252,4 +273,6 @@ void RefereeInfoWidget::setStyleSheets(bool useDark) {
     ui->placementFailuresYellow->setStyleSheet(yellow);
     ui->timeoutsLeftLabelYellow->setStyleSheet(yellow);
     ui->timeoutsLeftYellow->setStyleSheet(yellow);
+    ui->remainingSubstitutionsYellow->setStyleSheet(yellow);
+    ui->remainingSubstitutionsYellowDesc->setStyleSheet(yellow);
 }

@@ -76,6 +76,9 @@ private:
     uint m_yellowTimeoutTime = 0;
     uint m_blueTimeoutsLeft = 4;
     uint m_blueTimeoutTime = 0;
+
+    uint m_yellowSubstitutions = 5;
+    uint m_blueSubstitutions = 5;
 };
 
 #endif // REFEREEINFOWIDGET_H

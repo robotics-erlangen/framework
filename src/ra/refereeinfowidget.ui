@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>386</width>
-    <height>250</height>
+    <height>389</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -224,6 +224,27 @@
          </item>
         </layout>
        </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <widget class="QLabel" name="remainingSubstitutionsYellowDesc">
+           <property name="text">
+            <string>Substitutions:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="remainingSubstitutionsYellow">
+           <property name="text">
+            <string>5</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
       </layout>
      </item>
      <item>
@@ -419,6 +440,27 @@
           <widget class="QLabel" name="keeperIdBlue">
            <property name="text">
             <string>0</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignCenter</set>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_11">
+         <item>
+          <widget class="QLabel" name="remainingSubstitutionsBlueDesc">
+           <property name="text">
+            <string>Substitutions:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="remainingSubstitutionsBlue">
+           <property name="text">
+            <string>5</string>
            </property>
            <property name="alignment">
             <set>Qt::AlignCenter</set>
