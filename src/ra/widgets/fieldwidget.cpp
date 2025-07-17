@@ -1654,16 +1654,6 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
         id->set_team(gameController::BLUE);
         coordinates::toVision(p * flipFactor, *robot);
         robot->set_by_force(true);
-
-        amun::RobotMoveCommand *move = command->add_robot_move_blue();
-        move->set_id(m_dragId);
-        if (m_usingVirtualField) {
-            move->set_p_x(flipFactor * m_virtualFieldTransform.applyPosX(p.x(), p.y()));
-            move->set_p_y(flipFactor * m_virtualFieldTransform.applyPosY(p.x(), p.y()));
-        } else {
-            move->set_p_x(p.x());
-            move->set_p_y(p.y());
-        }
     } else if (m_dragType == DragYellow) {
         sslsim::TeleportRobot *robot = sim->mutable_ssl_control()->add_teleport_robot();
         auto* id = robot->mutable_id();
@@ -1671,8 +1661,12 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
         id->set_team(gameController::YELLOW);
         coordinates::toVision(p * flipFactor, *robot);
         robot->set_by_force(true);
+    }
 
-        amun::RobotMoveCommand *move = command->add_robot_move_yellow();
+    if (m_dragType == DragYellow || m_dragType == DragBlue) {
+        amun::RobotMoveCommand *move = m_dragType == DragYellow
+            ? command->add_robot_move_yellow()
+            : command->add_robot_move_blue();
         move->set_id(m_dragId);
         if (m_usingVirtualField) {
             move->set_p_x(flipFactor * m_virtualFieldTransform.applyPosX(p.x(), p.y()));
@@ -1682,6 +1676,7 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
             move->set_p_y(p.y());
         }
     }
+
     emit sendCommand(command);
 }
 
