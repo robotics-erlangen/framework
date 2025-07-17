@@ -63,9 +63,8 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         const uint yellowFouls = state.yellow().foul_counter();
         const uint blueFouls = state.blue().foul_counter();
 
-        // TODO check if game controller sends maximum amount of robots
-        const int allowedRobotsYellow = 11 - (yellowYellowCards + yellowRedCards);
-        const int allowedRobotsBlue = 11 - (blueYellowCards + blueRedCards);
+        const int allowedRobotsYellow = state.yellow().has_max_allowed_bots() ? state.yellow().max_allowed_bots() : m_allowedRobotCountBlue;
+        const int allowedRobotsBlue = state.blue().has_max_allowed_bots() ? state.blue().max_allowed_bots() : m_allowedRobotCountBlue;
 
         currentRobotCountChanged |= allowedRobotsYellow != m_allowedRobotCountYellow;
         currentRobotCountChanged |= allowedRobotsBlue != m_allowedRobotCountBlue;
