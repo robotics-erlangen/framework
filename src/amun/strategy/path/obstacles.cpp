@@ -20,6 +20,7 @@
 
 #include "obstacles.h"
 #include <QDebug>
+#include <algorithm>
 #include <ostream>
 
 constexpr float PROJECT_EPSILON = 0.0001f;
@@ -703,15 +704,19 @@ float Obstacles::OpponentRobotObstacle::zonedDistance(const TrajectoryPoint &poi
     }
 
     // the maximum acceleration of the opponent
-    const float MAX_ACCEL = 2.5;
+    const float MAX_ACCEL = 5.0f;
     // the required length for the speed projection for it to be a foul
-    const float MIN_FOUL_PROJECTION_LENGTH = 1.3;  // rules say 1.5m
+    const float MIN_FOUL_PROJECTION_LENGTH = 1.0f;  // rules say 1.5m
     // the minimum absolute speed diff for both to commit a foul
-    const float MIN_ABS_SPEED_DIFF_BOTH_FOUL = 0.2;  // rules say 0.3m
+    const float MIN_ABS_SPEED_DIFF_BOTH_FOUL = 0.1f;  // rules say 0.3m
+    // maximum extra obstacle radius
+    const float MAX_EXTRA_OBSTACLE_RADIUS = 0.9f;
+    // minimum extra obstacle radius
+    const float MIN_EXTRA_OBSTACLE_RADIUS = 0.1f;
 
     const Vector centerAtTime = startPos + speed * point.time;
     const float possibleDistByAcceleration = .5f * MAX_ACCEL * point.time * point.time;
-    float totalRadius = std::min(1.0f, radius + possibleDistByAcceleration);
+    float totalRadius = radius + std::clamp(possibleDistByAcceleration, MIN_EXTRA_OBSTACLE_RADIUS, MAX_EXTRA_OBSTACLE_RADIUS);
 
     const Vector posLine = centerAtTime - point.state.pos;
     const Vector speedDiff = speed - point.state.speed;
@@ -726,15 +731,14 @@ float Obstacles::OpponentRobotObstacle::zonedDistance(const TrajectoryPoint &poi
         const float ownSpeedLength = point.state.speed.length();
         const float absSpeedDiff = std::abs(oppSpeedLength - ownSpeedLength);
         if (absSpeedDiff < MIN_ABS_SPEED_DIFF_BOTH_FOUL && ownSpeedLength < oppSpeedLength) {
-            totalRadius = radius;
-        } else {
-            totalRadius = std::max(totalRadius, radius + safetyDistance(point.state.speed, speed));
-            //if (totalRadius < radius + safetyDistance(point.state.speed, speed)) {
-            //    std::cerr << "got smaller and could be a foul" << std::endl;
-            //}
+            totalRadius = radius + MIN_EXTRA_OBSTACLE_RADIUS;
         }
     } else {
-        totalRadius = radius;
+        totalRadius = radius + MIN_EXTRA_OBSTACLE_RADIUS;
+    }
+    if (totalRadius < radius + safetyDistance(point.state.speed, speed)) {
+        std::cerr << "got smaller and could be a foul (from " << (radius + safetyDistance(point.state.speed, speed)) << " to " << totalRadius << ")" << std::endl;
+        totalRadius = std::max(totalRadius, radius + safetyDistance(point.state.speed, speed));
     }
 
     const float distSq = centerAtTime.distanceSq(point.state.pos);
