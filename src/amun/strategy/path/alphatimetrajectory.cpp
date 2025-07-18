@@ -287,7 +287,40 @@ static Vector necessaryAcceleration(Vector v0, Vector distance)
                   v0.y * std::abs(v0.y) * 0.5f / distance.y);
 }
 
-std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime)
+static float solveSq(float a, float b, float c)
+{
+    if (a == 0) {
+        if (b == 0) {
+            assert(false);
+        } else {
+            return -c / b;
+        }
+    }
+
+    float det = b * b - 4 * a * c;
+    if (det < 0) {
+        assert(false);
+    } else if (det == 0) {
+        return -b / (2 * a);
+    }
+    det = std::sqrt(det);
+    const float t2 = (-b - std::copysign(det, b)) / (2 * a);
+    const float t1 = c / (a * t2);
+
+    return std::max(t1, t2);
+}
+
+static float midSpeedForDistance(float v0, float v1, float time, float distance) {
+    const float a = 1.0f / distance;
+    const float b = -2.0f / time;
+    const float v0Abs = std::abs(v0);
+    const float v1Abs = std::abs(v1);
+    const float c = 1.0f / time * (v0Abs + v1Abs) - 1.0f / (2.0f * distance) * (v0Abs * v0Abs + v1Abs * v1Abs);
+    const float solution = solveSq(a, b, c);
+    return std::copysign(solution, v0);
+}
+
+std::optional<AlphaTimeTrajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime)
 {
     if (slowDownTime != 0.0f) {
         return {};
@@ -303,33 +336,66 @@ std::optional<Trajectory> AlphaTimeTrajectory::tryDirectBrake(const RobotState &
     }
 
     const Vector necessaryAcc = necessaryAcceleration(v0, targetOffset);
-    const float accLength = necessaryAcc.length();
-    if (acc >= accLength || accLength >= acc * MAX_ACCELERATION_FACTOR) {
+    const float necessaryAccLength = necessaryAcc.length();
+    if (acc >= necessaryAccLength || necessaryAccLength >= acc * MAX_ACCELERATION_FACTOR) {
         return {};
     }
 
     const Vector times(std::abs(v0.x) / necessaryAcc.x, std::abs(v0.y) / necessaryAcc.y);
     const float timeDiff = std::abs(times.x - times.y);
 
-    Trajectory1D x = Trajectory1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x / necessaryAcc.x));
-    Trajectory1D y = Trajectory1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y / necessaryAcc.y));
     if (timeDiff < 0.1f) {
-        return Trajectory{x, y, start.pos, slowDownTime};
+        const float alpha = necessaryAcc.angle();
+        const std::optional<float> unadjustedAlpha = unadjustAngle(start.speed, Vector{0, 0}, std::max(times.x, times.y), alpha, necessaryAccLength, EndSpeed::EXACT);
+        if (unadjustedAlpha.has_value()) {
+            return AlphaTimeTrajectory{start, Vector{0, 0}, 0, unadjustedAlpha.value(), necessaryAccLength, 0, 0, EndSpeed::EXACT};
+        } else {
+            return {};
+        }
     }
-
+    Trajectory1D x;
+    Trajectory1D y;
+    float vMaxX, vMaxY, accX, accY, time;
     if (times.x > times.y) {
+        vMaxX = midSpeedForDistance(v0.x, 0, times.y, targetOffset.x);
+
+        accX = (2.0f * vMaxX * vMaxX - v0.x * v0.x) / (2.0f * targetOffset.x);
+        accY = necessaryAcc.y;
+
+        vMaxY = vMaxX / accX * accY;
+
         x = Trajectory1D::create1DAccelerationByDistance(v0.x, 0, times.y, targetOffset.x);
         x.integrateTime();
+        time = (std::abs(v0.x - vMaxX) + std::abs(vMaxX)) / accX;
+
+        y = Trajectory1D::createLinearSpeedSegment(v0.y, 0, std::abs(v0.y) / necessaryAcc.y);
     } else {
+        vMaxY = midSpeedForDistance(v0.y, 0, times.x, targetOffset.y);
+
+        accY = (2.0f * vMaxY * vMaxY - v0.y * v0.y) / (2.0f * targetOffset.y);
+        accX = necessaryAcc.x;
+
+        vMaxX = vMaxY / accY * accX;
+
+        x = Trajectory1D::createLinearSpeedSegment(v0.x, 0, std::abs(v0.x) / necessaryAcc.x);
+
         y = Trajectory1D::create1DAccelerationByDistance(v0.y, 0, times.x, targetOffset.y);
         y.integrateTime();
+        time = (std::abs(v0.y - vMaxY) + std::abs(vMaxY)) / accY;
     }
-    const float accX = x.initialAcceleration();
-    const float accY = y.initialAcceleration();
-    const float totalAcc = std::sqrt(accX * accX + accY * accY);
-    const Trajectory converted{x, y, start.pos, slowDownTime};
-    if (totalAcc < acc * MAX_ACCELERATION_FACTOR && converted.endPosition().distanceSq(target.pos) < 0.01f * 0.01f) {
-        return converted;
+    const Vector vMaxXY{vMaxX, vMaxY};
+    const Vector accXY{accX, accY};
+    const float totalAcc = accXY.length();
+    const float minTime = minimumTime(v0, Vector{0, 0}, totalAcc, EndSpeed::EXACT);
+    time -= minTime;
+    const std::optional<float> unadjustedAlpha = unadjustAngle(v0, Vector{0, 0}, std::min(times.x, times.y), accXY.angle(), totalAcc, EndSpeed::EXACT);
+    if (!unadjustedAlpha.has_value()) {
+        return {};
+    }
+
+    AlphaTimeTrajectory traj{start, Vector{0, 0}, time, unadjustedAlpha.value(), totalAcc, vMaxXY.length(), 0, EndSpeed::EXACT};
+    if (totalAcc < acc * MAX_ACCELERATION_FACTOR && traj.endState().pos.distanceSq(target.pos) < 0.01f * 0.01f) {
+        return traj;
     }
     return {};
 }
@@ -344,15 +410,12 @@ std::optional<AlphaTimeTrajectory> AlphaTimeTrajectory::find(const RobotState &s
         && target.speed == Vector(0, 0)
         && start.speed.lengthSquared() < HIGH_PRECISION_SPEED_THRESHOLD * HIGH_PRECISION_SPEED_THRESHOLD;
 
-    bool wouldBeDirectBrake = false;
     if (target.speed == Vector(0, 0)) {
         endSpeedType = EndSpeed::EXACT; // using fast end speed is more computationally intensive
 
-        const auto directBrake = tryDirectBrake(start, target, acc, slowDownTime);
+        std::optional<AlphaTimeTrajectory> directBrake = tryDirectBrake(start, target, acc, slowDownTime);
         if (directBrake) {
-            // TODO
-            //return directBrake;
-            wouldBeDirectBrake = true;
+            return directBrake;
         }
     }
 
@@ -411,9 +474,6 @@ std::optional<AlphaTimeTrajectory> AlphaTimeTrajectory::find(const RobotState &s
             searchIterationCounter += i;
 #endif
             traj.setCorrectionOffset(target.pos - endPos);
-            if (wouldBeDirectBrake) {
-                //std::cout << "wouldBeDirectBrake, and succeeded" << std::endl;
-            }
             return traj;
         }
 
@@ -452,9 +512,6 @@ std::optional<AlphaTimeTrajectory> AlphaTimeTrajectory::find(const RobotState &s
 #ifdef ACTIVE_PATHFINDING_PARAMETER_OPTIMIZATION
     searchIterationCounter += ITERATIONS;
 #endif
-    if (wouldBeDirectBrake) {
-        std::cout << "wouldBeDirectBrake, but failed" << std::endl;
-    }
     return {};
 }
 

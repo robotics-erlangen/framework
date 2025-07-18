@@ -74,7 +74,7 @@ private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);
     static std::pair<float, float> freeExtraTimeDistance(float v, float time, float acc, float vMax);
 
-private:
+public:
     StaticVector<VT, 4> profile;
 
     friend class Trajectory;
