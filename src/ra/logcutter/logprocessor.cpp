@@ -121,6 +121,8 @@ LogProcessor::LogProcessor(const QList<QString> &inputFiles, const QString &outp
       m_options(options), m_ignoreHashing(ignoreHashing)
 {
     m_semaphore.release(1);
+
+    qRegisterMetaType<LogFileWriter*>("LogFileWriter*");
 }
 
 LogProcessor::~LogProcessor()
