@@ -311,7 +311,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
     Local<String> vxString = v8string(isolate, "vx");
     Local<String> vyString = v8string(isolate, "vy");
     Local<String> timeString = v8string(isolate, "time");
-    for (int i = 0; i < trajectoryPoints.size(); i++) {
+    for (size_t i = 0; i < trajectoryPoints.size(); i++) {
         const TrajectoryPoint trajectoryPoint = trajectoryPoints[i];
         Local<Object> trajectoryPointV8 = Object::New(isolate);
         trajectoryPointV8->Set(context, pxString, Number::New(isolate, double(trajectoryPoint.state.pos.x))).Check();
@@ -338,7 +338,7 @@ static void trajectoryPathGet(const FunctionCallbackInfo<Value>& args)
     Local<String> endSpeedTypeFastString = v8string(isolate, "FAST");
     Local<String> endSpeedTypeExactString = v8string(isolate, "EXACT");
     Local<String> slowDownTimeString = v8string(isolate, "slowDownTime");
-    for (int i = 0; i < trajectories.size(); i++) {
+    for (size_t i = 0; i < trajectories.size(); i++) {
         const AlphaTimeTrajectoryData trajectoryData = trajectories[i].data();
 
         Local<Object> trajectoryDataV8 = Object::New(isolate);
