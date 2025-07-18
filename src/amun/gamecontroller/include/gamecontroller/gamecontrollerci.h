@@ -88,7 +88,7 @@ private slots:
 private:
     const Timer *m_timer;
 
-    QProcess *m_gcProcess;
+    QProcess *m_gcProcess = nullptr;
     GameControllerSocket m_gcCIProtocolConnection;
 
     std::vector<gameController::CiInput> m_queuedInputs;
