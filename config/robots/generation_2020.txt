@@ -24,8 +24,8 @@ default {
     a_speedup_f_max: 3.5
     a_speedup_s_max: 3.5
     a_speedup_phi_max: 45
-    a_brake_f_max: 3
-    a_brake_s_max: 3
+    a_brake_f_max: 3.5
+    a_brake_s_max: 3.5
     a_brake_phi_max: 45
   }
   shoot_radius: 0.067
