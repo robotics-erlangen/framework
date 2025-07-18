@@ -21,8 +21,8 @@ default {
   }
   ir_param: 40
   strategy {
-    a_speedup_f_max: 2.5
-    a_speedup_s_max: 2.5
+    a_speedup_f_max: 3.5
+    a_speedup_s_max: 3.5
     a_speedup_phi_max: 45
     a_brake_f_max: 3
     a_brake_s_max: 3
