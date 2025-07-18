@@ -42,7 +42,6 @@ public:
 
 public:
     void integrateTime();
-    void printDebug() const;
 
     struct TrajectoryPosInfo1D {
         float endPos;
@@ -68,6 +67,8 @@ public:
     float initialAcceleration() const {
         return (profile[1].v - profile[0].v) / (profile[1].t - profile[0].t);
     }
+
+    friend std::ostream &operator<<(std::ostream &out, const Trajectory1D &traj);
 
 private:
     void createFreeExtraTimeSegment(float beforeSpeed, float v, float nextSpeed, float time, float acc, float desiredVMax);

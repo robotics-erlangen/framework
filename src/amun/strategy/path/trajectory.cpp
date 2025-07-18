@@ -33,12 +33,17 @@ void Trajectory1D::integrateTime()
         profile[i].t = totalTime;
     }
 }
-void Trajectory1D::printDebug() const
+std::ostream &operator<<(std::ostream &out, const Trajectory1D &traj)
 {
-    for (std::size_t i = 0;i<profile.size();i++) {
-        std::cout <<"("<<profile[i].t<<": "<<profile[i].v<<") ";
+    out << "[";
+    if (traj.profile.size() != 0) {
+        out << traj.profile[0].t << ": " << traj.profile[0].v;
+        for (std::size_t i = 1; i < traj.profile.size(); i++) {
+            out << ", " << traj.profile[i].t << ": " << traj.profile[i].v;
+        }
     }
-    std::cout <<std::endl;
+    out << "]";
+    return out;
 }
 
 // trajectory calculation
