@@ -68,7 +68,7 @@ export const maxTimeBallDefenseArea: ReadonlyRec<{ [K in typeof DIVISION]: numbe
 };
 
 /** maximum allowed driving speed during stop states [m/s] */
-export const stopSpeed = 1.5;
+export const stopSpeed = 1.0;
 
 /** minimum speed difference with which a collision foul is considered crashing [m/s] */
 export const crashingSpeedDifference = 1.5;
