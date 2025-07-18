@@ -47,7 +47,7 @@ export const allowedMaxBallSpeed = 6.5;
 /** maximum chip distance [m/s] (assuming a 45 degree chip angle!) */
 export const allowedMaxChipDist = 4.31; // (6.5 ** 2) / 9.81;
 /** maximum used chip distance [m] */
-export const maxChipDist = 4;
+export const maxChipDist = 3.5;
 
 /** maximum allowed dribble distance before dribbled too far foul triggers [m] */
 export const maxDribbleDistance = 1;
