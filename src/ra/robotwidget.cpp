@@ -493,7 +493,7 @@ void RobotWidget::updateTemperatureStatus(int temperature)
 void RobotWidget::updateRobotStatus()
 {
     // update battery data
-    if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
+    if (m_mergedResponse.has_battery()) {
         updateBatteryStatus(std::ceil(m_mergedResponse.battery() * 100));
     }
 
