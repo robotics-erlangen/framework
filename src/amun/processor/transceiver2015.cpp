@@ -172,7 +172,7 @@ void Transceiver2015::addSendCommand(const Radio::Address &target, size_t expect
             0x20, robot2014_address, sizeof(robot2014_address)
         );
         break;
-    case Radio::Generation::GenPasta:
+    case Radio::Generation::Gen2025:
         targetAddress = getTargetAddress(
             robotPasta_address[0], robotPasta_address, sizeof(robotPasta_address)
         );

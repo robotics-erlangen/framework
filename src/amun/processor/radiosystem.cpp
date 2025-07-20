@@ -57,8 +57,8 @@ static Radio::Generation uintToGeneration(uint pbGeneration) {
     switch (pbGeneration) {
         case (uint)Radio::Generation::Gen2014:
             return Radio::Generation::Gen2014;
-        case (uint)Radio::Generation::GenPasta:
-            return Radio::Generation::GenPasta;
+        case (uint)Radio::Generation::Gen2025:
+            return Radio::Generation::Gen2025;
     }
 
     qFatal("Invalid generation %u", pbGeneration);
@@ -75,9 +75,9 @@ static float normalizeAngle(float angle) {
     return angle;
 }
 
-/* Used for RadioSystem::m_transceivers  to select the generation */
+/* Used for RadioSystem::m_transceivers to select the generation */
 constexpr size_t IndexGen2014 = 0;
-constexpr size_t IndexGenPasta = 1;
+constexpr size_t IndexGen2025 = 1;
 
 RadioSystem::RadioSystem(const Timer *timer) :
     m_charge(false),
@@ -387,11 +387,11 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
         robot::RadioResponse r;
         r.set_time(time);
-        r.set_generation((uint)Radio::Generation::GenPasta);
+        r.set_generation((uint)Radio::Generation::Gen2025);
         r.set_id(packet->id);
 
         int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(Radio::Generation::GenPasta, packet->id, packet->counter, packet_loss);
+        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2025, packet->id, packet->counter, packet_loss);
         switch (packet->extension_id) {
         case EXTENSION_BASIC_STATUS:
             r.set_battery(packet->battery / 255.0f);
@@ -447,7 +447,7 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
             robot::RadioResponse r;
             r.set_time(time);
-            r.set_generation((uint)Radio::Generation::GenPasta);
+            r.set_generation((uint)Radio::Generation::Gen2025);
             r.set_id(id);
 
             r.set_battery(response_data.battery);
@@ -638,7 +638,7 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
 
     data.id = id;
     data.force_kick = command.force_kick();
-    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Radio::Generation::GenPasta, id)], 63);
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(Radio::Generation::Gen2025, id)], 63);
     data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
 
@@ -673,9 +673,9 @@ void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bo
     data.counter = packetCounter;
     data.time_offset = (processingDelay + syncPacketDelay) / 1000;
 
-    for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
+    for (const auto& transceiver : m_transceivers[IndexGen2025]) {
         transceiver->addSendCommand(
-            Address { Unicast, Generation::GenPasta, id },
+            Address { Unicast, Generation::Gen2025, id },
             sizeof(RadioResponseHeader) + sizeof(RadioResponsePasta),
             reinterpret_cast<const char *>(&data), sizeof(data));
     }
@@ -818,9 +818,9 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
     writeSpline(controller, data);
     // TODO
 
-    for (const auto& transceiver : m_transceivers[IndexGenPasta]) {
+    for (const auto& transceiver : m_transceivers[IndexGen2025]) {
         transceiver->addSendCommand(
-            Address { Unicast, Generation::GenPasta, id },
+            Address { Unicast, Generation::Gen2025, id },
             sizeof(RadioCommand2025),
             reinterpret_cast<const char *>(&data), sizeof(data));
     }
@@ -865,9 +865,7 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         foreach (const robot::RadioCommand &radio_command, it.value()) {
             if (it.key() == Radio::Generation::Gen2014) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
-            } else if (it.key() == Radio::Generation::GenPasta) {
-                // TODO
-                //addRobotPastaCommand(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
+            } else if (it.key() == Radio::Generation::Gen2025) {
                 addRobot2025Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
             }
         }
