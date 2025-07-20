@@ -401,17 +401,11 @@ void RobotWidget::updateBatteryStatus(int percentage)
     const int percentageLow = 25;
     const int percentageMid = 50;
     const int percentageFull = 75;
-    const int hysteresis = 3;
 
-    int diff = m_lastBatteryLevel - percentage;
-    diff = (diff > 0) ? diff : -diff;
-    if (diff >= hysteresis) {
-        m_batteryEmpty->setVisible(0 <= percentage && percentage < percentageLow);
-        m_batteryLow->setVisible(percentageLow <= percentage && percentage < percentageMid);
-        m_batteryMid->setVisible(percentageMid <= percentage && percentage < percentageFull);
-        m_batteryFull->setVisible(percentageFull <= percentage);
-        m_lastBatteryLevel = percentage;
-    }
+    m_batteryEmpty->setVisible(percentage < percentageLow);
+    m_batteryLow->setVisible(percentageLow <= percentage && percentage < percentageMid);
+    m_batteryMid->setVisible(percentageMid <= percentage && percentage < percentageFull);
+    m_batteryFull->setVisible(percentageFull <= percentage);
 
     const QString toolTip = QString("Battery: %1%").arg(QString::number(percentage));
     m_batteryEmpty->setToolTip(toolTip);
