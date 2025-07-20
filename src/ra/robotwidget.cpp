@@ -396,6 +396,14 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
     m_guiUpdateTimer->requestTriggering();
 }
 
+void RobotWidget::hideBatteryStatus()
+{
+    m_batteryEmpty->hide();
+    m_batteryLow->hide();
+    m_batteryMid->hide();
+    m_batteryFull->hide();
+}
+
 void RobotWidget::updateBatteryStatus(int percentage)
 {
     const int percentageLow = 25;
@@ -472,6 +480,14 @@ void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
     m_rfExcellent->setToolTip(toolTip);
 }
 
+void RobotWidget::hideRadioStatus()
+{
+    m_rfBad->hide();
+    m_rfOkay->hide();
+    m_rfGood->hide();
+    m_rfExcellent->hide();
+}
+
 void RobotWidget::updateTemperatureStatus(int temperature)
 {
     const int tempMid = 35;
@@ -482,6 +498,12 @@ void RobotWidget::updateTemperatureStatus(int temperature)
     const QString toolTip =QString("Temperature: %1 °C").arg(temperature);
     m_tempMid->setToolTip(toolTip);
     m_tempHigh->setToolTip(toolTip);
+}
+
+void RobotWidget::hideTemperatureStatus()
+{
+    m_tempMid->hide();
+    m_tempHigh->hide();
 }
 
 void RobotWidget::updateRobotStatus()
@@ -549,11 +571,11 @@ void RobotWidget::hideRobotStatus()
         m_statusCtr--;
         return;
     }
-    updateBatteryStatus(-1);
-    updateRadioStatus(-1, -1);
+    hideBatteryStatus();
+    hideRadioStatus();
     m_capCharged->hide();
     m_ball->hide();
-    updateTemperatureStatus(-100);
+    hideTemperatureStatus();
 
     m_motorVLError->hide();
     m_motorHLError->hide();

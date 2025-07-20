@@ -83,8 +83,11 @@ private:
     void setupIcon(QLabel *&label, const QString &iconPath, QLayout *layout, const QString &toolTip = QString());
 
     void updateBatteryStatus(int percentage);
+    void hideBatteryStatus();
     void updateRadioStatus(int packetLossRx, int packetLossTx);
+    void hideRadioStatus();
     void updateTemperatureStatus(int temperature);
+    void hideTemperatureStatus();
 
     void turnOnErrorLabel(QLabel *label, const bool value);
 
