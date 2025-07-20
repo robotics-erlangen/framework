@@ -28,7 +28,6 @@
 #include <QTimer>
 
 class InputManager;
-class GuiTimer;
 
 class RobotWidget : public QWidget
 {
@@ -102,12 +101,12 @@ private:
     QLabel *m_nameLabel;
 
     robot::RadioResponse m_mergedResponse;
-    GuiTimer *m_guiUpdateTimer;
+    QTimer *m_updateResponseTimer;
     robot::RadioResponse m_lastResponse;
-    GuiTimer *m_guiResponseTimer;
+    QTimer *m_hideResponseTimer;
     int m_statusCtr;
 
-    GuiTimer *m_exchangeRobotTimer;
+    QTimer *m_hideExchangeRobotTimer;
     bool m_exchangeRobotUpdated;
 
     int m_lastBatteryLevel;

@@ -19,7 +19,6 @@
  ***************************************************************************/
 
 #include "robotwidget.h"
-#include "guihelper/guitimer.h"
 #include "input/inputmanager.h"
 #include <QContextMenuEvent>
 #include <QHBoxLayout>
@@ -34,6 +33,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     QWidget(parent),
     m_isGeneration(is_generation),
     m_statusCtr(0),
+    m_exchangeRobotUpdated(false),
     m_lastBatteryLevel(0),
     m_inputManager(inputManager),
     m_strategyControlled(false)
@@ -124,15 +124,20 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         disableInput();
     }
 
-    m_guiUpdateTimer = new GuiTimer(100, this);
-    connect(m_guiUpdateTimer, &GuiTimer::timeout, this, &RobotWidget::updateRobotStatus);
+    m_updateResponseTimer = new QTimer(this);
+    m_updateResponseTimer->setInterval(100);
+    m_updateResponseTimer->start();
+    connect(m_updateResponseTimer, &QTimer::timeout, this, &RobotWidget::updateRobotStatus);
 
-    m_guiResponseTimer = new GuiTimer(1000, this);
-    connect(m_guiResponseTimer, &GuiTimer::timeout, this, &RobotWidget::hideRobotStatus);
+    m_hideResponseTimer = new QTimer(this);
+    m_hideResponseTimer->setInterval(1000);
+    m_hideResponseTimer->setSingleShot(true);
+    connect(m_hideResponseTimer, &QTimer::timeout, this, &RobotWidget::hideRobotStatus);
 
-    m_exchangeRobotTimer = new GuiTimer(1000, this);
-    connect(m_exchangeRobotTimer, &GuiTimer::timeout, this, &RobotWidget::hideExchangeRobot);
-    m_exchangeRobotUpdated = false;
+    m_hideExchangeRobotTimer = new QTimer(this);
+    m_hideExchangeRobotTimer->setInterval(1000);
+    m_hideExchangeRobotTimer->setSingleShot(true);
+    connect(m_hideExchangeRobotTimer, &QTimer::timeout, this, &RobotWidget::hideExchangeRobot);
 }
 
 RobotWidget::~RobotWidget()
@@ -393,7 +398,7 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
     }
 
     m_mergedResponse.MergeFrom(response);
-    m_guiUpdateTimer->requestTriggering();
+    m_hideResponseTimer->start();
 }
 
 void RobotWidget::hideBatteryStatus()
@@ -427,7 +432,7 @@ void RobotWidget::exchangeRobot(uint generation, uint id, bool exchange)
     if (generation == m_specs.generation() && id == m_specs.id()) {
         m_exchangeRobot->setVisible(exchange);
         m_exchangeRobotUpdated = true;
-        m_exchangeRobotTimer->requestTriggering();
+        m_hideExchangeRobotTimer->start();
     }
 }
 
@@ -435,8 +440,6 @@ void RobotWidget::hideExchangeRobot()
 {
     if (!m_exchangeRobotUpdated) {
         m_exchangeRobot->setVisible(false);
-    } else {
-        m_exchangeRobotTimer->requestTriggering();
     }
     m_exchangeRobotUpdated = false;
 }
@@ -510,15 +513,15 @@ void RobotWidget::updateRobotStatus()
 {
     // update battery data
     if (m_mergedResponse.has_battery()) {
-        updateBatteryStatus(std::ceil(m_mergedResponse.battery() * 100));
+        updateBatteryStatus(std::round(m_mergedResponse.battery() * 100));
     }
 
     if (m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
         // update radio status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != m_mergedResponse.packet_loss_rx()
                 || m_lastResponse.packet_loss_tx() != m_mergedResponse.packet_loss_tx()) {
-            updateRadioStatus(std::ceil(m_mergedResponse.packet_loss_rx() * 100),
-                              std::ceil(m_mergedResponse.packet_loss_tx() * 100));
+            updateRadioStatus(std::round(m_mergedResponse.packet_loss_rx() * 100),
+                              std::round(m_mergedResponse.packet_loss_tx() * 100));
         }
     }
 
@@ -556,21 +559,12 @@ void RobotWidget::updateRobotStatus()
         m_warning->setToolTip(errorMsg);
     }
 
-    // update counter to indicate status was updated
-    m_statusCtr = 11;
-    m_guiResponseTimer->requestTriggering();
     m_lastResponse = m_mergedResponse;
     m_mergedResponse.Clear();
 }
 
 void RobotWidget::hideRobotStatus()
 {
-    if (m_statusCtr > 1) {
-        // restart timer
-        m_guiResponseTimer->requestTriggering();
-        m_statusCtr--;
-        return;
-    }
     hideBatteryStatus();
     hideRadioStatus();
     m_capCharged->hide();
