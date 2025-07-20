@@ -21,9 +21,6 @@
 
 #include "core/timer.h"
 #include "firmware-interface/radiocommand.h"
-#include "firmware-interface/radiocommand2014.h"
-#include "firmware-interface/radiocommand2025.h"
-#include "firmware-interface/radiocommandpasta.h"
 #include "firmware-interface/radiocommand2025conversion.h"
 #include "radiosystem.h"
 #include "transceiverlayer.h"
@@ -327,6 +324,173 @@ float RadioSystem::calculateDroppedFramesRatio(Radio::Generation generation, uin
     return c.droppedFramesRatio;
 }
 
+robot::RadioResponse RadioSystem::handleRobot2014Response(uint8_t id, int64_t time, const RadioResponse2014 *packet) {
+    robot::RadioResponse r;
+    r.set_time(time);
+    r.set_generation((uint)Radio::Generation::Gen2014);
+    r.set_id(packet->id);
+
+    int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
+    float df = calculateDroppedFramesRatio(Radio::Generation::Gen2014, packet->id, packet->counter, packet_loss);
+    switch (packet->extension_id) {
+    case EXTENSION_BASIC_STATUS:
+        r.set_battery(packet->battery / 255.0f);
+        r.set_packet_loss_rx(packet->packet_loss / 256.0f);
+        r.set_packet_loss_tx(df);
+        break;
+    case EXTENSION_EXTENDED_ERROR:
+    {
+        robot::ExtendedError *e = r.mutable_extended_error();
+        e->set_motor_1_error(packet->motor_1_error);
+        e->set_motor_2_error(packet->motor_2_error);
+        e->set_motor_3_error(packet->motor_3_error);
+        e->set_motor_4_error(packet->motor_4_error);
+        e->set_dribbler_error(packet->dribler_error);
+        e->set_kicker_error(packet->kicker_error);
+        e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
+        e->set_motor_encoder_error(packet->motor_encoder_error);
+        e->set_main_sensor_error(packet->main_sensor_error);
+        e->set_temperature(packet->temperature);
+        break;
+    }
+    default:
+        break;
+    }
+
+    if (packet->power_enabled) {
+        robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+        speedStatus->set_v_f(packet->v_f / 1000.f);
+        speedStatus->set_v_s(packet->v_s / 1000.f);
+        speedStatus->set_omega(packet->omega / 1000.f);
+        r.set_error_present(packet->error_present);
+
+        r.set_ball_detected(packet->ball_detected);
+        r.set_cap_charged(packet->cap_charged);
+    }
+    if (m_frameTimes.contains(packet->counter)) {
+        r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
+    }
+    return r;
+}
+
+robot::RadioResponse RadioSystem::handleRobotPastaResponse(uint8_t id, int64_t time, const RadioResponsePasta *packet) {
+    robot::RadioResponse r;
+    r.set_time(time);
+    r.set_generation((uint)Radio::Generation::Gen2025);
+    r.set_id(packet->id);
+
+    int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
+    float df = calculateDroppedFramesRatio(Radio::Generation::Gen2025, packet->id, packet->counter, packet_loss);
+    switch (packet->extension_id) {
+    case EXTENSION_BASIC_STATUS:
+        r.set_battery(packet->battery / 255.0f);
+        r.set_packet_loss_rx(packet->packet_loss / 256.0f);
+        r.set_packet_loss_tx(df);
+        break;
+    case EXTENSION_EXTENDED_ERROR:
+    {
+        robot::ExtendedError *e = r.mutable_extended_error();
+        e->set_motor_1_error(packet->motor_1_error);
+        e->set_motor_2_error(packet->motor_2_error);
+        e->set_motor_3_error(packet->motor_3_error);
+        e->set_motor_4_error(packet->motor_4_error);
+        e->set_dribbler_error(packet->dribler_error);
+        e->set_kicker_error(packet->kicker_error);
+        e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
+        e->set_motor_encoder_error(packet->motor_encoder_error);
+        e->set_main_sensor_error(packet->main_sensor_error);
+        e->set_temperature(packet->temperature);
+        break;
+    }
+    default:
+        break;
+    }
+
+    if (packet->power_enabled) {
+        robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+        speedStatus->set_v_f(packet->v_f / 1000.f);
+        speedStatus->set_v_s(packet->v_s / 1000.f);
+        speedStatus->set_omega(packet->omega / 1000.f);
+        r.set_error_present(packet->error_present);
+
+        r.set_ball_detected(packet->ball_detected);
+        r.set_cap_charged(packet->cap_charged);
+    }
+    if (m_frameTimes.contains(packet->counter)) {
+        r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
+    }
+    return r;
+}
+
+robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t time, const RadioResponse2025 *packet) {
+    if (packet->header.datagram) {
+        // TODO handle datagrams?
+        assert(false);
+        return {};
+    } else {
+        const RegularResponsePayload2025 *regular = &packet->payload.regular;
+
+        RadioCommand2025Response packet_data;
+        read_response(&packet_data, regular);
+
+        robot::RadioResponse r;
+        r.set_time(time);
+        r.set_generation((uint)Radio::Generation::Gen2025);
+        r.set_id(id);
+
+        r.set_battery(packet_data.battery);
+        r.set_packet_loss_rx(packet_data.packet_loss);
+        r.set_packet_loss_tx(packet_data.packet_loss);  // TODO compute rx and tx loss separately
+        r.set_ball_detected(packet_data.ball_detected);
+
+        bool any_error = false;
+        robot::ExtendedError *e = r.mutable_extended_error();
+
+        any_error |= packet_data.motor_status[MOTOR_FR].error;
+        e->set_motor_1_error(packet_data.motor_status[MOTOR_FR].error);
+        any_error |= packet_data.motor_status[MOTOR_FL].error;
+        e->set_motor_2_error(packet_data.motor_status[MOTOR_FL].error);
+        any_error |= packet_data.motor_status[MOTOR_BR].error;
+        e->set_motor_3_error(packet_data.motor_status[MOTOR_BR].error);
+        any_error |= packet_data.motor_status[MOTOR_BL].error;
+        e->set_motor_4_error(packet_data.motor_status[MOTOR_BL].error);
+
+        any_error |= packet_data.motor_status[DRIBBLER].error;
+        e->set_dribbler_error(packet_data.motor_status[DRIBBLER].error);
+
+        any_error |= packet_data.kicker_status.error;
+        e->set_kicker_error(packet_data.kicker_status.error);
+        any_error |= packet_data.kicker_status.break_beam_error;
+        e->set_kicker_break_beam_error(packet_data.kicker_status.break_beam_error);
+
+        bool motor_encoder_error =
+            packet_data.motor_status[MOTOR_FR].encoder_error ||
+            packet_data.motor_status[MOTOR_FL].encoder_error ||
+            packet_data.motor_status[MOTOR_BR].encoder_error ||
+            packet_data.motor_status[MOTOR_BL].encoder_error;
+        any_error |= motor_encoder_error;
+        e->set_motor_encoder_error(motor_encoder_error);
+
+        any_error |= packet_data.imu_status.error;
+        e->set_main_sensor_error(packet_data.imu_status.error);
+
+        r.set_error_present(any_error);
+
+        if (packet_data.power_enabled) {
+            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+            const float phi = packet_data.measured_pos.angle;
+            const float v_x = packet_data.measured_vel.coords.x;
+            const float v_y = packet_data.measured_vel.coords.y;
+
+            speedStatus->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
+            speedStatus->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
+            speedStatus->set_omega(packet_data.measured_vel.angle);
+        }
+
+        return r;
+    }
+}
+
 void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, uint size, qint64 time)
 {
     const RadioResponseHeader *header = (const RadioResponseHeader *)data;
@@ -335,172 +499,17 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
 
     if (header->command == RESPONSE_2014_DEFAULT && size == sizeof(RadioResponse2014)) {
         const RadioResponse2014 *packet = (const RadioResponse2014 *)data;
-
-        robot::RadioResponse r;
-        r.set_time(time);
-        r.set_generation((uint)Radio::Generation::Gen2014);
-        r.set_id(packet->id);
-
-        int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2014, packet->id, packet->counter, packet_loss);
-        switch (packet->extension_id) {
-        case EXTENSION_BASIC_STATUS:
-            r.set_battery(packet->battery / 255.0f);
-            r.set_packet_loss_rx(packet->packet_loss / 256.0f);
-            r.set_packet_loss_tx(df);
-            break;
-        case EXTENSION_EXTENDED_ERROR:
-        {
-            robot::ExtendedError *e = r.mutable_extended_error();
-            e->set_motor_1_error(packet->motor_1_error);
-            e->set_motor_2_error(packet->motor_2_error);
-            e->set_motor_3_error(packet->motor_3_error);
-            e->set_motor_4_error(packet->motor_4_error);
-            e->set_dribbler_error(packet->dribler_error);
-            e->set_kicker_error(packet->kicker_error);
-            e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
-            e->set_motor_encoder_error(packet->motor_encoder_error);
-            e->set_main_sensor_error(packet->main_sensor_error);
-            e->set_temperature(packet->temperature);
-            break;
-        }
-        default:
-            break;
-        }
-
-        if (packet->power_enabled) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-            speedStatus->set_v_f(packet->v_f / 1000.f);
-            speedStatus->set_v_s(packet->v_s / 1000.f);
-            speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_error_present(packet->error_present);
-
-            r.set_ball_detected(packet->ball_detected);
-            r.set_cap_charged(packet->cap_charged);
-        }
-        if (m_frameTimes.contains(packet->counter)) {
-            r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
-        }
-        responses.append(r);
+        responses.append(handleRobot2014Response(packet->id, time, packet));
     } else if (header->command == RESPONSE_PASTA_DEFAULT && size == sizeof(RadioResponsePasta)) {
         const RadioResponsePasta *packet = (const RadioResponsePasta *)data;
-
-        robot::RadioResponse r;
-        r.set_time(time);
-        r.set_generation((uint)Radio::Generation::Gen2025);
-        r.set_id(packet->id);
-
-        int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
-        float df = calculateDroppedFramesRatio(Radio::Generation::Gen2025, packet->id, packet->counter, packet_loss);
-        switch (packet->extension_id) {
-        case EXTENSION_BASIC_STATUS:
-            r.set_battery(packet->battery / 255.0f);
-            r.set_packet_loss_rx(packet->packet_loss / 256.0f);
-            r.set_packet_loss_tx(df);
-            break;
-        case EXTENSION_EXTENDED_ERROR:
-        {
-            robot::ExtendedError *e = r.mutable_extended_error();
-            e->set_motor_1_error(packet->motor_1_error);
-            e->set_motor_2_error(packet->motor_2_error);
-            e->set_motor_3_error(packet->motor_3_error);
-            e->set_motor_4_error(packet->motor_4_error);
-            e->set_dribbler_error(packet->dribler_error);
-            e->set_kicker_error(packet->kicker_error);
-            e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
-            e->set_motor_encoder_error(packet->motor_encoder_error);
-            e->set_main_sensor_error(packet->main_sensor_error);
-            e->set_temperature(packet->temperature);
-            break;
-        }
-        default:
-            break;
-        }
-
-        if (packet->power_enabled) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-            speedStatus->set_v_f(packet->v_f / 1000.f);
-            speedStatus->set_v_s(packet->v_s / 1000.f);
-            speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_error_present(packet->error_present);
-
-            r.set_ball_detected(packet->ball_detected);
-            r.set_cap_charged(packet->cap_charged);
-        }
-        if (m_frameTimes.contains(packet->counter)) {
-            r.set_radio_rtt((time - m_frameTimes[packet->counter]) * 1E-9f);
-        }
-        responses.append(r);
+        responses.append(handleRobotPastaResponse(packet->id, time, packet));
     } else if (header->command == RESPONSE_2025_DEFAULT && size == sizeof(RadioResponse2025) + 1) {
         const uint8_t id = data[0];
         size -= sizeof(uint8_t);
         data += sizeof(uint8_t);
 
-        const RadioResponse2025 *response = (const RadioResponse2025*)data;
-        if (response->header.datagram) {
-            // TODO handle datagrams?
-        } else {
-            const RegularResponsePayload2025 *regular = &response->payload.regular;
-
-            RadioCommand2025Response response_data;
-            read_response(&response_data, regular);
-
-            robot::RadioResponse r;
-            r.set_time(time);
-            r.set_generation((uint)Radio::Generation::Gen2025);
-            r.set_id(id);
-
-            r.set_battery(response_data.battery);
-            r.set_packet_loss_rx(response_data.packet_loss);
-            r.set_packet_loss_tx(response_data.packet_loss);  // TODO compute rx and tx loss separately
-            r.set_ball_detected(response_data.ball_detected);
-
-            bool any_error = false;
-            robot::ExtendedError *e = r.mutable_extended_error();
-
-            any_error |= response_data.motor_status[MOTOR_FR].error;
-            e->set_motor_1_error(response_data.motor_status[MOTOR_FR].error);
-            any_error |= response_data.motor_status[MOTOR_FL].error;
-            e->set_motor_2_error(response_data.motor_status[MOTOR_FL].error);
-            any_error |= response_data.motor_status[MOTOR_BR].error;
-            e->set_motor_3_error(response_data.motor_status[MOTOR_BR].error);
-            any_error |= response_data.motor_status[MOTOR_BL].error;
-            e->set_motor_4_error(response_data.motor_status[MOTOR_BL].error);
-
-            any_error |= response_data.motor_status[DRIBBLER].error;
-            e->set_dribbler_error(response_data.motor_status[DRIBBLER].error);
-
-            any_error |= response_data.kicker_status.error;
-            e->set_kicker_error(response_data.kicker_status.error);
-            any_error |= response_data.kicker_status.break_beam_error;
-            e->set_kicker_break_beam_error(response_data.kicker_status.break_beam_error);
-
-            bool motor_encoder_error =
-                response_data.motor_status[MOTOR_FR].encoder_error ||
-                response_data.motor_status[MOTOR_FL].encoder_error ||
-                response_data.motor_status[MOTOR_BR].encoder_error ||
-                response_data.motor_status[MOTOR_BL].encoder_error;
-            any_error |= motor_encoder_error;
-            e->set_motor_encoder_error(motor_encoder_error);
-
-            any_error |= response_data.imu_status.error;
-            e->set_main_sensor_error(response_data.imu_status.error);
-
-            r.set_error_present(any_error);
-
-            if (response_data.power_enabled) {
-                robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-                const float phi = response_data.measured_pos.angle;
-                const float v_x = response_data.measured_vel.coords.x;
-                const float v_y = response_data.measured_vel.coords.y;
-
-                speedStatus->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
-                speedStatus->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
-                speedStatus->set_omega(response_data.measured_vel.angle);
-            }
-
-            responses.append(r);
-        }
+        const RadioResponse2025 *packet = (const RadioResponse2025*)data;
+        responses.append(handleRobot2025Response(id, time, packet));
     }
 }
 

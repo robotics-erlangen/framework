@@ -24,6 +24,9 @@
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 #include "radio_address.h"
+#include "firmware-interface/radiocommand2014.h"
+#include "firmware-interface/radiocommand2025.h"
+#include "firmware-interface/radiocommandpasta.h"
 
 #include <QMap>
 #include <QObject>
@@ -81,8 +84,13 @@ private:
     bool callOpenOnAllTransceivers();
 
     float calculateDroppedFramesRatio(Radio::Generation generation, uint id, uint8_t counter, int skipedFrames);
-    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
     void handleTeam(const robot::Team &team);
+
+    robot::RadioResponse handleRobot2014Response(uint8_t id, int64_t time, const RadioResponse2014 *data);
+    robot::RadioResponse handleRobotPastaResponse(uint8_t id, int64_t time, const RadioResponsePasta *data);
+    robot::RadioResponse handleRobot2025Response(uint8_t id, int64_t time, const RadioResponse2025 *data);
+
+    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
 
     void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter);
     void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter);
