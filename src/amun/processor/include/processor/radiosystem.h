@@ -92,14 +92,14 @@ private:
 
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
 
-    void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter);
+    void addRobot2014Command(int id, const robot::Command &command, quint8 packetCounter);
     void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter);
 
-    void addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay);
+    void addRobotPastaCommand(int id, const robot::Command &command, quint8 packetCounter, qint64 processingDelay);
 
-    void addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay);
+    void addRobot2025Command(int id, const robot::Command &command, quint8 packetCounter, qint64 processingDelay);
 
-    void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);
+    void sendCommand(const QList<robot::RadioCommand> &commands, qint64 processingStart);
 
 private:
     bool m_charge;

@@ -124,7 +124,7 @@ void RadioSystem::process()
     const qint64 transceiver_start = Timer::systemTime();
 
     // charging the condensator can be enabled / disable separately
-    sendCommand(m_commands, m_charge, m_processingStart);
+    sendCommand(m_commands, m_processingStart);
 
     status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) * 1E-9f);
     emit sendStatus(status);
@@ -513,11 +513,11 @@ void RadioSystem::handleResponsePacket(QList<robot::RadioResponse> &responses, c
     }
 }
 
-void RadioSystem::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter)
+void RadioSystem::addRobot2014Command(int id, const robot::Command &command, quint8 packetCounter)
 {
     // copy command
     RadioCommand2014 data;
-    data.charge = charge;
+    data.charge = m_charge;
     data.standby = command.standby();
     data.counter = packetCounter;
     data.dribbler = qBound<qint32>(-RADIOCOMMAND2014_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2014_DRIBBLER_MAX, RADIOCOMMAND2014_DRIBBLER_MAX);
@@ -608,11 +608,11 @@ void RadioSystem::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter)
     }
 }
 
-void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
+void RadioSystem::addRobotPastaCommand(int id, const robot::Command &command, quint8 packetCounter, qint64 processingDelay)
 {
     // copy command
     RadioCommandPasta data;
-    data.charge = charge;
+    data.charge = m_charge;
     data.standby = command.standby();
     data.counter = packetCounter;
     data.dribbler = qBound<qint32>(-RADIOCOMMANDPASTA_DRIBBLER_MAX, command.dribbler() * RADIOCOMMANDPASTA_DRIBBLER_MAX, RADIOCOMMANDPASTA_DRIBBLER_MAX);
@@ -788,7 +788,7 @@ bool static writeSpline(robot::ControllerInput const &controller, RadioCommand20
 }
 
 
-void RadioSystem::addRobot2025Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, qint64 processingDelay)
+void RadioSystem::addRobot2025Command(int id, const robot::Command &command, quint8 packetCounter, qint64 processingDelay)
 {
     // copy command
     RadioCommand2025 data;
@@ -807,7 +807,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
         .dribbler = command.dribbler(),
         .shot_power = command.kick_power(),
         .chip = command.kick_style() == robot::Command_KickStyle_Chip,
-        .charge = charge,
+        .charge = m_charge,
         .force_kick = command.force_kick(),
 
         .has_detection = lastDetection.has_x() && lastDetection.has_y() && lastDetection.has_angle(),
@@ -835,7 +835,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, boo
     }
 }
 
-void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
+void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, qint64 processingStart)
 {
     if (!ensureOpen()) {
         return;
@@ -873,9 +873,9 @@ void RadioSystem::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
         foreach (const robot::RadioCommand &radio_command, it.value()) {
             if (it.key() == Radio::Generation::Gen2014) {
-                addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter);
+                addRobot2014Command(radio_command.id(), radio_command.command(), m_packetCounter);
             } else if (it.key() == Radio::Generation::Gen2025) {
-                addRobot2025Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, syncTime);
+                addRobot2025Command(radio_command.id(), radio_command.command(), m_packetCounter, syncTime);
             }
         }
     }
