@@ -830,7 +830,7 @@ void RadioSystem::addRobot2025Command(int id, const robot::Command &command, qui
     for (const auto& transceiver : m_transceivers[IndexGen2025]) {
         transceiver->addSendCommand(
             Address { Unicast, Generation::Gen2025, id },
-            sizeof(RadioCommand2025),
+            sizeof(RadioResponse2025) + 1,
             reinterpret_cast<const char *>(&data), sizeof(data));
     }
 }
