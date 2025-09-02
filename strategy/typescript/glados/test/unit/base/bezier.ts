@@ -58,7 +58,7 @@ export class BaseBezier extends UnitTest {
 			let startPoint = new Vector(Mathutil.random(), Mathutil.random());
 			let endPoint = new Vector(Mathutil.random(), Mathutil.random());
 			let clockwise = Mathutil.randomInt([0, 1]) === 1;
-			let centerPoint = startPoint + (endPoint - startPoint).rotated(clockwise ? Math.PI / -4 : Math.PI / 4).div(Math.SQRT2);
+			let centerPoint = startPoint + (endPoint - startPoint).rotated(clockwise ? Math.PI / -4 : Math.PI / 4) / Math.SQRT2;
 			let curve = CubicBezierCurve.newQuarterCircle(startPoint, endPoint, clockwise, 1000); // High precision to test the approximation without sampling errors
 
 			let maxDiff = 0;
