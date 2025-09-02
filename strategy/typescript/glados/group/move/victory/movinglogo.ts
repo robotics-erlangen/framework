@@ -40,14 +40,14 @@ abstract class MovingLogo extends Move {
 			Math.max(corner1.y, corner2.y)
 		);
 
-		let scaledSize: Vector = this._size.mul(this._scale);
+		let scaledSize: Vector = this._size * this._scale;
 		let areaSize: Vector = this._cornerMax - this._cornerMin;
 		if (areaSize.x < scaledSize.x || areaSize.y < scaledSize.y) {
 			throw new Error(`Logo bounce-area (${areaSize.x.toFixed(2)},${areaSize.y.toFixed(2)})`
 				+ ` too small for logo of size (${scaledSize.x.toFixed(2)},${scaledSize.y.toFixed(2)})`);
 		}
 
-		this._currentPos = this._cornerMin.add(this._cornerMax.sub(this._cornerMin).div(2)).sub(this._size.div(2));
+		this._currentPos = (this._cornerMax + this._cornerMin - this._size) / 2;
 	}
 
 	public static canStart(): boolean {
@@ -67,7 +67,7 @@ abstract class MovingLogo extends Move {
 		if (!this._hasStarted) {
 			let allAtStartPos = true;
 			for (let i = 0; i < this._robots.length; i++) {
-				let startPos = this._logoPoints[i].mul(this._scale).add(this._currentPos);
+				let startPos = this._logoPoints[i] * this._scale + this._currentPos;
 				if (this._robots[i].pos.distanceToSq(startPos) > 0.2 ** 2 || this._robots[i].speed.lengthSq() > 0.1 ** 2) {
 					allAtStartPos = false;
 				}
@@ -76,11 +76,11 @@ abstract class MovingLogo extends Move {
 			this._hasStarted = allAtStartPos;
 		} else {
 			for (let i = 0; i < this._robots.length; i++) {
-				let newPos = this._logoPoints[i].mul(this._scale).add(this._currentPos);
+				let newPos = this._logoPoints[i] * this._scale + this._currentPos;
 				taskAssignments[this._robots[i]] = Assignment.create({ class: MoveToPos, params: [{ pos: newPos, dir: 0, ignoreDefaultObstacles: true }], restart: true });
 			}
 
-			let scaledSize = this._size.mul(this._scale);
+			let scaledSize = this._size * this._scale;
 			if (this._currentPos.x < this._cornerMin.x || this._currentPos.x + scaledSize.x > this._cornerMax.x) {
 				this._velocity = new Vector(-this._velocity.x, this._velocity.y);
 			}
@@ -88,7 +88,7 @@ abstract class MovingLogo extends Move {
 				this._velocity = new Vector(this._velocity.x, -this._velocity.y);
 			}
 
-			this._currentPos = this._currentPos.add(this._velocity);
+			this._currentPos = this._currentPos + this._velocity;
 		}
 
 		return {
