@@ -11,3 +11,8 @@ index 580ac1c..1e782d0 100644
      set(cxx_base_flags "${cxx_base_flags} -D_UNICODE -DUNICODE -DWIN32 -D_WIN32")
      set(cxx_base_flags "${cxx_base_flags} -DSTRICT -DWIN32_LEAN_AND_MEAN")
      set(cxx_exception_flags "-EHsc -D_HAS_EXCEPTIONS=1")
+--- a/googletest/src/gtest-death-test.cc
++++ a/googletest/src/gtest-death-test.cc
+@@ -1,1 +1,2 @@
++#include <cstdint>
+ #include <limits.h>
