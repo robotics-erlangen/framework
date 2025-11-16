@@ -235,5 +235,5 @@ endif()
 include(AddLanguageServices)
 
 if(MINGW)
-	include(CollectWindows)
+    include(CollectWindows)
 endif()
