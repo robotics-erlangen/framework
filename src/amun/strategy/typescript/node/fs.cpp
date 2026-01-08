@@ -268,7 +268,7 @@ void Node::fs::openSync(const FunctionCallbackInfo<Value>& args) {
    /* } else if (modeString == "wx+") {
         mode = QIODevice::ReadWrite | QIODevice::NewOnly; */
     } else {
-        throwError(fs->m_isolate, QString("openSync called with invalid mode flag '%1'").arg(mode));
+        throwError(fs->m_isolate, QString("openSync called with invalid mode flag '%1'").arg(modeString));
         return;
     }
 
