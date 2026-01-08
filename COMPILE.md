@@ -123,6 +123,7 @@ To be able to use the USB transceiver / JTAG programmer the rights for udev have
 This only needs to be done once.
 ```
 sudo cp data/udev/99-robotics-usb-devices.rules /etc/udev/rules.d/99-robotics-usb-devices.rules
+sudo udevadm control --reload-rules && sudo udevadm trigger
 ```
 
 Ra and the Logplayer can be started from the build/bin/ directory.
