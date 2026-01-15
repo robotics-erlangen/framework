@@ -358,10 +358,10 @@ robot::RadioResponse RadioSystem::handleRobot2014Response(uint8_t id, int64_t ti
     }
 
     if (packet->power_enabled) {
-        robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-        speedStatus->set_v_f(packet->v_f / 1000.f);
-        speedStatus->set_v_s(packet->v_s / 1000.f);
-        speedStatus->set_omega(packet->omega / 1000.f);
+        robot::LocalSpeed *estimatedSpeed = r.mutable_estimated_speed();
+        estimatedSpeed->set_v_f(packet->v_f / 1000.f);
+        estimatedSpeed->set_v_s(packet->v_s / 1000.f);
+        estimatedSpeed->set_omega(packet->omega / 1000.f);
         r.set_error_present(packet->error_present);
 
         r.set_ball_detected(packet->ball_detected);
@@ -407,10 +407,10 @@ robot::RadioResponse RadioSystem::handleRobotPastaResponse(uint8_t id, int64_t t
     }
 
     if (packet->power_enabled) {
-        robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-        speedStatus->set_v_f(packet->v_f / 1000.f);
-        speedStatus->set_v_s(packet->v_s / 1000.f);
-        speedStatus->set_omega(packet->omega / 1000.f);
+        robot::LocalSpeed *estimatedSpeed = r.mutable_estimated_speed();
+        estimatedSpeed->set_v_f(packet->v_f / 1000.f);
+        estimatedSpeed->set_v_s(packet->v_s / 1000.f);
+        estimatedSpeed->set_omega(packet->omega / 1000.f);
         r.set_error_present(packet->error_present);
 
         r.set_ball_detected(packet->ball_detected);
@@ -477,14 +477,14 @@ robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t ti
         r.set_error_present(any_error);
 
         if (packet_data.power_enabled) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+            robot::LocalSpeed *estimatedSpeed = r.mutable_estimated_speed();
             const float phi = packet_data.measured_pos.angle;
             const float v_x = packet_data.measured_vel.coords.x;
             const float v_y = packet_data.measured_vel.coords.y;
 
-            speedStatus->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
-            speedStatus->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
-            speedStatus->set_omega(packet_data.measured_vel.angle);
+            estimatedSpeed->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
+            estimatedSpeed->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
+            estimatedSpeed->set_omega(packet_data.measured_vel.angle);
         }
 
         return r;

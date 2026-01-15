@@ -189,7 +189,7 @@ message RadioCommand
     optional int64 command_time = 5;
 };
 
-message SpeedStatus
+message LocalSpeed
 {
     required float v_f = 1;
     required float v_s = 2;
@@ -219,7 +219,7 @@ message RadioResponse
     optional float battery = 3;
     optional float packet_loss_rx = 4;
     optional float packet_loss_tx = 5;
-    optional SpeedStatus estimated_speed = 6;
+    optional LocalSpeed estimated_speed = 6;
     optional bool ball_detected = 7;
     optional bool cap_charged = 8;
     optional bool error_present = 9;

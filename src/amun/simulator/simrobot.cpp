@@ -617,10 +617,10 @@ robot::RadioResponse SimRobot::setCommand(const sslsim::RobotCommand &command, S
     float v_s = v_local.x()/SIMULATOR_SCALE;
     float omega = m_body->getAngularVelocity().z();
 
-    robot::SpeedStatus *speedStatus = response.mutable_estimated_speed();
-    speedStatus->set_v_f(v_f);
-    speedStatus->set_v_s(v_s);
-    speedStatus->set_omega(omega);
+    robot::LocalSpeed *estimatedSpeed = response.mutable_estimated_speed();
+    estimatedSpeed->set_v_f(v_f);
+    estimatedSpeed->set_v_s(v_s);
+    estimatedSpeed->set_omega(omega);
 
     return response;
 }
