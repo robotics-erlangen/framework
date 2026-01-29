@@ -25,6 +25,7 @@
 #include <QQueue>
 #include <QTimer>
 #include <memory>
+#include <optional>
 #include "protobuf/status.h"
 #include "protobuf/command.h"
 #include "core/timer.h"
@@ -49,6 +50,7 @@ public:
     LogSlider(const LogSlider&) = delete;
     LogSlider& operator=(const LogSlider&) = delete;
     void openNextAtEnd();
+    void setPendingSeekPacket(int packet);
     void setPaused(bool p);
     int getLastFrame();
     uint getFrame();
@@ -90,6 +92,7 @@ private:
     bool m_scroll;
     bool m_openAtEnd = false;
     bool m_isPaused = true;
+    std::optional<int> m_pendingSeekPacket;
 };
 
 #endif // LOGMANAGER_H

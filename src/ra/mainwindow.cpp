@@ -1172,8 +1172,7 @@ void MainWindow::dropEvent(QDropEvent *event)
 
 void MainWindow::selectFrame(int amm)
 {
-    int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
-    ui->logManager->seekPacket(frame);
+    ui->logManager->setPendingSeekPacket(amm);
 }
 
 void MainWindow::openFile(QString fileName)

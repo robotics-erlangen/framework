@@ -162,6 +162,11 @@ void LogSlider::handleStatus(const Status& status)
                 m_openAtEnd = false;
                 seekPacket(getLastFrame());
             }
+            if (m_pendingSeekPacket.has_value()) {
+                int frame = std::max(0, std::min(m_pendingSeekPacket.value(), getLastFrame()));
+                seekPacket(frame);
+                m_pendingSeekPacket.reset();
+            }
             emit setSpeed(100);
         }
     }
@@ -170,6 +175,11 @@ void LogSlider::handleStatus(const Status& status)
 void LogSlider::openNextAtEnd()
 {
     m_openAtEnd = true;
+}
+
+void LogSlider::setPendingSeekPacket(int packet)
+{
+    m_pendingSeekPacket = packet;
 }
 
 int LogSlider::getLastFrame()
