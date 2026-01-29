@@ -73,6 +73,8 @@ externalproject_get_property(project_protobuf install_dir)
 
 include(ProtobufDependencies)
 bundle_protobuf_dependencies(protobuf_dependencies PROTOBUF_DEPENDENCIES_BYPRODUCTS)
+# Ensure protobuf is fully built before bundling its dependencies
+add_dependencies(protobuf_dependencies_combine project_protobuf)
 
 # the byproducts are available after the install step
 ExternalProject_Add_Step(project_protobuf out
