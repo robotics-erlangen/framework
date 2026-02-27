@@ -23,6 +23,7 @@ add_executable(cpptests
     core/fieldtransform.cpp
     core/vector.cpp
     core/percamera.cpp
+    core/pidcontroller.cpp
     core/rng.cpp
     core/run_out_of_scope.cpp
     core/timeconversion.cpp
