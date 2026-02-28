@@ -42,8 +42,8 @@ target_link_libraries(plotter
     PRIVATE ra::guihelper
     PRIVATE ${OPENGL_LIBRARIES}
     PUBLIC Qt6::Widgets
+    PUBLIC Qt6::OpenGLWidgets
     PRIVATE Qt6::OpenGL
-    PRIVATE Qt6::OpenGLWidgets
 )
 target_include_directories(plotter
     INTERFACE include
