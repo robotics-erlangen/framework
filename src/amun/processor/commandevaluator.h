@@ -22,6 +22,7 @@
 #ifndef COMMAND_EVALUATOR_H
 #define COMMAND_EVALUATOR_H
 
+#include "core/pidcontroller.h"
 #include "coordinatehelper.h"
 #include "path/alphatimetrajectory.h"
 #include "protobuf/robot.pb.h"
@@ -74,7 +75,11 @@ private:
     // Time (absolute) when new input arrived, in ns.
     qint64 m_startTime;
 
-    std::vector<AlphaTimeTrajectory> m_trajs;
+    PIDController<float> m_robotPhiPID{12, 4.5, 0.8};
+    std::vector<std::pair<AlphaTimeTrajectory, float>> m_trajs;  // (trajectory, end angle)
+    float m_trajOmega;
+    // absolute time when m_robotPhiPID was last updated, in ns.
+    qint64 m_lastTrajOmegaUpdate;
 
     GlobalSpeed m_baseSpeed;
     qint64 m_baseSpeedTime;

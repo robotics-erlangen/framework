@@ -44,32 +44,33 @@ void CommandEvaluator::setInput(const robot::ControllerInput &input, qint64 curr
 
     m_trajs.clear();
     for (int i = 0; i < m_input.trajectory_size(); i++) {
-        robot::AlphaTimeTrajectory traj = m_input.trajectory(i);
-        if (!traj.has_start_pos()
-                || !traj.has_start_vel()
-                || !traj.has_end_vel()
-                || !traj.has_start_angle()
-                || !traj.has_end_angle()
-                || !traj.has_alpha()
-                || !traj.has_time()
-                || !traj.has_acceleration()
-                || !traj.has_v_max()
-                || !traj.has_end_speed_type()
-                || !traj.has_slow_down_time()) {
+        robot::AlphaTimeTrajectory inputTraj = m_input.trajectory(i);
+        if (!inputTraj.has_start_pos()
+                || !inputTraj.has_start_vel()
+                || !inputTraj.has_end_vel()
+                || !inputTraj.has_start_angle()
+                || !inputTraj.has_end_angle()
+                || !inputTraj.has_alpha()
+                || !inputTraj.has_time()
+                || !inputTraj.has_acceleration()
+                || !inputTraj.has_v_max()
+                || !inputTraj.has_end_speed_type()
+                || !inputTraj.has_slow_down_time()) {
             qDebug() << "Incomplete AlphaTimeTrajectory object - skipping";
             continue;
         }
 
-        m_trajs.emplace_back(
-            RobotState(Vector(traj.start_pos().x(), traj.start_pos().y()), Vector(traj.start_vel().x(), traj.start_vel().y())),
-            Vector(traj.end_vel().x(), traj.end_vel().y()),
-            traj.time(),
-            traj.alpha(),
-            traj.acceleration(),
-            traj.v_max(),
-            traj.slow_down_time(),
-            traj.end_speed_type() == robot::AlphaTimeTrajectory::EndSpeedType::AlphaTimeTrajectory_EndSpeedType_Fast ? EndSpeed::FAST : EndSpeed::EXACT
-        );
+        const AlphaTimeTrajectory traj{
+            RobotState(Vector(inputTraj.start_pos().x(), inputTraj.start_pos().y()), Vector(inputTraj.start_vel().x(), inputTraj.start_vel().y())),
+            Vector(inputTraj.end_vel().x(), inputTraj.end_vel().y()),
+            inputTraj.time(),
+            inputTraj.alpha(),
+            inputTraj.acceleration(),
+            inputTraj.v_max(),
+            inputTraj.slow_down_time(),
+            inputTraj.end_speed_type() == robot::AlphaTimeTrajectory::EndSpeedType::AlphaTimeTrajectory_EndSpeedType_Fast ? EndSpeed::FAST : EndSpeed::EXACT
+        };
+        m_trajs.emplace_back(std::make_pair(traj, inputTraj.end_angle()));
     }
 }
 
@@ -83,6 +84,17 @@ bool CommandEvaluator::hasInput()
     return (m_startTime != 0);
 }
 
+// normalizes to [-pi, pi)
+static float normalizeAngle(float angle) {
+    while (angle < -std::numbers::pi) {
+        angle += 2 * std::numbers::pi;
+    }
+    while (angle >= std::numbers::pi) {
+        angle -= 2 * std::numbers::pi;
+    }
+    return angle;
+}
+
 void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldTime, robot::Command &command, amun::DebugValues *debug)
 {
     if (m_baseSpeedTime == 0) {
@@ -92,6 +104,19 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     const bool hasRobot = (robot != nullptr);
     const float robotTheta = robotToTheta(robot);
     const float robotPhi = hasRobot ? robot->phi() : 0;
+
+    // update the PID controller for the robot orientation if we are currently
+    // using alpha time trajectories, as these only describe the final robot rotation,
+    // thus requiring a separate controller
+    if (hasRobot && m_trajs.size() > 0) {
+        const float targetPhi = m_trajs[0].second;
+        const float deltaPhi = normalizeAngle(targetPhi - robotPhi);
+        m_trajOmega = m_robotPhiPID.update(deltaPhi, (worldTime - m_lastTrajOmegaUpdate) * 1e-9f);
+        m_lastTrajOmegaUpdate = worldTime;
+    } else {
+        m_robotPhiPID.reset();
+        m_lastTrajOmegaUpdate = worldTime;
+    }
 
     // if the command contains desired speeds, the robot is being controlled manually
     // if command.local() is set to false and the robot is tracked, v_[sf] is actually v_[xy]
@@ -316,33 +341,13 @@ GlobalSpeed CommandEvaluator::evaluateSplinePartAtTime(const robot::Spline &spli
     return GlobalSpeed(v_x, v_y, omega);
 }
 
-// normalizes to [-pi, pi)
-static float normalizeAngle(float angle) {
-    while (angle < -std::numbers::pi) {
-        angle += 2 * std::numbers::pi;
-    }
-    while (angle >= std::numbers::pi) {
-        angle -= 2 * std::numbers::pi;
-    }
-    return angle;
-}
-
 GlobalSpeed CommandEvaluator::evaluateAlphaTimeTrajectoryAtTime(const qint64 worldTime, const float robotPhi)
 {
     float timeElapsed = (worldTime - m_startTime) * 1E-9f;
-    const float targetPhi = m_input.trajectory(0).end_angle();
-    for (AlphaTimeTrajectory &traj : m_trajs) {
+    for (auto &[traj, endAngle] : m_trajs) {
         if (timeElapsed < traj.endTime()) {
-            const float deltaPhi = normalizeAngle(targetPhi - robotPhi);
-
-            // This is pretty hacky, but this rotation speed is not sent to the robot,
-            // as the full trajectory information is sent instead. This speed is only
-            // used in the command converter for the simulator and the tracking, where
-            // this should suffice (for now).
-            const float omega = deltaPhi;
-
             const RobotState state = traj.stateAtTime(timeElapsed);
-            return GlobalSpeed(state.speed.x, state.speed.y, omega);
+            return GlobalSpeed(state.speed.x, state.speed.y, m_trajOmega);
         } else {
             timeElapsed -= traj.endTime();
         }
