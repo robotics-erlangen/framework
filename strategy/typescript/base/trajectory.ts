@@ -157,15 +157,15 @@ export class TrajectoryManager {
 
 		// at this point we can be should of the type of this._handler, but the type checker doesnt know this
 		const handler = this._handler as TrajectoryHandler<Args, Ret>;
+		debug.push("Trajectory", handler.constructor.name);
 		const [trajectoryCommand, result] = handler.update(...args);
-		this._robot.moveTo = result.dest;
-		this._robot.setControllerInput(trajectoryCommand);
+		result.debug();
+		debug.pop();
 
 		result.vis();
 
-		debug.push("Trajectory", handler.constructor.name);
-		result.debug();
-		debug.pop();
+		this._robot.moveTo = result.dest;
+		this._robot.setControllerInput(trajectoryCommand);
 
 		return result;
 	}
