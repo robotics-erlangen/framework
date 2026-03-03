@@ -196,6 +196,43 @@ message LocalSpeed
     required float omega = 3;
 }
 
+message MotorStatus
+{
+    optional bool error = 1;
+    optional bool overheated = 2;
+    optional bool encoder_error = 3;
+}
+
+message KickerStatus
+{
+    optional bool error = 1;
+    optional bool break_beam_error = 2;
+}
+
+message IMUStatus
+{
+    optional bool error = 1;
+}
+
+message SDStatus
+{
+    optional bool error = 1;
+    optional bool mounted = 2;
+    optional bool full = 3;
+}
+
+message BoardStatus
+{
+    optional MotorStatus motor_fl_status = 1;  // front-left wheel motor
+    optional MotorStatus motor_bl_status = 2;  // back-left wheel motor
+    optional MotorStatus motor_br_status = 3;  // back-right wheel motor
+    optional MotorStatus motor_fr_status = 4;  // front-right wheel motor
+    optional MotorStatus dribbler_status = 5;
+    optional KickerStatus kicker_status = 6;
+    optional IMUStatus imu_status = 7;
+    optional SDStatus sd_status = 8;
+}
+
 message ExtendedError
 {
     required bool motor_1_error = 1;  // front-left wheel motor
@@ -204,7 +241,7 @@ message ExtendedError
     required bool motor_4_error = 4;  // front-right wheel motor
     required bool dribbler_error = 5;
     required bool kicker_error = 6;
-    // optional bool motor_overheated_error = 8;
+    optional bool motor_overheated_error = 8;
     optional bool kicker_break_beam_error = 11;
     optional bool motor_encoder_error = 9;
     optional bool main_sensor_error = 10;
@@ -219,11 +256,35 @@ message RadioResponse
     optional float battery = 3;
     optional float packet_loss_rx = 4;
     optional float packet_loss_tx = 5;
-    optional LocalSpeed estimated_speed = 6;
     optional bool ball_detected = 7;
     optional bool cap_charged = 8;
-    optional bool error_present = 9;
     optional float radio_rtt = 11;
-    optional ExtendedError extended_error = 12;
     optional bool is_blue = 13;
+
+    // Older radio protocols (most notably, 2014) either sent the simple
+    // error_present field (no. 9) to signal that the robot detected any kind of error,
+    // and then sometimes it sent the extended_error (no 12), providing more details about
+    // the detected error(s).
+    // In the 2025 radio protocol, this was superseded by board_status (no 14).
+    // However, the error_present (9) and extended_error (12) are still computed
+    // and set in this message based on the contents of the board_status (14) for
+    // backwards compatibility.
+    optional bool error_present = 9;
+    optional ExtendedError extended_error = 12;
+    optional BoardStatus board_status = 14;
+
+    // measured_{pos,vel} is in **global** coordinates,
+    // estimated_speed is in **local** coordinates.
+    // In the 2025 protocol, the latter is computed from the former.
+    optional LocalSpeed estimated_speed = 6;
+    optional RobotState measured_pos = 15;
+    optional RobotState measured_vel = 16;
+
+    optional bool power_enabled = 17;
+
+    optional float motor_fl_load_torque = 18; // [Nm]
+    optional float motor_bl_load_torque = 19; // [Nm]
+    optional float motor_br_load_torque = 20; // [Nm]
+    optional float motor_fr_load_torque = 21; // [Nm]
+    optional float dribbler_load_torque = 22; // [Nm]
 }

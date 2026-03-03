@@ -422,6 +422,122 @@ robot::RadioResponse RadioSystem::handleRobotPastaResponse(uint8_t id, int64_t t
     return r;
 }
 
+static void write_robot_state(robot::RobotState *msg, const RadioCommand2025State radio) {
+    msg->set_x(radio.coords.x);
+    msg->set_y(radio.coords.y);
+    msg->set_angle(radio.angle);
+}
+
+static void write_motor_status(robot::MotorStatus *status, const MotorStatusFlags2025 flags) {
+    status->set_error(flags.error);
+    status->set_overheated(flags.overheated);
+    status->set_encoder_error(flags.encoder_error);
+}
+
+static void write_kicker_status(robot::KickerStatus *status, const KickerStatusFlags2025 flags) {
+    status->set_error(flags.error);
+    status->set_break_beam_error(flags.break_beam_error);
+}
+
+static void write_imu_status(robot::IMUStatus *status, const IMUStatusFlags2025 flags) {
+    status->set_error(flags.error);
+}
+
+static void write_sd_status(robot::SDStatus *status, const SDStatusFlags2025 flags) {
+    status->set_error(flags.error);
+    status->set_mounted(flags.mounted);
+    status->set_full(flags.full);
+}
+
+static bool any_motor_error(const robot::MotorStatus &status) {
+    return (status.has_error() && status.error())
+        || (status.has_overheated() && status.overheated())
+        || (status.has_encoder_error() && status.encoder_error());
+}
+
+static bool any_kicker_error(const robot::KickerStatus &status) {
+    return (status.has_error() && status.error())
+        || (status.has_break_beam_error() && status.break_beam_error());
+}
+
+static bool any_imu_error(const robot::IMUStatus &status) {
+    return (status.has_error() && status.error());
+}
+
+static bool any_sd_error(const robot::SDStatus &status) {
+    return (status.has_error() && status.error())
+        //|| (status.has_mounted() && status.mounted())  // mounted is NOT an error!
+        || (status.has_full() && status.full());
+}
+
+static void board_status_to_extended_error(robot::ExtendedError *ee, const robot::BoardStatus &status) {
+    bool any_motor_overheated = false;
+    bool any_motor_encoder_error = false;
+
+    if (status.has_dribbler_status()) {
+        const auto s = status.dribbler_status();
+        ee->set_dribbler_error(any_motor_error(s));
+        any_motor_overheated |= (s.has_overheated() && s.overheated());
+        any_motor_encoder_error |= (s.has_encoder_error() && s.encoder_error());
+    }
+    if (status.has_motor_fl_status()) {
+        const auto s = status.motor_fl_status();
+        ee->set_motor_1_error(any_motor_error(s));
+        any_motor_overheated |= (s.has_overheated() && s.overheated());
+        any_motor_encoder_error |= (s.has_encoder_error() && s.encoder_error());
+    }
+    if (status.has_motor_bl_status()) {
+        const auto s = status.motor_bl_status();
+        ee->set_motor_2_error(any_motor_error(s));
+        any_motor_overheated |= (s.has_overheated() && s.overheated());
+        any_motor_encoder_error |= (s.has_encoder_error() && s.encoder_error());
+    }
+    if (status.has_motor_br_status()) {
+        const auto s = status.motor_br_status();
+        ee->set_motor_3_error(any_motor_error(s));
+        any_motor_overheated |= (s.has_overheated() && s.overheated());
+        any_motor_encoder_error |= (s.has_encoder_error() && s.encoder_error());
+    }
+    if (status.has_motor_fr_status()) {
+        const auto s = status.motor_fr_status();
+        ee->set_motor_4_error(any_motor_error(s));
+        any_motor_overheated |= (s.has_overheated() && s.overheated());
+        any_motor_encoder_error |= (s.has_encoder_error() && s.encoder_error());
+    }
+    if (any_motor_overheated) {
+        ee->set_motor_overheated_error(true);
+    }
+    if (any_motor_encoder_error) {
+        ee->set_motor_encoder_error(true);
+    }
+
+    if (status.has_kicker_status()) {
+        const auto s = status.kicker_status();
+        ee->set_kicker_error(any_kicker_error(s));
+        if (s.has_break_beam_error()) {
+            ee->set_kicker_break_beam_error(s.break_beam_error());
+        }
+    }
+
+    if (status.has_imu_status()) {
+        const auto s = status.imu_status();
+        ee->set_main_sensor_error(any_imu_error(s));
+    }
+}
+
+static bool any_error_in_extended_error(const robot::ExtendedError &ee) {
+    return (ee.has_motor_1_error() && ee.motor_1_error())
+        || (ee.has_motor_2_error() && ee.motor_2_error())
+        || (ee.has_motor_3_error() && ee.motor_3_error())
+        || (ee.has_motor_4_error() && ee.motor_4_error())
+        || (ee.has_dribbler_error() && ee.dribbler_error())
+        || (ee.has_kicker_error() && ee.kicker_error())
+        || (ee.has_motor_overheated_error() && ee.motor_overheated_error())
+        || (ee.has_kicker_break_beam_error() && ee.kicker_break_beam_error())
+        || (ee.has_motor_encoder_error() && ee.motor_encoder_error())
+        || (ee.has_main_sensor_error() && ee.main_sensor_error());
+}
+
 robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t time, const RadioResponse2025 *packet) {
     if (packet->header.datagram) {
         // TODO handle datagrams?
@@ -442,50 +558,43 @@ robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t ti
         r.set_packet_loss_rx(packet_data.packet_loss);
         r.set_packet_loss_tx(packet_data.packet_loss);  // TODO compute rx and tx loss separately
         r.set_ball_detected(packet_data.ball_detected);
+        r.set_power_enabled(packet_data.power_enabled);
 
-        bool any_error = false;
+        // write board status
+        robot::BoardStatus *boardStatus = r.mutable_board_status();
+        write_motor_status(boardStatus->mutable_motor_fl_status(), packet_data.motor_status[MOTOR_FL]);
+        write_motor_status(boardStatus->mutable_motor_fr_status(), packet_data.motor_status[MOTOR_FR]);
+        write_motor_status(boardStatus->mutable_motor_bl_status(), packet_data.motor_status[MOTOR_BL]);
+        write_motor_status(boardStatus->mutable_motor_br_status(), packet_data.motor_status[MOTOR_BR]);
+        write_motor_status(boardStatus->mutable_dribbler_status(), packet_data.motor_status[DRIBBLER]);
+        write_kicker_status(boardStatus->mutable_kicker_status(), packet_data.kicker_status);
+        write_imu_status(boardStatus->mutable_imu_status(), packet_data.imu_status);
+        write_sd_status(boardStatus->mutable_sd_status(), packet_data.sd_status);
+
+        // convert board status to legacy extended error
         robot::ExtendedError *e = r.mutable_extended_error();
+        board_status_to_extended_error(e, *boardStatus);
+        r.set_error_present(any_error_in_extended_error(*e));
 
-        any_error |= packet_data.motor_status[MOTOR_FL].error;
-        e->set_motor_1_error(packet_data.motor_status[MOTOR_FL].error);
-        any_error |= packet_data.motor_status[MOTOR_BL].error;
-        e->set_motor_2_error(packet_data.motor_status[MOTOR_BL].error);
-        any_error |= packet_data.motor_status[MOTOR_BR].error;
-        e->set_motor_3_error(packet_data.motor_status[MOTOR_BR].error);
-        any_error |= packet_data.motor_status[MOTOR_FR].error;
-        e->set_motor_4_error(packet_data.motor_status[MOTOR_FR].error);
+        // write measured position and velocity
+        write_robot_state(r.mutable_measured_pos(), packet_data.measured_pos);
+        write_robot_state(r.mutable_measured_vel(), packet_data.measured_vel);
 
-        any_error |= packet_data.motor_status[DRIBBLER].error;
-        e->set_dribbler_error(packet_data.motor_status[DRIBBLER].error);
+        // convert measured *global* position and velocity to legacy *local* velocity
+        const float phi = packet_data.measured_pos.angle;
+        const float v_x = packet_data.measured_vel.coords.x;
+        const float v_y = packet_data.measured_vel.coords.y;
+        robot::LocalSpeed *l = r.mutable_estimated_speed();
+        l->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
+        l->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
+        l->set_omega(packet_data.measured_vel.angle);
 
-        any_error |= packet_data.kicker_status.error;
-        e->set_kicker_error(packet_data.kicker_status.error);
-        any_error |= packet_data.kicker_status.break_beam_error;
-        e->set_kicker_break_beam_error(packet_data.kicker_status.break_beam_error);
-
-        bool motor_encoder_error =
-            packet_data.motor_status[MOTOR_FR].encoder_error ||
-            packet_data.motor_status[MOTOR_FL].encoder_error ||
-            packet_data.motor_status[MOTOR_BR].encoder_error ||
-            packet_data.motor_status[MOTOR_BL].encoder_error;
-        any_error |= motor_encoder_error;
-        e->set_motor_encoder_error(motor_encoder_error);
-
-        any_error |= packet_data.imu_status.error;
-        e->set_main_sensor_error(packet_data.imu_status.error);
-
-        r.set_error_present(any_error);
-
-        if (packet_data.power_enabled) {
-            robot::LocalSpeed *estimatedSpeed = r.mutable_estimated_speed();
-            const float phi = packet_data.measured_pos.angle;
-            const float v_x = packet_data.measured_vel.coords.x;
-            const float v_y = packet_data.measured_vel.coords.y;
-
-            estimatedSpeed->set_v_f(v_x * cosf(phi) + v_y * sinf(phi));
-            estimatedSpeed->set_v_s(-v_x * sinf(phi) + v_y * cosf(phi));
-            estimatedSpeed->set_omega(packet_data.measured_vel.angle);
-        }
+        // write load torques
+        r.set_motor_fl_load_torque(packet_data.motor_load_torque[MOTOR_FL]);
+        r.set_motor_fr_load_torque(packet_data.motor_load_torque[MOTOR_FR]);
+        r.set_motor_bl_load_torque(packet_data.motor_load_torque[MOTOR_BL]);
+        r.set_motor_br_load_torque(packet_data.motor_load_torque[MOTOR_BR]);
+        r.set_dribbler_load_torque(packet_data.motor_load_torque[DRIBBLER]);
 
         return r;
     }
