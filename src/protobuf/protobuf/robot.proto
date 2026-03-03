@@ -198,10 +198,10 @@ message LocalSpeed
 
 message ExtendedError
 {
-    required bool motor_1_error = 1;
-    required bool motor_2_error = 2;
-    required bool motor_3_error = 3;
-    required bool motor_4_error = 4;
+    required bool motor_1_error = 1;  // front-left wheel motor
+    required bool motor_2_error = 2;  // back-left wheel motor
+    required bool motor_3_error = 3;  // back-right wheel motor
+    required bool motor_4_error = 4;  // front-right wheel motor
     required bool dribbler_error = 5;
     required bool kicker_error = 6;
     // optional bool motor_overheated_error = 8;
