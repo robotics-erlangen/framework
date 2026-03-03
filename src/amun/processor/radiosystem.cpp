@@ -446,14 +446,14 @@ robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t ti
         bool any_error = false;
         robot::ExtendedError *e = r.mutable_extended_error();
 
-        any_error |= packet_data.motor_status[MOTOR_FR].error;
-        e->set_motor_1_error(packet_data.motor_status[MOTOR_FR].error);
         any_error |= packet_data.motor_status[MOTOR_FL].error;
-        e->set_motor_2_error(packet_data.motor_status[MOTOR_FL].error);
+        e->set_motor_1_error(packet_data.motor_status[MOTOR_FL].error);
+        any_error |= packet_data.motor_status[MOTOR_BL].error;
+        e->set_motor_2_error(packet_data.motor_status[MOTOR_BL].error);
         any_error |= packet_data.motor_status[MOTOR_BR].error;
         e->set_motor_3_error(packet_data.motor_status[MOTOR_BR].error);
-        any_error |= packet_data.motor_status[MOTOR_BL].error;
-        e->set_motor_4_error(packet_data.motor_status[MOTOR_BL].error);
+        any_error |= packet_data.motor_status[MOTOR_FR].error;
+        e->set_motor_4_error(packet_data.motor_status[MOTOR_FR].error);
 
         any_error |= packet_data.motor_status[DRIBBLER].error;
         e->set_dribbler_error(packet_data.motor_status[DRIBBLER].error);
