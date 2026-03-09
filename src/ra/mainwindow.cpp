@@ -682,6 +682,8 @@ void MainWindow::simulatorSetupChanged(QAction * action)
         mutableSimulatorSetupGeometry->set_field_height(fieldHeight);
         mutableSimulatorSetupGeometry->set_field_width(fieldWidth);
         mutableSimulatorSetupGeometry->set_boundary_width(0.0);
+        mutableSimulatorSetupGeometry->set_boundary_width_goal_line(0.0);
+        mutableSimulatorSetupGeometry->set_goal_substitution_area_width(0.0);
     }
 
     // reload the strategies / autoref

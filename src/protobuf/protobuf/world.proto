@@ -35,6 +35,9 @@ message Geometry {
     optional Division division = 19 [default = A];
     optional BallModel ball_model = 20;
     optional float corner_block_cathetus_length = 21;
+    optional float boundary_width_goal_line = 22;
+    // Width of the goal substitution area (distance from goal line center plus boundary width to boundary walls) in m
+    optional float goal_substitution_area_width = 23;
 }
 
 message BallModel {

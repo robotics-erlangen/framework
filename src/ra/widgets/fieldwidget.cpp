@@ -1443,13 +1443,14 @@ void FieldWidget::updateGeometry()
         m_geometryString = geometry;
 
         // add some space around the field
-        const float offset = g.boundary_width();
+        const float offsetTouchLine = g.boundary_width();
+        const float offsetGoalLine = g.boundary_width_goal_line();
 
         QRectF rect;
-        rect.setLeft(-g.field_width() / 2.0f - offset);
-        rect.setTop(-g.field_height() / 2.0f - offset);
-        rect.setWidth(g.field_width() + offset * 2);
-        rect.setHeight(g.field_height() + offset * 2);
+        rect.setLeft(-g.field_width() / 2.0f - offsetTouchLine);
+        rect.setTop(-g.field_height() / 2.0f - offsetGoalLine);
+        rect.setWidth(g.field_width() + offsetTouchLine * 2);
+        rect.setHeight(g.field_height() + offsetGoalLine * 2);
         m_fieldRect = rect;
         if (!m_usingVirtualField) {
             m_realFieldRect = rect;
@@ -1570,7 +1571,7 @@ void FieldWidget::virtualFieldSetupDialog()
 
     if (m_usingVirtualField) {
         auto maxX = m_virtualFieldGeometry.field_width() * 0.5 + m_virtualFieldGeometry.boundary_width();
-        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width();
+        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width_goal_line();
         m_aoi = QRectF(QPointF(-maxX, -maxY), QPointF(maxX, maxY));
     }
 
@@ -1585,9 +1586,10 @@ void FieldWidget::resizeAOI(QPointF pos)
 {
     const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     if (geometry.IsInitialized()) {
-        double offset = geometry.boundary_width() + 0.1f;
-        double limitX = geometry.field_width() / 2 + offset;
-        double limitY = geometry.field_height() / 2 + offset;
+        double offsetTouchLine = geometry.boundary_width() + 0.1f;
+        double offsetGoalLine = geometry.boundary_width_goal_line() + 0.1f;
+        double limitX = geometry.field_width() / 2 + offsetTouchLine;
+        double limitY = geometry.field_height() / 2 + offsetGoalLine;
         pos.setY(qBound(-limitY, pos.y(), limitY));
         pos.setX(qBound(-limitX, pos.x(), limitX));
     }
@@ -2205,7 +2207,7 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     for (const float xSign : { -1, 1 }) {
         for (const float ySign : { -1, 1 }) {
             const float wf = halfFieldWidth + boundaryWidth;
-            const float hf = halfFieldHeight + boundaryWidth;
+            const float hf = halfFieldHeight + geometry.boundary_width_goal_line();
             const QPointF corner[] = {
                 QPointF{xSign * wf, ySign * hf},
                 QPointF{xSign * (wf - m_cornerBlockCathetusLength), ySign * hf},

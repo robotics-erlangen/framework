@@ -27,6 +27,7 @@ void geometrySetDefault(world::Geometry *geometry, bool useQuadField)
     geometry->set_field_width((useQuadField) ? 9.00f : 6.00f);
     geometry->set_field_height((useQuadField) ? 12.00f : 9.00f);
     geometry->set_boundary_width((useQuadField) ? 0.30f : 0.25f);
+    geometry->set_boundary_width_goal_line(geometry->boundary_width() + 0.3);
     geometry->set_goal_width((useQuadField) ? 1.20f : 1.00f);
     geometry->set_goal_depth(0.18f);
     geometry->set_goal_wall_width(0.02f);
@@ -39,6 +40,7 @@ void geometrySetDefault(world::Geometry *geometry, bool useQuadField)
     geometry->set_defense_width((useQuadField) ? 2.40f : 2.00f);
     geometry->set_defense_height((useQuadField) ? 1.20f : 1.00f);
     geometry->set_goal_height(0.155f);
+    geometry->set_goal_substitution_area_width(0.3f);
     geometry->set_type(useQuadField ? world::Geometry::TYPE_2018 : world::Geometry::TYPE_2014);
     assert(geometry->IsInitialized());
 }
@@ -52,10 +54,12 @@ void convertFromSSlGeometry(const SSL_GeometryFieldSize &g, world::Geometry &out
     outGeometry.set_goal_width(g.goal_width() / 1000.0f);
     outGeometry.set_goal_depth(g.goal_depth() / 1000.0f);
     outGeometry.set_boundary_width(g.boundary_width() / 1000.0f);
+    outGeometry.set_boundary_width_goal_line(g.boundary_width_goal_line() / 1000.0f);
     outGeometry.set_goal_height(0.155f);
     outGeometry.set_goal_wall_width(0.02f);
     outGeometry.set_free_kick_from_defense_dist(0.20f);
     outGeometry.set_penalty_line_from_spot_dist(0.40f);
+    outGeometry.set_goal_substitution_area_width(g.goal_substitution_area_width() / 1000.0f);
 
     float minThickness = std::numeric_limits<float>::max();
     bool is2014Geometry = true;
@@ -131,8 +135,10 @@ void convertToSSlGeometry(const world::Geometry &geometry,  SSL_GeometryFieldSiz
     field->set_field_width(geometry.field_width() * 1000.0f);
     field->set_field_length(geometry.field_height() * 1000.0f);
     field->set_boundary_width(geometry.boundary_width() * 1000.0f);
+    field->set_boundary_width_goal_line(geometry.boundary_width_goal_line() * 1000.0f);
     field->set_goal_width(geometry.goal_width() * 1000.0f);
     field->set_goal_depth(geometry.goal_depth() * 1000.0f);
+    field->set_goal_substitution_area_width(geometry.goal_substitution_area_width() * 1000.0f);
 
     float fieldLengthHalf = geometry.field_height() * 1000.0f / 2.0f;
     float fieldWidthHalf = geometry.field_width() * 1000.0f / 2.0f;
