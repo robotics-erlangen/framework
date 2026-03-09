@@ -1543,6 +1543,37 @@ void FieldWidget::setAOIVisible(bool visible)
     updateAOI();
 }
 
+static void drawGoalSubstitutionArea(QPainter *painter, const world::Geometry& geometry)
+{
+    const auto fieldEnd = geometry.field_height() * 0.5 + geometry.boundary_width_goal_line();
+    const auto goalSubstitutionY = fieldEnd - geometry.goal_substitution_area_width();
+    const auto goalSubstitutionX = geometry.field_width() * 0.5 + geometry.boundary_width();
+
+    // make color a transparent white
+    const QPen pen = painter->pen();
+    const QBrush brush = painter->brush();
+    painter->setPen(Qt::NoPen);
+    QColor c = Qt::white;
+    c.setAlphaF(0.25f);
+    painter->setBrush(c);
+
+    QRectF rect;
+    rect.setLeft(-goalSubstitutionX);
+    rect.setTop(goalSubstitutionY);
+    rect.setWidth(2 * goalSubstitutionX);
+    rect.setHeight(geometry.goal_substitution_area_width());
+    painter->drawRect(rect);
+
+    rect.setTop(-fieldEnd);
+    // height needs to be explicitly set again, because setTop also changes height
+    rect.setHeight(geometry.goal_substitution_area_width());
+    painter->drawRect(rect);
+
+    // reset pen
+    painter->setPen(pen);
+    painter->setBrush(brush);
+}
+
 void FieldWidget::virtualFieldSetupDialog()
 {
     VirtualFieldSetupDialog dialog(*m_virtualFieldConfiguration, this);
@@ -2315,6 +2346,8 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     // inner boundary
     painter->drawRect(rect);
     painter->drawLine(QPointF(rect.left(), 0.0f), QPointF(rect.right(), 0.0f));
+
+    drawGoalSubstitutionArea(painter, geometry);
 
     // center circle
     float r = geometry.center_circle_radius();
