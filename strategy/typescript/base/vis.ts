@@ -379,14 +379,14 @@ export function addFieldVisualization(name: string, f: (pos: Vector) => Color, p
 		drawCornerTL?: Vector, drawCornerBR?: Vector) {
 
 	if (!drawCornerTL) {
-		drawCornerTL = new Vector(-World.Geometry.FieldWidthHalf - World.Geometry.BoundaryWidth,
-			-World.Geometry.FieldHeightHalf - World.Geometry.BoundaryWidth);
+		drawCornerTL = new Vector(-World.Geometry.FieldWidthHalf - World.Geometry.BoundaryWidthTouchLine,
+			-World.Geometry.FieldHeightHalf - World.Geometry.BoundaryWidthGoalLine);
 	} else {
 		drawCornerTL = Coordinates.toGlobal(drawCornerTL);
 	}
 	if (!drawCornerBR) {
-		drawCornerBR = new Vector(World.Geometry.FieldWidthHalf + World.Geometry.BoundaryWidth,
-			World.Geometry.FieldHeightHalf + World.Geometry.BoundaryWidth);
+		drawCornerBR = new Vector(World.Geometry.FieldWidthHalf + World.Geometry.BoundaryWidthTouchLine,
+			World.Geometry.FieldHeightHalf + World.Geometry.BoundaryWidthGoalLine);
 	} else {
 		drawCornerBR = Coordinates.toGlobal(drawCornerBR);
 	}

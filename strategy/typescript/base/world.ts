@@ -213,8 +213,14 @@ export interface GeometryType {
 	OpponentGoalLeft: Readonly<Position>;
 	/** Right side of the goal when oriented towards the friendly goal */
 	OpponentGoalRight: Readonly<Position>;
-	/** Free distance around the playing field */
-	BoundaryWidth: number;
+	/** Free distance between touch lines and boundary walls */
+	BoundaryWidthTouchLine: number;
+	/** Free distance between goal lines and boundary walls */
+	BoundaryWidthGoalLine: number;
+	/** The starting y coordinate of the goal substitution area,
+	    i.e. every y coordinate less than GoalSubstitutionAreaPosY
+	    is part of the substitution area. */
+	GoalSubstitutionAreaPosY: number | undefined;
 }
 
 // it is guaranteed to be set before being read, so casting is fine
@@ -331,7 +337,13 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.OpponentGoalLeft = new Vector(-wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 	wgeom.OpponentGoalRight = new Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
-	wgeom.BoundaryWidth = geom.boundary_width;
+	wgeom.BoundaryWidthTouchLine = geom.boundary_width;
+	wgeom.BoundaryWidthGoalLine = geom.boundary_width_goal_line ?? geom.boundary_width;
+
+	wgeom.GoalSubstitutionAreaPosY = undefined;
+	if (geom.goal_substitution_area_width != undefined) {
+		wgeom.GoalSubstitutionAreaPosY = wgeom.FriendlyGoal.y + wgeom.BoundaryWidthGoalLine - geom.goal_substitution_area_width;
+	}
 
 	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
 

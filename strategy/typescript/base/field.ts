@@ -40,15 +40,17 @@ const G: Readonly<World.GeometryType> = World.Geometry;
 /**
  * Returns the nearest position inside the field (extended by boundaryWidth)
  * @param pos - The position to limit
- * @param boundaryWidth - How much the field should be extended beyond the borders
+ * @param boundaryWidthTouchLine - How much the field should be extended beyond the borders in x
+ * @param boundaryWidthGoalLine - How much the field should be extended beyond the borders in y. Defaults to boundaryWidthTouchLine if undefined.
  * @returns The limited Vector
  */
-export function limitToField(pos: Readonly<Position>, boundaryWidth: number = 0) {
+export function limitToField(pos: Readonly<Position>, boundaryWidthTouchLine: number = 0, boundaryWidthGoalLine: number | undefined = undefined) {
 
-	let allowedHeight = G.FieldHeightHalf + boundaryWidth; // limit height to field
+	boundaryWidthGoalLine = boundaryWidthGoalLine ?? boundaryWidthTouchLine;
+	let allowedHeight = G.FieldHeightHalf + boundaryWidthGoalLine; // limit height to field
 	let y = MathUtil.bound(-allowedHeight, pos.y, allowedHeight);
 
-	let allowedWidth = G.FieldWidthHalf + boundaryWidth; // limit width to field
+	let allowedWidth = G.FieldWidthHalf + boundaryWidthTouchLine; // limit width to field
 	let x = MathUtil.bound(-allowedWidth, pos.x, allowedWidth);
 
 	return new Vector(x, y);
