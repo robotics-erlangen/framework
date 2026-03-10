@@ -449,3 +449,12 @@ RobotInfo RobotFilter::getRobotInfo() const
 
     return result;
 }
+
+// get the last raw detection used in this filter from camera `cameraId`
+std::optional<world::TransformedRobotMeasurement> RobotFilter::getLastRaw(qint32 cameraId) const {
+    const auto it = m_lastRaw.find(cameraId);
+    if (it == m_lastRaw.end()) {
+        return std::nullopt;
+    }
+    return std::make_optional(*it);
+}

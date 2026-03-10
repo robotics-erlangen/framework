@@ -61,6 +61,7 @@ public:
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
     RobotInfo getRobotInfo() const;
+    std::optional<world::TransformedRobotMeasurement> getLastRaw(qint32 cameraId) const;
 
 private:
     struct VisionFrame
