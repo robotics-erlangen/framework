@@ -87,6 +87,7 @@ private:
     void invalidateBall(qint64 currentTime);
     void invalidateRobots(RobotMap &map, qint64 currentTime);
 
+    std::tuple<const RobotFilter&, float, int> closestOtherDecection(const SSL_DetectionRobot &robot, quint32 cameraId);
     QList<RobotFilter*> getBestRobots(qint64 currentTime, int desiredCamera);
     void trackBallDetections(const SSL_DetectionFrame &frame, qint64 sourceTime, std::chrono::nanoseconds visionProcessingDelay);
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 sourceTime, qint32 cameraId,

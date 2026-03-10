@@ -33,8 +33,11 @@
 #include <QtGlobal>
 #include <chrono>
 #include <limits>
+#include <optional>
 
 using namespace std::chrono;
+
+constexpr float ROBOT_RADIUS = 0.09;
 
 Tracker::Tracker(bool robotsOnly, bool isSpeedTracker, WorldParameters *m_worldParameters) :
     m_cameraInfo(new CameraInfo),
@@ -425,6 +428,42 @@ void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
     }
 }
 
+// return the closest raw detection to `robot` that is used by a robot filter
+// with `cameraId` as its primary camera,
+// and that tracks a robot of an ID different than `robot.robot_id()`
+std::tuple<const RobotFilter&, float, int> Tracker::closestOtherDecection(const SSL_DetectionRobot &robot, quint32 cameraId) {
+    Vector detectionPos;
+    coordinates::fromVision(robot, detectionPos);
+
+    const RobotFilter* closestFilter = nullptr;
+    float closestDistanceSq = std::numeric_limits<float>::infinity();
+    int closestID = -1;
+    for (const RobotMap& robotMap : {m_robotFilterBlue, m_robotFilterYellow}) {
+        for(RobotMap::const_iterator it = robotMap.cbegin(); it != robotMap.cend(); ++it) {
+            const quint32 id = it.key();
+            if (id == robot.robot_id()) {
+                continue;
+            }
+            const QList<RobotFilter*> filters = it.value();
+            for(const RobotFilter* filter : filters) {
+                const std::optional<world::TransformedRobotMeasurement> lastRaw = filter->getLastRaw(cameraId);
+                if (!lastRaw.has_value()) {
+                    continue;
+                }
+                const Vector lastRawPos{lastRaw.value().p_x(), lastRaw.value().p_y()};
+
+                const float distanceSq = detectionPos.distanceSq(lastRawPos);
+                if (closestDistanceSq > distanceSq) {
+                    closestDistanceSq = distanceSq;
+                    closestFilter = filter;
+                    closestID = id;
+                }
+            }
+        }
+    }
+    return {*closestFilter, std::sqrt(closestDistanceSq), closestID};
+}
+
 QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime, int desiredCamera)
 {
     const qint64 resetTimeout = 100*1000*1000;
@@ -573,6 +612,15 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
 
     const float MAX_DISTANCE = 0.5;
     const qint64 PRIMARY_TIMEOUT = 42*1000*1000;
+
+    // if a detection is received, that is closer than this to the next existing filter,
+    // it is discarded
+    const float MIN_DISTANCE_BETWEEN_FILTERS = 1.5 * ROBOT_RADIUS;
+
+    const auto [_, distanceToClosestFilter, closestID] = closestOtherDecection(robot, cameraId);
+    if (distanceToClosestFilter < MIN_DISTANCE_BETWEEN_FILTERS) {
+        return;
+    }
 
     std::map<qint32, std::pair<float, RobotFilter*>> nearestFilterByCamera;
     RobotFilter *totalClosest = nullptr;
