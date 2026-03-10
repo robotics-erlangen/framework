@@ -286,7 +286,6 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     // prevent discontinuities
     float diff = limitAngle(rot - pRotLimited);
 
-    // keep for debugging
     world::TransformedRobotMeasurement p;
     p.set_time(frame.sourceTime);
     p.set_p_x(-frame.detection.y() / 1000.0);

@@ -88,7 +88,6 @@ private:
 private:
     uint m_id;
     bool m_teamIsYellow;
-    // for debugging
     QMap<int, world::TransformedRobotMeasurement> m_lastRaw;
     QList<world::TransformedRobotMeasurement> m_measurements;
 
