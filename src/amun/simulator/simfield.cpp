@@ -23,11 +23,16 @@
 
 using namespace camun::simulator;
 
+static bool hasBoundary(const world::Geometry& geometry)
+{
+    return geometry.boundary_width() == 0.0 && geometry.boundary_width_goal_line() == 0.0;
+}
+
 SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geometry) :
     m_world(world)
 {
     const float totalWidth = geometry.field_width() / 2.0f + geometry.boundary_width();
-    const float totalHeight = geometry.field_height() / 2.0f + geometry.boundary_width();
+    const float totalHeight = geometry.field_height() / 2.0f + geometry.boundary_width_goal_line();
     // upper boundary
     const float roomHeight = 8.0f;
     const float height = geometry.field_height() / 2.0f - geometry.line_width();
@@ -48,8 +53,8 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
     // others
     addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), M_PI), btVector3(0, 0, roomHeight) * SIMULATOR_SCALE), 0.3, 0.35);
 
-    // if boundary_width == 0.0 the game is played without boundary area and needs different colliders on the goal line
-    if (geometry.boundary_width() == 0.0) {
+    // if the game is played without boundary area and needs different colliders on the goal line
+    if (hasBoundary(geometry)) {
         const auto goalLineBoundaryWidthHalf = 0.5 * (totalWidth - goalWidthHalf);
         m_goalLineBoundaryShape.emplace(btVector3(goalLineBoundaryWidthHalf, 0.5, roomHeight * 0.5) * SIMULATOR_SCALE);
         const auto shapeOffsetX = goalWidthHalf + goalLineBoundaryWidthHalf;
@@ -98,8 +103,8 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
                 }
                 addObject(&m_cornerBlockShape.value(), cornerTransform, 0.3, 0.35);
 
-                // if boundary_width == 0.0 the game is played without boundary area and does not need the blocks around the goals
-                if (geometry.boundary_width() != 0.0) {
+                // if the game is played without boundary area and does not need the blocks around the goals
+                if (!hasBoundary(geometry)) {
                     auto goalTransform = baseTransform;
                     goalTransform.getOrigin() += btVector3(goalWidthOffset, totalHeight, 0) * SIMULATOR_SCALE;
                     if (negativeYHalf) {
@@ -118,7 +123,7 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
 
         // if the game is played without boundary area the goal stands on the outside of the line and not on the middle,
         // so we have to offset the goals by line_width / 2
-        const auto lineWidthOffset = geometry.boundary_width() != 0.0 ? 0.0 : geometry.line_width() * 0.5;
+        const auto lineWidthOffset = hasBoundary(geometry) ? 0.0 : geometry.line_width() * 0.5;
 
         addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
         addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
