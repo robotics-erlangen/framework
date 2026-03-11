@@ -366,23 +366,27 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             const robot::RadioResponse &response = worldState.radio_response(i);
             const char* team_color = response.has_is_blue() ? (response.is_blue() ? "blue" : "yellow") : "unknown";
             const QString name = QString(QStringLiteral("%1-%2-%3")).arg(response.generation()).arg(team_color).arg(response.id());
+            const QString prefix = QString(QStringLiteral("RadioResponse.%1")).arg(name);
+
             const float responseTime = (response.time() - m_startTime) * 1E-9f;
-            parseMessage(response, QString(QStringLiteral("RadioResponse.%1")).arg(name), responseTime);
-            parseMessage(response.extended_error(), QString(QStringLiteral("RadioResponse.%1.extendedError")).arg(name), responseTime);
-            parseMessage(response.board_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus")).arg(name), responseTime);
+            parseMessage(response, prefix, responseTime);
+            parseMessage(response.extended_error(), prefix % ".extendedError", responseTime);
+
+            parseMessage(response.board_status(), prefix % ".boardStatus", responseTime);
             if (response.has_board_status()) {
-                parseMessage(response.board_status().motor_fl_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorFL")).arg(name), responseTime);
-                parseMessage(response.board_status().motor_bl_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorBL")).arg(name), responseTime);
-                parseMessage(response.board_status().motor_br_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorBR")).arg(name), responseTime);
-                parseMessage(response.board_status().motor_fr_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorFR")).arg(name), responseTime);
-                parseMessage(response.board_status().dribbler_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.dribbler")).arg(name), responseTime);
-                parseMessage(response.board_status().kicker_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.kicker")).arg(name), responseTime);
-                parseMessage(response.board_status().imu_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.imu")).arg(name), responseTime);
-                parseMessage(response.board_status().sd_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.sd")).arg(name), responseTime);
+                parseMessage(response.board_status().motor_fl_status(), prefix % ".boardStatus.motorFL", responseTime);
+                parseMessage(response.board_status().motor_bl_status(), prefix % ".boardStatus.motorBL", responseTime);
+                parseMessage(response.board_status().motor_br_status(), prefix % ".boardStatus.motorBR", responseTime);
+                parseMessage(response.board_status().motor_fr_status(), prefix % ".boardStatus.motorFR", responseTime);
+                parseMessage(response.board_status().dribbler_status(), prefix % ".boardStatus.dribbler", responseTime);
+                parseMessage(response.board_status().kicker_status(), prefix % ".boardStatus.kicker", responseTime);
+                parseMessage(response.board_status().imu_status(), prefix % ".boardStatus.imu", responseTime);
+                parseMessage(response.board_status().sd_status(), prefix % ".boardStatus.sd", responseTime);
             }
-            parseMessage(response.estimated_speed(), QString(QStringLiteral("RadioResponse.%1.estimatedSpeed")).arg(name), responseTime);
-            parseMessage(response.measured_pos(), QString(QStringLiteral("RadioResponse.%1.measuredPos")).arg(name), responseTime);
-            parseMessage(response.measured_vel(), QString(QStringLiteral("RadioResponse.%1.measuredVel")).arg(name), responseTime);
+
+            parseMessage(response.estimated_speed(), prefix % ".estimatedSpeed", responseTime);
+            parseMessage(response.measured_pos(), prefix % ".measuredPos", responseTime);
+            parseMessage(response.measured_vel(), prefix % ".measuredVel", responseTime);
         }
     }
 
@@ -390,13 +394,14 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         const robot::RadioCommand &command = status->radio_command(i);
         const char* team_color = command.has_is_blue() ? (command.is_blue() ? "blue" : "yellow") : "unknown";
         const QString name = QString(QStringLiteral("%1-%2-%3")).arg(command.generation()).arg(team_color).arg(command.id());
+        const QString prefix = QString(QStringLiteral("RadioCommand.%1")).arg(name);
 
         const robot::Command &cmd = command.command();
-        parseMessage(cmd, QString(QStringLiteral("RadioCommand.%1")).arg(name), time);
-        parseMessage(cmd.output0(), QString(QStringLiteral("RadioCommand.%1.output0")).arg(name), time);
-        parseMessage(cmd.output1(), QString(QStringLiteral("RadioCommand.%1.output1")).arg(name), time);
-        parseMessage(cmd.output2(), QString(QStringLiteral("RadioCommand.%1.output2")).arg(name), time);
-        parseMessage(cmd.last_detection(), QString(QStringLiteral("RadioCommand.%1.lastDetection")).arg(name), time);
+        parseMessage(cmd, prefix, time);
+        parseMessage(cmd.output0(), prefix % ".output0", time);
+        parseMessage(cmd.output1(), prefix % ".output1", time);
+        parseMessage(cmd.output2(), prefix % ".output2", time);
+        parseMessage(cmd.last_detection(), prefix % ".lastDetection", time);
     }
 
     if (status->has_timing()) {
