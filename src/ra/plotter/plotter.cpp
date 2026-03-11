@@ -368,7 +368,21 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
             const QString name = QString(QStringLiteral("%1-%2-%3")).arg(response.generation()).arg(team_color).arg(response.id());
             const float responseTime = (response.time() - m_startTime) * 1E-9f;
             parseMessage(response, QString(QStringLiteral("RadioResponse.%1")).arg(name), responseTime);
+            parseMessage(response.extended_error(), QString(QStringLiteral("RadioResponse.%1.extendedError")).arg(name), responseTime);
+            parseMessage(response.board_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus")).arg(name), responseTime);
+            if (response.has_board_status()) {
+                parseMessage(response.board_status().motor_fl_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorFL")).arg(name), responseTime);
+                parseMessage(response.board_status().motor_bl_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorBL")).arg(name), responseTime);
+                parseMessage(response.board_status().motor_br_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorBR")).arg(name), responseTime);
+                parseMessage(response.board_status().motor_fr_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.motorFR")).arg(name), responseTime);
+                parseMessage(response.board_status().dribbler_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.dribbler")).arg(name), responseTime);
+                parseMessage(response.board_status().kicker_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.kicker")).arg(name), responseTime);
+                parseMessage(response.board_status().imu_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.imu")).arg(name), responseTime);
+                parseMessage(response.board_status().sd_status(), QString(QStringLiteral("RadioResponse.%1.boardStatus.sd")).arg(name), responseTime);
+            }
             parseMessage(response.estimated_speed(), QString(QStringLiteral("RadioResponse.%1.estimatedSpeed")).arg(name), responseTime);
+            parseMessage(response.measured_pos(), QString(QStringLiteral("RadioResponse.%1.measuredPos")).arg(name), responseTime);
+            parseMessage(response.measured_vel(), QString(QStringLiteral("RadioResponse.%1.measuredVel")).arg(name), responseTime);
         }
     }
 
@@ -382,6 +396,7 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         parseMessage(cmd.output0(), QString(QStringLiteral("RadioCommand.%1.output0")).arg(name), time);
         parseMessage(cmd.output1(), QString(QStringLiteral("RadioCommand.%1.output1")).arg(name), time);
         parseMessage(cmd.output2(), QString(QStringLiteral("RadioCommand.%1.output2")).arg(name), time);
+        parseMessage(cmd.last_detection(), QString(QStringLiteral("RadioCommand.%1.lastDetection")).arg(name), time);
     }
 
     if (status->has_timing()) {
