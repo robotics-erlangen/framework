@@ -136,7 +136,8 @@ void convertToSSlGeometry(const world::Geometry &geometry,  SSL_GeometryFieldSiz
     field->set_field_width(geometry.field_width() * 1000.0f);
     field->set_field_length(geometry.field_height() * 1000.0f);
     field->set_boundary_width(geometry.boundary_width() * 1000.0f);
-    field->set_boundary_width_goal_line(geometry.boundary_width_goal_line() * 1000.0f);
+    const auto boundaryWidthGoalLine = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.boundary_width();
+    field->set_boundary_width_goal_line(boundaryWidthGoalLine * 1000.0f);
     field->set_goal_width(geometry.goal_width() * 1000.0f);
     field->set_goal_depth(geometry.goal_depth() * 1000.0f);
     field->set_goal_substitution_area_width(geometry.goal_substitution_area_width() * 1000.0f);
