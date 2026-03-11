@@ -75,7 +75,7 @@ private:
     // Time (absolute) when new input arrived, in ns.
     qint64 m_startTime;
 
-    PIDController<float> m_robotPhiPID{12, 4.5, 0.8};
+    PIDController<float> m_robotPhiPID{15.5, 0, 0.9};
     std::vector<std::pair<AlphaTimeTrajectory, float>> m_trajs;  // (trajectory, end angle)
     float m_trajOmega;
     // absolute time when m_robotPhiPID was last updated, in ns.
