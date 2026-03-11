@@ -39,7 +39,7 @@
          <item>
           <widget class="QLabel" name="allowedBotsLabelYellow">
            <property name="text">
-            <string>Visible/Allowed</string>
+            <string>InPlay/Allowed</string>
            </property>
           </widget>
          </item>
@@ -260,7 +260,7 @@
          <item>
           <widget class="QLabel" name="allowedBotsLabelBlue">
            <property name="text">
-            <string>Visible/Allowed</string>
+            <string>InPlay/Allowed</string>
            </property>
           </widget>
          </item>

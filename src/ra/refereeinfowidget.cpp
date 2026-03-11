@@ -37,20 +37,44 @@ RefereeInfoWidget::~RefereeInfoWidget()
     delete ui;
 }
 
+std::pair<int, int> RefereeInfoWidget::computeRobotsInField(const world::State& worldState) const {
+    if (!m_substitutionAreaInfo.has_value()) {
+        return { worldState.blue_size(), worldState.yellow_size() };
+    }
+    const auto substitutionAreaY = *m_substitutionAreaInfo;
+    const auto numBlueBots = std::ranges::count_if(worldState.blue(), [&] (const auto &robot) { return robot.p_y() < substitutionAreaY; });
+    const auto numYellowBots = std::ranges::count_if(worldState.yellow(), [&] (const auto &robot) { return robot.p_y() > -substitutionAreaY; });
+    return { numBlueBots, numYellowBots };
+}
+
 void RefereeInfoWidget::handleStatus(const Status &status)
 {
-    bool currentRobotCountChanged = false;
-    if (status->has_world_state()) {
-        if (m_currentRobotCountBlue != status->world_state().blue_size()) {
-            m_currentRobotCountBlue = status->world_state().blue_size();
-            currentRobotCountChanged = true;
+     if (status->has_geometry()) {
+        const auto& geometry = status->geometry();
+        if (geometry.has_division()) {
+            const QString divisionString = "Division: ";
+            switch (geometry.division()) {
+                case world::Geometry_Division_A:
+                    ui->divisionLabel->setText(divisionString + "A");
+                    break;
+                case world::Geometry_Division_B:
+                    ui->divisionLabel->setText(divisionString + "B");
+                    break;
+                default:
+                    ui->divisionLabel->setText("DIVISION ERROR");
+            }
         }
-        if (m_currentRobotCountYellow != status->world_state().yellow_size()) {
-            m_currentRobotCountYellow = status->world_state().yellow_size();
-            currentRobotCountChanged = true;
+
+        if (geometry.has_goal_substitution_area_width()) {
+            m_substitutionAreaInfo = geometry.field_height() * 0.5
+                                            + geometry.boundary_width_goal_line()
+                                            - geometry.goal_substitution_area_width();
+        } else {
+            m_substitutionAreaInfo.reset();
         }
     }
 
+    bool currentRobotCountChanged = false;
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
 
@@ -70,10 +94,6 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         currentRobotCountChanged |= allowedRobotsBlue != m_allowedRobotCountBlue;
         m_allowedRobotCountYellow = allowedRobotsYellow;
         m_allowedRobotCountBlue = allowedRobotsBlue;
-        if (currentRobotCountChanged) {
-            ui->allowedBotsBlue->setText(QString("%1/%2").arg(m_currentRobotCountBlue).arg(m_allowedRobotCountBlue));
-            ui->allowedBotsYellow->setText(QString("%1/%2").arg(m_currentRobotCountYellow).arg(m_allowedRobotCountYellow));
-        }
 
         if (yellowKeeperId != m_yellowKeeperId) {
             m_yellowKeeperId = yellowKeeperId;
@@ -208,21 +228,20 @@ void RefereeInfoWidget::handleStatus(const Status &status)
         }
     }
 
-    if (status->has_geometry()) {
-        const auto& geometry = status->geometry();
-        if (geometry.has_division()) {
-            const QString divisionString = "Division: ";
-            switch (geometry.division()) {
-                case world::Geometry_Division_A:
-                    ui->divisionLabel->setText(divisionString + "A");
-                    break;
-                case world::Geometry_Division_B:
-                    ui->divisionLabel->setText(divisionString + "B");
-                    break;
-                default:
-                    ui->divisionLabel->setText("DIVISION ERROR");
-            }
+    if (status->has_world_state()) {
+        const auto [numBlueBots, numYellowBots] = computeRobotsInField(status->world_state());
+        if (m_currentRobotCountBlue != numBlueBots) {
+            m_currentRobotCountBlue = numBlueBots;
+            currentRobotCountChanged = true;
         }
+        if (m_currentRobotCountYellow != numYellowBots) {
+            m_currentRobotCountYellow = numYellowBots;
+            currentRobotCountChanged = true;
+        }
+    }
+    if (currentRobotCountChanged) {
+        ui->allowedBotsBlue->setText(QString("%1/%2").arg(m_currentRobotCountBlue).arg(m_allowedRobotCountBlue));
+        ui->allowedBotsYellow->setText(QString("%1/%2").arg(m_currentRobotCountYellow).arg(m_allowedRobotCountYellow));
     }
 }
 

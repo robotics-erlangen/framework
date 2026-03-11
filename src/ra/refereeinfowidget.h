@@ -45,6 +45,7 @@ public slots:
 
 private:
     static QString createStyleSheet(const QColor &color);
+    std::pair<int, int> computeRobotsInField(const world::State& worldState) const;
 
 private:
     Ui::RefereeInfoWidget *ui;
@@ -79,6 +80,8 @@ private:
 
     uint m_yellowSubstitutions = 5;
     uint m_blueSubstitutions = 5;
+
+    std::optional<int> m_substitutionAreaInfo;
 };
 
 #endif // REFEREEINFOWIDGET_H
