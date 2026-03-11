@@ -1444,7 +1444,7 @@ void FieldWidget::updateGeometry()
 
         // add some space around the field
         const float offsetTouchLine = g.boundary_width();
-        const float offsetGoalLine = g.boundary_width_goal_line();
+        const float offsetGoalLine = g.has_boundary_width_goal_line() ? g.boundary_width_goal_line() : g.boundary_width();
 
         QRectF rect;
         rect.setLeft(-g.field_width() / 2.0f - offsetTouchLine);
@@ -1602,7 +1602,10 @@ void FieldWidget::virtualFieldSetupDialog()
 
     if (m_usingVirtualField) {
         auto maxX = m_virtualFieldGeometry.field_width() * 0.5 + m_virtualFieldGeometry.boundary_width();
-        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + m_virtualFieldGeometry.boundary_width_goal_line();
+        const auto boundaryWidthGoalLine = m_virtualFieldGeometry.has_boundary_width_goal_line()
+                                                ? m_virtualFieldGeometry.boundary_width_goal_line()
+                                                : m_virtualFieldGeometry.boundary_width();
+        auto maxY = m_virtualFieldGeometry.field_height() * 0.5 + boundaryWidthGoalLine;
         m_aoi = QRectF(QPointF(-maxX, -maxY), QPointF(maxX, maxY));
     }
 
@@ -1618,7 +1621,8 @@ void FieldWidget::resizeAOI(QPointF pos)
     const world::Geometry &geometry = m_usingVirtualField ? m_virtualFieldGeometry : m_drawScenes[m_currentScene].geometry;
     if (geometry.IsInitialized()) {
         double offsetTouchLine = geometry.boundary_width() + 0.1f;
-        double offsetGoalLine = geometry.boundary_width_goal_line() + 0.1f;
+        const auto boundaryWidthGoalLine = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.boundary_width();
+        double offsetGoalLine = boundaryWidthGoalLine + 0.1f;
         double limitX = geometry.field_width() / 2 + offsetTouchLine;
         double limitY = geometry.field_height() / 2 + offsetGoalLine;
         pos.setY(qBound(-limitY, pos.y(), limitY));
@@ -2238,7 +2242,8 @@ void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
     for (const float xSign : { -1, 1 }) {
         for (const float ySign : { -1, 1 }) {
             const float wf = halfFieldWidth + boundaryWidth;
-            const float hf = halfFieldHeight + geometry.boundary_width_goal_line();
+            const auto boundaryWidthGoalLine = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.boundary_width();
+            const float hf = halfFieldHeight + boundaryWidthGoalLine;
             const QPointF corner[] = {
                 QPointF{xSign * wf, ySign * hf},
                 QPointF{xSign * (wf - m_cornerBlockCathetusLength), ySign * hf},
@@ -2347,7 +2352,9 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     painter->drawRect(rect);
     painter->drawLine(QPointF(rect.left(), 0.0f), QPointF(rect.right(), 0.0f));
 
-    drawGoalSubstitutionArea(painter, geometry);
+    if (geometry.has_goal_substitution_area_width()) {
+        drawGoalSubstitutionArea(painter, geometry);
+    }
 
     // center circle
     float r = geometry.center_circle_radius();
@@ -2380,9 +2387,10 @@ void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
     const float d = cosmetic ? 0 : geometry.goal_wall_width() / 2.0f;
     const float h = geometry.field_height() / 2.0f;
     const float w = geometry.goal_width() / 2.0f + d;
+    const float goalDepth = geometry.has_boundary_width_goal_line() ? geometry.boundary_width_goal_line() : geometry.goal_depth();
     path.moveTo( w, side * h);
-    path.lineTo( w, side * (h + geometry.boundary_width_goal_line() + d));
-    path.lineTo(-w, side * (h + geometry.boundary_width_goal_line() + d));
+    path.lineTo( w, side * (h + goalDepth + d));
+    path.lineTo(-w, side * (h + goalDepth + d));
     path.lineTo(-w, side * h);
 
     painter->drawPath(path);

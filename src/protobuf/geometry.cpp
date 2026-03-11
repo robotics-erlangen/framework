@@ -54,7 +54,8 @@ void convertFromSSlGeometry(const SSL_GeometryFieldSize &g, world::Geometry &out
     outGeometry.set_goal_width(g.goal_width() / 1000.0f);
     outGeometry.set_goal_depth(g.goal_depth() / 1000.0f);
     outGeometry.set_boundary_width(g.boundary_width() / 1000.0f);
-    outGeometry.set_boundary_width_goal_line(g.boundary_width_goal_line() / 1000.0f);
+    const auto boundaryWidthGoalLine = g.has_boundary_width_goal_line() ? g.boundary_width_goal_line() : g.boundary_width();
+    outGeometry.set_boundary_width_goal_line(boundaryWidthGoalLine / 1000.0f);
     outGeometry.set_goal_height(0.155f);
     outGeometry.set_goal_wall_width(0.02f);
     outGeometry.set_free_kick_from_defense_dist(0.20f);
