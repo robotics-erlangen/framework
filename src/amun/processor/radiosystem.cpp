@@ -525,17 +525,15 @@ static void board_status_to_extended_error(robot::ExtendedError *ee, const robot
     }
 }
 
-static bool any_error_in_extended_error(const robot::ExtendedError &ee) {
-    return (ee.has_motor_1_error() && ee.motor_1_error())
-        || (ee.has_motor_2_error() && ee.motor_2_error())
-        || (ee.has_motor_3_error() && ee.motor_3_error())
-        || (ee.has_motor_4_error() && ee.motor_4_error())
-        || (ee.has_dribbler_error() && ee.dribbler_error())
-        || (ee.has_kicker_error() && ee.kicker_error())
-        || (ee.has_motor_overheated_error() && ee.motor_overheated_error())
-        || (ee.has_kicker_break_beam_error() && ee.kicker_break_beam_error())
-        || (ee.has_motor_encoder_error() && ee.motor_encoder_error())
-        || (ee.has_main_sensor_error() && ee.main_sensor_error());
+static bool any_error_in_board_status(const robot::BoardStatus &status) {
+    return (status.has_motor_fl_status() && any_motor_error(status.motor_fl_status()))
+        || (status.has_motor_bl_status() && any_motor_error(status.motor_bl_status()))
+        || (status.has_motor_br_status() && any_motor_error(status.motor_br_status()))
+        || (status.has_motor_fr_status() && any_motor_error(status.motor_fr_status()))
+        || (status.has_dribbler_status() && any_motor_error(status.dribbler_status()))
+        || (status.has_kicker_status() && any_kicker_error(status.kicker_status()))
+        || (status.has_imu_status() && any_imu_error(status.imu_status()))
+        || (status.has_sd_status() && any_sd_error(status.sd_status()));
 }
 
 robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t time, const RadioResponse2025 *packet) {
@@ -574,7 +572,7 @@ robot::RadioResponse RadioSystem::handleRobot2025Response(uint8_t id, int64_t ti
         // convert board status to legacy extended error
         robot::ExtendedError *e = r.mutable_extended_error();
         board_status_to_extended_error(e, *boardStatus);
-        r.set_error_present(any_error_in_extended_error(*e));
+        r.set_error_present(any_error_in_board_status(*boardStatus));
 
         // write measured position and velocity
         write_robot_state(r.mutable_measured_pos(), packet_data.measured_pos);
