@@ -419,11 +419,10 @@ export class Path {
 		this._trajectoryInst.setRadius(radius);
 	}
 
-	public addObstacle(obstacle: Obstacle) {
-		if (isPerformanceMode) {
-			// avoid string allocations in ra
-			obstacle.name = undefined;
-		}
+	public addObstacle(obstacle: Readonly<Obstacle>) {
+		// avoid string allocations in ra
+		let name = isPerformanceMode ? undefined : obstacle.name;
+		let common = { name: name, prio: obstacle.prio };
 
 		switch (obstacle.type) {
 			case "circle": {
@@ -432,8 +431,8 @@ export class Path {
 				}
 
 				// strategy to global coordinates conversion
-				obstacle.center = Coordinates.toGlobal(obstacle.center);
-				this._circleObstacles.push(obstacle);
+				const center = Coordinates.toGlobal(obstacle.center);
+				this._circleObstacles.push({ ...common, type: "circle", center: center, radius: obstacle.radius });
 				break;
 			}
 			case "line": {
@@ -442,9 +441,9 @@ export class Path {
 				}
 
 				// strategy to global coordinates conversion
-				obstacle.start = Coordinates.toGlobal(obstacle.start);
-				obstacle.end = Coordinates.toGlobal(obstacle.end);
-				this._lineObstacles.push(obstacle);
+				const start = Coordinates.toGlobal(obstacle.start);
+				const end = Coordinates.toGlobal(obstacle.end);
+				this._lineObstacles.push({ ...common, type: "line", start: start, end: end, radius: obstacle.radius });
 				break;
 			}
 			case "rect": {
@@ -457,9 +456,9 @@ export class Path {
 				}
 
 				// strategy to global coordinates conversion
-				obstacle.start = Coordinates.toGlobal(obstacle.start);
-				obstacle.end = Coordinates.toGlobal(obstacle.end);
-				this._rectObstacles.push(obstacle);
+				const start = Coordinates.toGlobal(obstacle.start);
+				const end = Coordinates.toGlobal(obstacle.end);
+				this._rectObstacles.push({ ...common, type: "rect", start: start, end: end, radius: obstacle.radius });
 				break;
 			}
 			case "triangle": {
@@ -472,10 +471,10 @@ export class Path {
 				}
 
 				// strategy to global coordinates conversion
-				obstacle.p1 = Coordinates.toGlobal(obstacle.p1);
-				obstacle.p2 = Coordinates.toGlobal(obstacle.p2);
-				obstacle.p3 = Coordinates.toGlobal(obstacle.p3);
-				this._triangleObstacles.push(obstacle);
+				const p1 = Coordinates.toGlobal(obstacle.p1);
+				const p2 = Coordinates.toGlobal(obstacle.p2);
+				const p3 = Coordinates.toGlobal(obstacle.p3);
+				this._triangleObstacles.push({ ...common, type: "triangle", p1: p1, p2: p2, p3: p3, lineWidth: obstacle.lineWidth });
 				break;
 			}
 		}
