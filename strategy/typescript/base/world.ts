@@ -48,6 +48,8 @@ export let Ball: BallClass = new BallClass();
 export let FriendlyRobots: readonly FriendlyRobot[] = [];
 /** Own robots which currently aren't tracked */
 export let FriendlyInvisibleRobots: readonly FriendlyRobot[] = [];
+/** Own robots which currently are in the exchange area */
+export let FriendlyRobotsInExchangeArea: readonly FriendlyRobot[] = [];
 /** List of own robots with robot id as index */
 export let FriendlyRobotsById: { readonly [index: number]: FriendlyRobot } = {};
 /** List of all own robots in an arbitary order */
@@ -402,6 +404,7 @@ export function _updateWorld(state: pb.world.State) {
 		// Update data of every own robot
 		let newFriendlyRobots = [];
 		let newFriendlyInvisibleRobots = [];
+		let newFriendlyRobotsInExchangeArea = [];
 		for (let robot of FriendlyRobotsAll) {
 			// get responses for the current robot
 			// these are identified by the robot generation and id
@@ -416,7 +419,9 @@ export function _updateWorld(state: pb.world.State) {
 			robot._update(dataById[robot.id], Time, robotResponses);
 			robot._updatePathBoundaries(Geometry, AoI);
 			// sort robot into visible / not visible
-			if (robot.isVisible) {
+			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y < Geometry.GoalSubstitutionAreaPosY) {
+				newFriendlyRobotsInExchangeArea.push(robot);
+			} else if (robot.isVisible) {
 				newFriendlyRobots.push(robot);
 			} else {
 				newFriendlyInvisibleRobots.push(robot);
@@ -424,6 +429,7 @@ export function _updateWorld(state: pb.world.State) {
 		}
 		FriendlyRobots = newFriendlyRobots;
 		FriendlyInvisibleRobots = newFriendlyInvisibleRobots;
+		FriendlyRobotsInExchangeArea = newFriendlyRobotsInExchangeArea;
 	}
 
 	let dataOpponent = TeamIsBlue ? state.yellow : state.blue;
@@ -441,6 +447,10 @@ export function _updateWorld(state: pb.world.State) {
 				robot = new Robot(rdata.id);
 			}
 			robot.updateOpponent(rdata, Time);
+			// don't add robots that are in the opponent goal substitution area to the OpponentRobots
+			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y > -Geometry.GoalSubstitutionAreaPosY) {
+				continue;
+			}
 			newOpponentRobots.push(robot);
 			newOpponentRobotsById[rdata.id] = robot;
 		}
