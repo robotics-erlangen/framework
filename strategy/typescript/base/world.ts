@@ -342,7 +342,7 @@ function _updateGeometry(geom: pb.world.Geometry) {
 
 	wgeom.GoalSubstitutionAreaPosY = undefined;
 	if (geom.goal_substitution_area_width != undefined) {
-		wgeom.GoalSubstitutionAreaPosY = wgeom.FriendlyGoal.y + wgeom.BoundaryWidthGoalLine - geom.goal_substitution_area_width;
+		wgeom.GoalSubstitutionAreaPosY = -(wgeom.FieldHeightHalf + wgeom.BoundaryWidthGoalLine - geom.goal_substitution_area_width);
 	}
 
 	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
