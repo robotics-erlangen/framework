@@ -2378,7 +2378,7 @@ void FieldWidget::drawLines(QPainter *painter, const world::Geometry& geometry, 
     painter->drawRect(geometryRect);
     painter->drawLine(QPointF(geometryRect.left(), 0.0f), QPointF(geometryRect.right(), 0.0f));
 
-    if (geometry.has_goal_substitution_area_width()) {
+    if (geometry.has_goal_substitution_area_width() && geometry.goal_substitution_area_width() != 0.0) {
         drawGoalSubstitutionArea(painter, geometry);
     }
 

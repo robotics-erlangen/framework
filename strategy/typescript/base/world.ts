@@ -343,7 +343,7 @@ function _updateGeometry(geom: pb.world.Geometry) {
 	wgeom.BoundaryWidthGoalLine = geom.boundary_width_goal_line ?? geom.boundary_width;
 
 	wgeom.GoalSubstitutionAreaPosY = undefined;
-	if (geom.goal_substitution_area_width != undefined) {
+	if (geom.goal_substitution_area_width != undefined && geom.goal_substitution_area_width !== 0.0) {
 		wgeom.GoalSubstitutionAreaPosY = -(wgeom.FieldHeightHalf + wgeom.BoundaryWidthGoalLine - geom.goal_substitution_area_width);
 	}
 
