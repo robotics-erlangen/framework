@@ -40,10 +40,13 @@ public:
     void resetMaxIntersectingObstaclePrio();
 
 private:
-    EscapeObstacleSampler m_zeroV0Sampler;
-    EscapeObstacleSampler m_regularSampler;
+    bool isFirstBrake() const;
+    bool computeFirstBrake(const TrajectoryInput &input);
 
-    bool m_resultIsZeroV0 = false;
+private:
+    std::vector<AlphaTimeTrajectory> m_firstBrakeResult;
+    EscapeObstacleSampler m_firstBrakeSampler;
+    EscapeObstacleSampler m_regularSampler;
 };
 
 #endif // MULTIESCAPESAMPLER_H

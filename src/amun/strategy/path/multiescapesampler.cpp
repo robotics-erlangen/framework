@@ -23,12 +23,15 @@
 
 MultiEscapeSampler::MultiEscapeSampler(RNG *rng, const WorldInformation &world, PathDebug &debug) :
     TrajectorySampler(rng, world, debug),
-    m_zeroV0Sampler(rng, world, debug),
+    m_firstBrakeSampler(rng, world, debug),
     m_regularSampler(rng, world, debug)
 {}
 
-bool MultiEscapeSampler::compute(const TrajectoryInput &input)
-{
+bool MultiEscapeSampler::isFirstBrake() const {
+    return m_firstBrakeResult.size() > 0;
+}
+
+bool MultiEscapeSampler::computeFirstBrake(const TrajectoryInput &input) {
     // It is problematic to use the EscapeObstacleSampler directly. Consider the following scenario:
     // The ball is in front of the robot and the robot is already slightly in the obstacle,
     // but still has velocity in the direction of the ball.
@@ -36,31 +39,57 @@ bool MultiEscapeSampler::compute(const TrajectoryInput &input)
     // but that would indirectly move the obstacle with the ball.
     // Therefore, this class first tests if it is possible to fully break and then escape the
     // obstacle in the best direction, eliminating the problem.
-    TrajectoryInput zeroV0Input = input;
-    zeroV0Input.start.speed = Vector(0, 0);
+    AlphaTimeTrajectory brakeTraj{
+        input.start,
+        Vector(0, 0),
+        0,  // extra time, here 0 as we want to Brake as fast a possible
+        0,  // angle, doesnt matter here as time is 0
+        input.acceleration,
+        input.maxSpeed,
+        0,
+        EndSpeed::EXACT,
+    };
+
+    TrajectoryInput inputAfterBrake = input;
+    inputAfterBrake.start = brakeTraj.endState();
+    inputAfterBrake.t0 = brakeTraj.endTime();
+
     // TODO: in principle, this sampler can be simplified since the result is always a straight line
-    const bool zeroValid = m_zeroV0Sampler.compute(zeroV0Input);
-    if (zeroValid) {
-        AlphaTimeTrajectory traj = m_zeroV0Sampler.getResult()[0];
-        const Vector initialAcc = traj.getTrajectory().initialAcceleration();
-        const float accInV0 = initialAcc.dot(input.start.speed);
-        m_resultIsZeroV0 = accInV0 <= 0;
-    } else {
-        m_resultIsZeroV0 = false;
+    const bool afterBrakeValid = m_firstBrakeSampler.compute(inputAfterBrake);
+    if (!afterBrakeValid) {
+        return false;
     }
-    if (!m_resultIsZeroV0) {
-          const bool valid = m_regularSampler.compute(input);
-          return valid;
-    } else {
-        m_regularSampler.updateFrom(m_zeroV0Sampler);
+
+    std::vector<AlphaTimeTrajectory> afterBrakeTraj = m_firstBrakeSampler.getResult();
+    AlphaTimeTrajectory &firstAfterBrake = afterBrakeTraj[0];
+    const Vector initialAcc = firstAfterBrake.getTrajectory().initialAcceleration();
+    const float accInV0 = initialAcc.dot(input.start.speed);
+    if (accInV0 > 0) {
+        // we still drive through the obstacle
+        return false;
     }
-    return zeroValid;
+
+    m_firstBrakeResult.clear();
+    m_firstBrakeResult.push_back(brakeTraj);
+    m_firstBrakeResult.insert(m_firstBrakeResult.end(), afterBrakeTraj.begin(), afterBrakeTraj.end());
+    return true;
+}
+
+bool MultiEscapeSampler::compute(const TrajectoryInput &input)
+{
+    if (computeFirstBrake(input)) {
+        m_regularSampler.updateFrom(m_firstBrakeSampler);
+        return true;
+    } else {
+        m_firstBrakeResult.clear();
+        return m_regularSampler.compute(input);
+    }
 }
 
 int MultiEscapeSampler::getMaxIntersectingObstaclePrio() const
 {
-    if (m_resultIsZeroV0) {
-        return m_zeroV0Sampler.getMaxIntersectingObstaclePrio();
+    if (isFirstBrake()) {
+        return m_firstBrakeSampler.getMaxIntersectingObstaclePrio();
     } else {
         return m_regularSampler.getMaxIntersectingObstaclePrio();
     }
@@ -68,14 +97,15 @@ int MultiEscapeSampler::getMaxIntersectingObstaclePrio() const
 
 void MultiEscapeSampler::resetMaxIntersectingObstaclePrio()
 {
-    m_zeroV0Sampler.resetMaxIntersectingObstaclePrio();
+    m_firstBrakeSampler.resetMaxIntersectingObstaclePrio();
     m_regularSampler.resetMaxIntersectingObstaclePrio();
 }
 
 const std::vector<AlphaTimeTrajectory> &MultiEscapeSampler::getResult() const
 {
-    if (m_resultIsZeroV0) {
-        return m_zeroV0Sampler.getResult();
+    if (isFirstBrake()) {
+        return m_firstBrakeResult;
+    } else {
+        return m_regularSampler.getResult();
     }
-    return m_regularSampler.getResult();
 }
