@@ -45,7 +45,6 @@ class AlphaTimeTrajectory
     static float minimumTime(Vector startSpeed, Vector endSpeed, float acc, EndSpeed endSpeedType);
     static Vector minTimePos(const RobotState &start, Vector v1, float acc, float slowDownTime);
 
-    static std::optional<Trajectory> tryDirectBrakeOld(const RobotState &start, const RobotState &target, float acc, float slowDownTime);
     static std::optional<AlphaTimeTrajectory> tryDirectBrake(const RobotState &start, const RobotState &target, float acc, float slowDownTime);
     static Trajectory minTimeTrajectory(const RobotState &start, Vector v1, float slowDownTime, float minTime);
 
