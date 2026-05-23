@@ -229,10 +229,10 @@ function Robot:_updatePathBoundaries(geometry, aoi)
 		self.path:setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2)
 	else
 		self.path:setBoundary(
-			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
-			-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
-			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
-			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
+			-geometry.FieldWidthHalf  - geometry.BoundaryWidthTouchLine - 0.02,
+			-geometry.FieldHeightHalf - geometry.BoundaryWidthGoalLine - 0.02,
+			 geometry.FieldWidthHalf  + geometry.BoundaryWidthTouchLine + 0.02,
+			 geometry.FieldHeightHalf + geometry.BoundaryWidthGoalLine + 0.02)
 	end
 end
 

@@ -38,6 +38,7 @@ local Robot = require "../base/robot"
 -- @field Ball Ball - current Ball
 -- @field FriendlyRobots Robot[] - List of own robots in an arbitary order
 -- @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
+-- @field FriendlyRobotsInExchangeArea Robot[] - Own robots which currently are in the exchange area
 -- @field FriendlyRobotsById Map<int,Robot> - List of own robots with robot id as index
 -- @field FriendlyRobotsAll Robot[] - List of all own robots in an arbitary order
 -- @field FriendlyKeeper Robot - Own keeper if on field or nil
@@ -76,6 +77,7 @@ World.AoI = nil
 World.Ball = Ball()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
+World.FriendlyRobotsInExchangeArea = {}
 World.FriendlyRobotsById = {}
 World.FriendlyRobotsAll = {}
 World.FriendlyKeeper = nil
@@ -211,7 +213,13 @@ function World._updateGeometry(geom)
 	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 
-	wgeom.BoundaryWidth = geom.boundary_width
+	wgeom.BoundaryWidthTouchLine = geom.boundary_width
+	wgeom.BoundaryWidthGoalLine = geom.boundary_width_goal_line or geom.boundary_width
+
+	wgeom.GoalSubstitutionAreaPosY = nil
+	if geom.goal_substitution_area_width ~= nil and geom.goal_substitution_area_width ~= 0.0 then
+		wgeom.GoalSubstitutionAreaPosY = -(wgeom.FieldHeightHalf + wgeom.BoundaryWidthGoalLine - geom.goal_substitution_area_width)
+	end
 
 	World.Geometry = table.readonlytable(World.Geometry)
 
@@ -249,6 +257,7 @@ function World._updateWorld(state)
 		-- Update data of every own robot
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
+		World.FriendlyRobotsInExchangeArea = {}
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
 			-- get responses for the current robot
 			-- these are identified by the robot generation and id
@@ -263,7 +272,9 @@ function World._updateWorld(state)
 			robot:_update(dataById[robot.id], World.Time, robotResponses)
 			robot:_updatePathBoundaries(World.Geometry, World.AoI)
 			-- sort robot into visible / not visible
-			if robot.isVisible then
+			if World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y < World.Geometry.GoalSubstitutionAreaPosY then
+				table.insert(World.FriendlyRobotsInExchangeArea, robot)
+			elseif robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
 			else
 				table.insert(World.FriendlyInvisibleRobots, robot)
@@ -286,8 +297,13 @@ function World._updateWorld(state)
 				robot = Robot(rdata.id, false)
 			end
 			robot:_update(rdata, World.Time)
+			-- don't add robots that are in the opponent goal substitution area to the OpponentRobots
+			if World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y > -World.Geometry.GoalSubstitutionAreaPosY then
+				goto continue
+			end
 			table.insert(World.OpponentRobots, robot)
 			World.OpponentRobotsById[rdata.id] = robot
+			::continue::
 		end
 		-- mark dropped robots as invisible
 		for _,robot in pairs(opponentRobotsById) do
