@@ -125,7 +125,9 @@ World.Geometry = {}
 -- @field OpponentGoal Vector - Center point of the goal on the line
 -- @field OpponentGoalLeft Vector
 -- @field OpponentGoalRight Vector
--- @field BoundaryWidth number - Free distance around the playing field
+-- @field BoundaryWidthTouchLine number - Free distance from the touch line to the wall
+-- @field BoundaryWidthGoalLine number - Free distance from the goal line to the wall
+-- @field GoalSubstitutionAreaPosY number - Y position that marks the border to the substitution area
 
 -- initializes Team and Geometry data
 function World._init()
