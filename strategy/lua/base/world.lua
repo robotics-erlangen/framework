@@ -274,12 +274,12 @@ function World._updateWorld(state)
 			robot:_update(dataById[robot.id], World.Time, robotResponses)
 			robot:_updatePathBoundaries(World.Geometry, World.AoI)
 			-- sort robot into visible / not visible
-			if World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y < World.Geometry.GoalSubstitutionAreaPosY then
-				table.insert(World.FriendlyRobotsInExchangeArea, robot)
-			elseif robot.isVisible then
-				table.insert(World.FriendlyRobots, robot)
-			else
+			if not robot.isVisible then
 				table.insert(World.FriendlyInvisibleRobots, robot)
+			elseif World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y < World.Geometry.GoalSubstitutionAreaPosY then
+				table.insert(World.FriendlyRobotsInExchangeArea, robot)
+			else
+				table.insert(World.FriendlyRobots, robot)
 			end
 		end
 	end
