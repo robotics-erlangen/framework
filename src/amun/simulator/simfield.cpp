@@ -42,12 +42,13 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
     const float goalWidthHalf = geometry.goal_width() / 2.0f + geometry.goal_wall_width();
     const float goalHeightHalf = geometry.goal_height() / 2.0f;
     const float goalDepth = geometry.goal_depth() + geometry.goal_wall_width();
-    const float goalDepthHalf = goalDepth / 2.0f;
+    // goal side walls need to extend to the wall
+    const float goalSideWallLengthHalf = boundaryWidthGoalLine / 2.0f;
     const float goalWallHalf = geometry.goal_wall_width() / 2.0f;
 
     // obstacle prototypes
     m_plane = new btStaticPlaneShape(btVector3(0, 0, 1), 0);
-    m_goalSide = new btBoxShape(btVector3(goalWallHalf, goalDepthHalf, goalHeightHalf) * SIMULATOR_SCALE);
+    m_goalSide = new btBoxShape(btVector3(goalWallHalf, goalSideWallLengthHalf, goalHeightHalf) * SIMULATOR_SCALE);
     m_goalBack = new btBoxShape(btVector3(goalWidthHalf, goalWallHalf, goalHeightHalf) * SIMULATOR_SCALE);
 
     // build field cube
@@ -128,8 +129,8 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
         // so we have to offset the goals by line_width / 2
         const auto lineWidthOffset = hasBoundary(geometry) ? 0.0 : geometry.line_width() * 0.5;
 
-        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
-        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
+        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalSideWallLengthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
+        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalSideWallLengthHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
         addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf + lineWidthOffset), goalHeightHalf) * SIMULATOR_SCALE), 0.1, 0.5);
     }
 }
