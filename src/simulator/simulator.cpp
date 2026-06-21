@@ -670,7 +670,7 @@ int main(int argc, char* argv[])
     parser.setApplicationDescription("ER-Force simulator command line interface");
     parser.addHelpOption();
 
-    QCommandLineOption geometryConfig({"g", "geometry"}, "The geometry file to load as default", "file", "2020");
+    QCommandLineOption geometryConfig({"g", "geometry"}, "The geometry file to load as default", "file", "2026");
     QCommandLineOption realismConfig("realism", "Simulator realism configuration (short file name without the .txt)", "realism", "Realistic");
     QCommandLineOption localhostConfig("localhost", "Use localhost as the output address for the simulator");
     parser.addOption(geometryConfig);
