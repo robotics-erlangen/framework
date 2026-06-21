@@ -276,7 +276,7 @@ function World._updateWorld(state)
 			-- sort robot into visible / not visible
 			if not robot.isVisible then
 				table.insert(World.FriendlyInvisibleRobots, robot)
-			elseif World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y < World.Geometry.GoalSubstitutionAreaPosY then
+			elseif World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y < World.Geometry.GoalSubstitutionAreaPosY - Constants.maxRobotRadius then
 				table.insert(World.FriendlyRobotsInExchangeArea, robot)
 			else
 				table.insert(World.FriendlyRobots, robot)
@@ -300,7 +300,7 @@ function World._updateWorld(state)
 			end
 			robot:_update(rdata, World.Time)
 			-- don't add robots that are in the opponent goal substitution area to the OpponentRobots
-			if World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y > -World.Geometry.GoalSubstitutionAreaPosY then
+			if World.Geometry.GoalSubstitutionAreaPosY ~= nil and robot.pos.y > -(World.Geometry.GoalSubstitutionAreaPosY - Constants.maxRobotRadius) then
 				goto continue
 			end
 			table.insert(World.OpponentRobots, robot)

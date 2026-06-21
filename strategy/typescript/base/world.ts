@@ -419,7 +419,7 @@ export function _updateWorld(state: pb.world.State) {
 			robot._update(dataById[robot.id], Time, robotResponses);
 			robot._updatePathBoundaries(Geometry, AoI);
 			// sort robot into visible / not visible
-			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y < Geometry.GoalSubstitutionAreaPosY) {
+			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y < Geometry.GoalSubstitutionAreaPosY - robot.radius) {
 				newFriendlyRobotsInExchangeArea.push(robot);
 			} else if (robot.isVisible) {
 				newFriendlyRobots.push(robot);
@@ -448,7 +448,7 @@ export function _updateWorld(state: pb.world.State) {
 			}
 			robot.updateOpponent(rdata, Time);
 			// don't add robots that are in the opponent goal substitution area to the OpponentRobots
-			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y > -Geometry.GoalSubstitutionAreaPosY) {
+			if (Geometry.GoalSubstitutionAreaPosY != undefined && robot.pos.y > -(Geometry.GoalSubstitutionAreaPosY - robot.radius)) {
 				continue;
 			}
 			newOpponentRobots.push(robot);
