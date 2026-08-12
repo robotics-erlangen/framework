@@ -398,13 +398,30 @@ void SimRobot::begin(SimBall *ball, double time)
         m_shootTime = 0.0;
     }
 
-    if (m_inStandby || !m_sslCommand.has_move_command() || !m_sslCommand.move_command().has_local_velocity()) {
+    if (m_inStandby || !m_sslCommand.has_move_command()) {
         return;
     }
 
-    float output_v_f = m_sslCommand.move_command().local_velocity().forward();
-    float output_v_s = -m_sslCommand.move_command().local_velocity().left();
-    float output_omega = m_sslCommand.move_command().local_velocity().angular();
+    float output_v_f = 0.0;
+    float output_v_s = 0.0;
+    float output_omega = 0.0;
+
+    if(m_sslCommand.move_command().has_global_velocity()) {
+        const btQuaternion q = m_body->getWorldTransform().getRotation();
+        const btVector3 dir = btMatrix3x3(q).getColumn(0);
+        const float body_global_rotation_rad = atan2(dir.y(), dir.x());
+        const float global_to_local_rotation = -body_global_rotation_rad;
+
+        output_v_f = m_sslCommand.move_command().global_velocity().x() * cos(global_to_local_rotation) - m_sslCommand.move_command().global_velocity().y() * sin(global_to_local_rotation);
+        output_v_s = -(m_sslCommand.move_command().global_velocity().x() * sin(global_to_local_rotation) + m_sslCommand.move_command().global_velocity().y() * cos(global_to_local_rotation));
+        output_omega = m_sslCommand.move_command().global_velocity().angular();
+    }else if (m_sslCommand.move_command().has_local_velocity()) {
+        output_v_f = m_sslCommand.move_command().local_velocity().forward();
+        output_v_s = -m_sslCommand.move_command().local_velocity().left();
+        output_omega = m_sslCommand.move_command().local_velocity().angular();
+    }else {
+        return;
+    }
 
     btVector3 v_local(t.inverse() * m_body->getLinearVelocity());
     btVector3 v_d_local(boundSpeed(output_v_s), boundSpeed(output_v_f), 0);

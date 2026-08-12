@@ -526,7 +526,7 @@ void RobotCommandAdaptor::handleDatagrams()
         for (const auto& command : control->robot_commands()) {
             if (command.has_move_command()) {
                 const auto& moveCmd = command.move_command();
-                if (moveCmd.has_wheel_velocity() || moveCmd.has_global_velocity()) {
+                if (moveCmd.has_wheel_velocity()) {
                     sendRcr = true;
                     const std::string robotStr = "(Robot :" + std::to_string(command.id()) + ")";
                     setError(rcr.add_errors(), SimError::UNSUPPORTED_VELOCITY, ERROR_SOURCE, robotStr);
